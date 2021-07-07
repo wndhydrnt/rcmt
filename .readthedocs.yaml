@@ -1,10 +1,13 @@
 version: 2
 
+build:
+  image: testing # Because Python 3.9 is only available in "testing".
+
 sphinx:
   configuration: docs/conf.py
 
 python:
-  version: "3.8"
+  version: "3.9"
   install:
     - requirements: requirements.txt
     - method: pip
