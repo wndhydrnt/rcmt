@@ -1,0 +1,11 @@
+# This name identifies the package.
+# rcmt errors if two packages share the same name.
+name: flake8
+# Actions tell rcmt what to do and how.
+actions:
+    # Name of the file that rcmt manages.
+  - file: .flake8
+    # The action that rcmt takes. The "own" action lets rcmt
+    # take ownership of the file.
+    # rcmt resets the file if somebody changes it in a repository.
+    action: own

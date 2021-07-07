@@ -1,0 +1,48 @@
+openapi: 3.0.3
+
+info:
+  description: Bootstrap repositories and manage files in them.
+  title: Repository Configuration Management Tool API
+  version: 0.1.0
+
+paths:
+  /v0/bootstrap:
+    post:
+      operationId: bootstrapV0
+      summary: Bootstrap a repository.
+      responses:
+        "200":
+          description: Repository bootstrapped successfully.
+
+  /v0/manage:
+    post:
+      operationId: manageV0
+      summary: Manage a repository.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RepositoryRun"
+        required: true
+      responses:
+        "200":
+          description: Operation successful.
+
+components:
+  schemas:
+    RepositoryRun:
+      type: object
+      properties:
+        matches:
+          type: object
+          properties:
+            name:
+              type: string
+            service:
+              type: string
+        name:
+          type: string
+        packages:
+          type: array
+          items:
+            type: string

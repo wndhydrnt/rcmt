@@ -1,0 +1,8 @@
+# Match all repositories of MyOrg.
+match: github:MyOrg:*
+# rcmt uses this name when committing changes.
+name: python-defaults
+# A list of package names to apply to all matching repositories.
+# "flake8" is the name set in the manifest.yaml file of the
+# flake8 package.
+packages: ["flake8"]

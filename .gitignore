@@ -1,0 +1,10 @@
+*.png
+tmp/
+.dev/
+.venv/
+data/
+__pycache__/
+*.pyc
+Pipfile
+docs/_build/
+
