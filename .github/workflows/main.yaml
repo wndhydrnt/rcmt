@@ -13,5 +13,6 @@ jobs:
         with:
           python-version: 3.9
       - uses: Gr1N/setup-poetry@v5
+      - run: poetry install
       - run: poetry run make lint
       - run: poetry run make test
