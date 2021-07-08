@@ -45,6 +45,9 @@ class Config(pydantic.BaseModel):
     json_: Json = Field(alias="json", default=Json())
     log_level: str
     packages_path: str
+    pr_title_prefix: str = "rcmt:"
+    pr_title_body: str = "Configuration files changed"
+    pr_title_suffix: str = ""
     run_path: str
     toml: Toml = Toml()
     yaml: Yaml = Yaml()

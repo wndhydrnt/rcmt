@@ -25,13 +25,13 @@ class GithubRepository(Repository):
     def clone_url(self):
         return self.repo.clone_url
 
-    def create_pull_request(self, branch: str):
+    def create_pull_request(self, branch: str, title: str, body: str):
         log.debug(
             "Creating pull request", base=self.base_branch, head=branch, repo=str(self)
         )
         self.repo.create_pull(
-            title="rcmt: Updates",
-            body="",
+            title=title,
+            body=body,
             base=self.base_branch,
             head=branch,
             maintainer_can_modify=True,

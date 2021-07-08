@@ -23,11 +23,13 @@ class Repository:
         """
         raise NotImplementedError("class does not implement Repository.clone_url()")
 
-    def create_pull_request(self, branch: str) -> None:
+    def create_pull_request(self, branch: str, title: str, body: str) -> None:
         """
         Creates a pull request for the given branch.
 
         :param branch: Name of the branch.
+        :param title: Title of the pull request.
+        :param body: Message body of the pull request.
         :return: None
         """
         raise NotImplementedError(
