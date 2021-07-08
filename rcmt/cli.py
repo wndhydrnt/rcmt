@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 import click
 
 import rcmt
@@ -20,6 +19,4 @@ def main():
     pass
 
 
-if __name__ == "__main__":
-    main.add_command(run)
-    main()
+main.add_command(run)
