@@ -19,7 +19,7 @@ class Git(pydantic.BaseModel):
 
 
 class Github(pydantic.BaseModel):
-    access_token: str = os.getenv("GITHUB_ACCESS_TOKEN")
+    access_token: str = os.getenv("GITHUB_ACCESS_TOKEN", "")
 
 
 class Json(pydantic.BaseModel):
