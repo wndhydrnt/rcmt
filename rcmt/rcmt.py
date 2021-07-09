@@ -108,6 +108,7 @@ def config_to_options(cfg: config.Config) -> Options:
     )
 
     opts.action_registry.add("delete_keys", action.DeleteKeys.factory)
+    opts.action_registry.add("exec", action.exec_factory)
     opts.action_registry.add("merge", action.Merge.factory)
     opts.action_registry.add("own", action.Own.factory_own)
     opts.action_registry.add("seed", action.Own.factory_seed)

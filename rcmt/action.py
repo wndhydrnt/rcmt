@@ -2,6 +2,7 @@ import io
 import json
 import os
 import pathlib
+import subprocess
 from typing import Any, Callable, MutableMapping, TextIO
 
 import mergedeep
@@ -154,6 +155,35 @@ class DeleteKeys(Action):
                 del data[qk]
 
         return data
+
+
+class Exec(Action):
+    def __init__(self, exec_path: str, timeout: int):
+        self.exec_path = exec_path
+        self.timeout = timeout
+
+    def apply(self, repo_file_path: str, tpl_data: str) -> None:
+        result = subprocess.run(
+            args=[self.exec_path, repo_file_path],
+            capture_output=True,
+            shell=True,
+            timeout=self.timeout,
+        )
+        if result.returncode > 0:
+            raise RuntimeError(
+                f"""Exec action call to {self.exec_path} failed.
+    stdout: {result.stdout.decode('utf-8')}
+    stderr: {result.stderr.decode('utf-8')}"""
+            )
+
+
+def exec_factory(er: EncodingRegistry, opts: dict) -> Exec:
+    exec_path = opts.get("exec_path")
+    if exec_path is None:
+        raise RuntimeError("Exec Action: Required option exec_path not set")
+
+    timeout = opts.get("timeout") or 120
+    return Exec(exec_path, timeout)
 
 
 class Registry:
