@@ -14,9 +14,15 @@ def run(config: str, packages: str, matcher: str):
     rcmt.run(opts)
 
 
+@click.command()
+def version():
+    click.echo(rcmt.__version__)
+
+
 @click.group()
 def main():
     pass
 
 
 main.add_command(run)
+main.add_command(version)

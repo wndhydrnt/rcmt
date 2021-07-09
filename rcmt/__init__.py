@@ -5,6 +5,16 @@ rcmt
 rcmt (short for Repository Configuration Management Tool) helps aligning configuration
 files across many repositories.
 
+
+Installation
+************
+
+.. code-block:: bash
+
+   pip install rcmt
+   rcmt --help
+
+
 Quickstart
 **********
 
@@ -42,4 +52,11 @@ Everything is ready. Run rcmt:
    ./bin/rcmt run --packages ./docs/examples/simple/packages ./docs/examples/simple/matcher.yaml
 
 """
+import importlib.metadata
+
 from .rcmt import options_from_config, run
+
+try:
+    __version__ = importlib.metadata.version(__name__)
+except:
+    __version__ = "develop"
