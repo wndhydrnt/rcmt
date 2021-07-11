@@ -1,3 +1,7 @@
+"""
+Actions encapsulate behavior of how to change a file.
+"""
+
 import io
 import json
 import os
@@ -80,31 +84,119 @@ class Toml(Encoding):
 
 
 class Action:
+    """
+    Action is the abstract class that defines the interface each action implements.
+    """
+
     def apply(self, repo_file_path: str, tpl_data: str) -> None:
+        """
+        apply modifies a file in a repository.
+
+        :param repo_file_path: The absolute path to the file in a repository to modify.
+        :param tpl_data: The content of the file from a package, already populated with
+                         template data.
+        :return: None
+        """
         raise NotImplementedError("class does not implement Action.apply()")
 
 
 class Own(Action):
-    def __init__(self, seed_only: bool) -> None:
-        self.seed_only = seed_only
+    """
+    Own ensures that a file in a repository stays the same.
 
-    @staticmethod
-    def factory_own(er: EncodingRegistry, opts: dict):
-        return Own(False)
+    It always overwrites the data in the file with the data from a package.
 
-    @staticmethod
-    def factory_seed(er: EncodingRegistry, opts: dict):
-        return Own(True)
+    **Usage**
+
+    .. code-block:: yaml
+
+       name: own_example
+       actions:
+         - action: own
+           file: config.yaml
+
+    **Options**
+
+    This action does not have any options.
+    """
 
     def apply(self, repo_file_path: str, tpl_data: str) -> None:
-        if os.path.isfile(repo_file_path) and self.seed_only:
-            return
-
         with open(repo_file_path, "w+") as f:
             f.write(tpl_data)
 
 
+class Seed(Own):
+    """
+    Seed ensures that a file in a repository is present.
+
+    It does not modify the file again if the file is present in a repository.
+
+    **Usage**
+
+    .. code-block:: yaml
+
+       name: seed_example
+       actions:
+         - action: seed
+           file: config.yaml
+
+    **Options**
+
+    This action does not have any options.
+    """
+
+    def apply(self, repo_file_path: str, tpl_data: str) -> None:
+        if os.path.isfile(repo_file_path):
+            return
+
+        super().apply(repo_file_path, tpl_data)
+
+
 class Merge(Action):
+    """
+    Merge merges the content of a file in a repository with the content of a file from a
+    package.
+
+    It supports merging of various file formats through Encodings<<link>>.
+
+    **Usage**
+
+    .. code-block:: yaml
+
+       # Declaration in Manifest of Package
+       name: merge_example
+       actions:
+         - action: merge
+           file: config.yaml
+
+    .. code-block:: yaml
+
+       # config.yaml in Package
+       database:
+         host: new.example.local
+         username: abc
+         ssl: true
+
+    .. code-block:: yaml
+
+       # config.yaml in a repository
+       database:
+         host: old.example.local
+         username: abc
+
+    .. code-block:: yaml
+
+       # Result after merge
+       database:
+         host: new.example.local
+         username: abc
+         ssl: true
+
+    **Options**
+
+    This action does not have any options.
+    """
+
     def __init__(self, encodings: EncodingRegistry):
         self.encodings = encodings
 
@@ -125,6 +217,46 @@ class Merge(Action):
 
 
 class DeleteKeys(Action):
+    """
+    DeleteKeys deletes a key from a dictionary.
+
+    **Usage**
+
+    .. code-block:: yaml
+
+       name: delete_keys_example
+       actions:
+         - action: delete_keys
+           file: config.yaml
+           opts:
+             keys:
+               - "foo.bar.baz"
+
+    Deletes the key `baz` and everything under it.
+
+    Before:
+
+    .. code-block:: yaml
+
+       foo:
+         bar:
+           baz: to be deleted
+        other: keep this
+
+    After:
+
+    .. code-block:: yaml
+
+       foo:
+         bar: {}
+        other: keep this
+
+    **Options**
+
+    * `keys`: A list of strings where each entry is a path to the key to delete.
+      (required)
+    """
+
     def __init__(self, encodings: EncodingRegistry):
         self.encodings = encodings
 
@@ -158,6 +290,35 @@ class DeleteKeys(Action):
 
 
 class Exec(Action):
+    """
+    Exec calls an executable. This action allows modifications of files that cannot be
+    modified in Python, e.g. source code of other programming languages.
+
+    The executable needs to accept the path to a file in a repository as a parameter:
+
+    .. code-block:: bash
+
+       /my-program /tmp/rcmt/data/github/rcmt-test/file.py
+
+    **Usage**
+
+    .. code-block:: yaml
+
+       name: exec_example
+       actions:
+         - action: exec
+           file: config.yaml
+           opts:
+             exec_path: /home/me/my-program
+             timeout: 30
+
+    **Options**
+
+    * `exec_path`: Path to the executable to call. (required)
+    * `timeout`: Duration, in seconds, after which execution stops. Passes this option to subprocess.run(). (default: `120`)
+
+    """
+
     def __init__(self, exec_path: str, timeout: int):
         self.exec_path = exec_path
         self.timeout = timeout
