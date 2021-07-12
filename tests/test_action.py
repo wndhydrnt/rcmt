@@ -1,18 +1,19 @@
 import unittest
 from unittest import mock
 
-from rcmt.action import DeleteKeys, EncodingRegistry, Exec, exec_factory
+from rcmt import encoding
+from rcmt.action import DeleteKeys, Exec, exec_factory
 
 
 class ExecTest(unittest.TestCase):
     def test_exec_factory(self):
         with self.assertRaises(RuntimeError) as e:
-            exec_factory(EncodingRegistry(), {})
+            exec_factory(encoding.Registry(), {})
         self.assertEqual(
             "Exec Action: Required option exec_path not set", str(e.exception)
         )
 
-        ea = exec_factory(EncodingRegistry(), {"exec_path": "python"})
+        ea = exec_factory(encoding.Registry(), {"exec_path": "python"})
         self.assertEqual(120, ea.timeout)
 
     @mock.patch("subprocess.run")

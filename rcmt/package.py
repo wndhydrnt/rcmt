@@ -7,7 +7,7 @@ import pydantic
 import structlog
 import yaml
 
-from rcmt import action
+from rcmt import action, encoding
 
 log = structlog.get_logger()
 
@@ -58,7 +58,7 @@ class PackageReader:
     def __init__(
         self,
         action_registry: action.Registry,
-        encoding_registry: action.EncodingRegistry,
+        encoding_registry: encoding.Registry,
     ):
         self.action_registry = action_registry
         self.encoding_registry = encoding_registry

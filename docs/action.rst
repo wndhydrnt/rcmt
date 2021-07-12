@@ -3,12 +3,6 @@ Actions
 
 .. automodule:: rcmt.action
 
-Helpers and base classes
-------------------------
-
-.. autoclass:: Action
-   :members: apply
-
 Action classes
 --------------
 
@@ -20,3 +14,8 @@ Action classes
 
 .. autoclass:: Own
 
+Helpers and base classes
+------------------------
+
+.. autoclass:: Action
+   :members: apply

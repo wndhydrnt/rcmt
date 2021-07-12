@@ -4,7 +4,7 @@ import re
 import structlog
 import yaml
 
-from rcmt import action, config, git, package, source
+from rcmt import action, config, encoding, git, package, source
 
 structlog.configure(
     wrapper_class=structlog.make_filtering_bound_logger(logging.DEBUG),
@@ -17,7 +17,7 @@ class Options:
     def __init__(self, cfg: config.Config):
         self.config = cfg
         self.action_registry: action.Registry = action.Registry()
-        self.encoding_registry: action.EncodingRegistry = action.EncodingRegistry()
+        self.encoding_registry: encoding.Registry = encoding.Registry()
         self.sources: list[source.SourceLister] = []
 
 
@@ -100,18 +100,20 @@ def options_from_config(path: str) -> Options:
 def config_to_options(cfg: config.Config) -> Options:
     opts = Options(cfg)
 
-    opts.encoding_registry = action.EncodingRegistry()
-    opts.encoding_registry.add(action.Json(cfg.json_.indent), cfg.json_.extensions)
-    opts.encoding_registry.add(action.Toml(), cfg.toml.extensions)
-    opts.encoding_registry.add(
-        action.Yaml(cfg.yaml.explicit_start), cfg.yaml.extensions
+    opts.encoding_registry = encoding.Registry()
+    opts.encoding_registry.register(
+        encoding.Json(cfg.json_.indent), cfg.json_.extensions
+    )
+    opts.encoding_registry.register(encoding.Toml(), cfg.toml.extensions)
+    opts.encoding_registry.register(
+        encoding.Yaml(cfg.yaml.explicit_start), cfg.yaml.extensions
     )
 
     opts.action_registry.add("delete_keys", action.DeleteKeys.factory)
     opts.action_registry.add("exec", action.exec_factory)
     opts.action_registry.add("merge", action.Merge.factory)
-    opts.action_registry.add("own", action.Own.factory_own)
-    opts.action_registry.add("seed", action.Own.factory_seed)
+    opts.action_registry.add("own", action.own_factory)
+    opts.action_registry.add("seed", action.seed_factory)
 
     if cfg.github.access_token != "":
         source_github = source.Github(cfg.github.access_token)
