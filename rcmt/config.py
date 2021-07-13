@@ -44,7 +44,6 @@ class Config(pydantic.BaseModel):
     # Add _ because json is a reserved field of pydantic
     json_: Json = Field(alias="json", default=Json())
     log_level: str
-    packages_path: str
     pr_title_prefix: str = "rcmt:"
     pr_title_body: str = "Configuration files changed"
     pr_title_suffix: str = ""

@@ -105,14 +105,15 @@ class PackageReader:
         pkg.checksum = checksum
         return pkg
 
-    def read_packages(self, path: str) -> list[Package]:
-        log.debug("reading packages", root_dir=path)
+    def read_packages(self, paths: list[str]) -> list[Package]:
         packages = []
-        for entry in os.listdir(path):
-            package_path = os.path.join(path, entry)
-            if not os.path.isdir(package_path):
-                continue
+        for path in paths:
+            log.debug("reading packages", root_dir=path)
+            for entry in os.listdir(path):
+                package_path = os.path.join(path, entry)
+                if not os.path.isdir(package_path):
+                    continue
 
-            packages.append(self.read_package(package_path))
+                packages.append(self.read_package(package_path))
 
         return packages
