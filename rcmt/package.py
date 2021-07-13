@@ -2,7 +2,7 @@ import glob
 import hashlib
 import os
 import string
-from typing import Optional
+from typing import Any, Optional
 
 import pydantic
 import structlog
@@ -38,10 +38,30 @@ class ActionWrapper:
 
 
 class ManifestAction(pydantic.BaseModel):
-    action: str
-    file: str
-    opts: dict = {}
-    pattern: Optional[str]
+    file_selector: str
+    own: Optional[action.OwnOptions]
+    seed: Optional[action.SeedOptions]
+
+    @pydantic.root_validator
+    def check_action_set(cls, values: dict):
+        not_none: list[str] = []
+        for key, val in values.items():
+            if key == "file_selector":
+                continue
+
+            if val is not None:
+                not_none.append(key)
+
+        if len(not_none) == 0:
+            raise ValueError("No action set")
+
+        if len(not_none) > 1:
+            raise ValueError(f"Multiple actions set: {', '.join(not_none)}")
+
+        return values
+
+    def get_action_options(self) -> Any:
+        pass
 
 
 class Manifest(pydantic.BaseModel):

@@ -6,7 +6,9 @@ import io
 import os
 import pathlib
 import subprocess
-from typing import Callable
+from typing import Any, Callable
+
+import pydantic
 
 from rcmt import encoding
 
@@ -26,6 +28,10 @@ class Action:
         :return: None
         """
         raise NotImplementedError("class does not implement Action.apply()")
+
+
+class OwnOptions(pydantic.BaseModel):
+    pass
 
 
 class Own(Action):
@@ -53,8 +59,12 @@ class Own(Action):
             f.write(tpl_data)
 
 
-def own_factory(er: encoding.Registry, opts: dict) -> Own:
+def own_factory(er: encoding.Registry, opts: Any) -> Own:
     return Own()
+
+
+class SeedOptions(pydantic.BaseModel):
+    pass
 
 
 class Seed(Own):
