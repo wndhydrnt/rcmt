@@ -1,4 +1,5 @@
 import glob
+import hashlib
 import os
 import string
 from typing import Optional
@@ -52,6 +53,14 @@ class Package:
     def __init__(self, name):
         self.name = name
         self.actions: list[ActionWrapper] = []
+        self.checksum = None
+
+    @property
+    def version(self) -> str:
+        if self.checksum is None:
+            return ""
+
+        return self.checksum.hexdigest()[0:8]
 
 
 class PackageReader:
@@ -69,8 +78,11 @@ class PackageReader:
         if not os.path.isfile(manifest_path):
             raise PackageInvalidError("manifest.yaml not found")
 
+        checksum = hashlib.sha256(b"")
         with open(manifest_path, "r") as f:
-            data = yaml.load(f, Loader=yaml.FullLoader)
+            data_raw = f.read()
+            checksum.update(data_raw.encode("utf-8"))
+            data = yaml.load(data_raw, Loader=yaml.FullLoader)
 
         manifest = Manifest(**data)
         pkg = Package(manifest.name)
@@ -82,6 +94,7 @@ class PackageReader:
             a = self.action_registry.create(ma.action, self.encoding_registry, ma.opts)
             with open(tpl_path) as f:
                 data = f.read()
+                checksum.update(data.encode("utf-8"))
 
             pattern = ma.pattern
             if pattern is None:
@@ -89,6 +102,7 @@ class PackageReader:
 
             pkg.actions.append(ActionWrapper(ma.file, pattern, data, a))
 
+        pkg.checksum = checksum
         return pkg
 
     def read_packages(self, path: str) -> list[Package]:
