@@ -60,7 +60,7 @@ def run(opts: Options):
         needs_push = gitc.needs_push(work_dir)
         if needs_push:
             if opts.config.dry_run:
-                log.info("DRY RUN: Not pushing changes")
+                log.warn("DRY RUN: Not pushing changes")
             else:
                 log.debug("Pushing changes", repo=str(repo))
                 gitc.push(work_dir)
@@ -68,7 +68,7 @@ def run(opts: Options):
         open_pr_identifier = repo.find_open_pull_request(gitc.branch_name)
         if needs_push is True and open_pr_identifier is None:
             if opts.config.dry_run:
-                log.info("DRY RUN: Not creating pull request")
+                log.warn("DRY RUN: Not creating pull request")
             else:
                 log.info("Create pull request", repo=str(repo))
                 repo.create_pull_request(
@@ -82,7 +82,7 @@ def run(opts: Options):
         ):
             if repo.has_successful_pr_build(open_pr_identifier):
                 if opts.config.dry_run:
-                    log.info("DRY RUN: Not merging pull request", repo=str(repo))
+                    log.warn("DRY RUN: Not merging pull request", repo=str(repo))
                 else:
                     log.info("Merge pull request", repo=str(repo))
                     repo.merge_pull_request(open_pr_identifier)
