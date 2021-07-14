@@ -42,7 +42,6 @@ def run(opts: Options):
                 log.debug(
                     "Applying action",
                     action=a.action.__class__.__name__,
-                    name=a.name,
                     pkg=pkg.name,
                     repo=str(repo),
                 )
@@ -110,7 +109,7 @@ def config_to_options(cfg: config.Config) -> Options:
         encoding.Yaml(cfg.yaml.explicit_start), cfg.yaml.extensions
     )
 
-    opts.action_registry.add("delete_keys", action.DeleteKeys.factory)
+    opts.action_registry.add("delete_key", action.DeleteKey.factory)
     opts.action_registry.add("exec", action.exec_factory)
     opts.action_registry.add("merge", action.Merge.factory)
     opts.action_registry.add("own", action.own_factory)

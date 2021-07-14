@@ -5,12 +5,11 @@ Actions encapsulate behavior of how to change a file.
 import io
 import os
 import pathlib
+import string
 import subprocess
-from typing import Any, Callable
+from typing import Callable
 
-import pydantic
-
-from rcmt import encoding
+from rcmt import encoding, manifest
 
 
 class Action:
@@ -18,7 +17,7 @@ class Action:
     Action is the abstract class that defines the interface each action implements.
     """
 
-    def apply(self, repo_file_path: str, tpl_data: str) -> None:
+    def apply(self, repo_file_path: str, tpl_data: dict) -> None:
         """
         apply modifies a file in a repository.
 
@@ -28,10 +27,6 @@ class Action:
         :return: None
         """
         raise NotImplementedError("class does not implement Action.apply()")
-
-
-class OwnOptions(pydantic.BaseModel):
-    pass
 
 
 class Own(Action):
@@ -54,17 +49,21 @@ class Own(Action):
     This action does not have any options.
     """
 
-    def apply(self, repo_file_path: str, tpl_data: str) -> None:
+    def __init__(self, tpl: string.Template):
+        self.tpl = tpl
+
+    def apply(self, repo_file_path: str, tpl_data: dict) -> None:
         with open(repo_file_path, "w+") as f:
-            f.write(tpl_data)
+            f.write(self.tpl.substitute(tpl_data))
 
 
-def own_factory(er: encoding.Registry, opts: Any) -> Own:
-    return Own()
+def own_factory(er: encoding.Registry, opts: manifest.Action, pkg_path: str) -> Own:
+    assert opts.own is not None
+    source_path = os.path.join(pkg_path, opts.own.source_file)
+    with open(source_path, "r") as f:
+        data = f.read()
 
-
-class SeedOptions(pydantic.BaseModel):
-    pass
+    return Own(string.Template(data))
 
 
 class Seed(Own):
@@ -87,15 +86,20 @@ class Seed(Own):
     This action does not have any options.
     """
 
-    def apply(self, repo_file_path: str, tpl_data: str) -> None:
+    def apply(self, repo_file_path: str, tpl_data: dict) -> None:
         if os.path.isfile(repo_file_path):
             return
 
         super().apply(repo_file_path, tpl_data)
 
 
-def seed_factory(er: encoding.Registry, opts: dict) -> Seed:
-    return Seed()
+def seed_factory(er: encoding.Registry, opts: manifest.Action, pkg_path: str) -> Seed:
+    assert opts.seed is not None
+    source_path = os.path.join(pkg_path, opts.seed.source_file)
+    with open(source_path, "r") as f:
+        data = f.read()
+
+    return Seed(string.Template(data))
 
 
 class Merge(Action):
@@ -143,28 +147,34 @@ class Merge(Action):
     This action does not have any options.
     """
 
-    def __init__(self, encodings: encoding.Registry):
+    def __init__(self, encodings: encoding.Registry, source_data: string.Template):
         self.encodings = encodings
+        self.source_data = source_data
 
     @staticmethod
-    def factory(er: encoding.Registry, opts: dict):
-        return Merge(er)
+    def factory(er: encoding.Registry, opts: manifest.Action, pkg_path: str):
+        assert opts.merge is not None
+        source_path = os.path.join(pkg_path, opts.merge.source_file)
+        with open(source_path, "r") as f:
+            data = f.read()
 
-    def apply(self, repo_file_path: str, tpl_data: str) -> None:
+        return Merge(er, string.Template(data))
+
+    def apply(self, repo_file_path: str, tpl_data: dict) -> None:
         ext = pathlib.Path(repo_file_path).suffix
         enc = self.encodings.get_for_extension(ext)
         with open(repo_file_path, "r") as f:
             orig_data = enc.decode(f)
 
-        tpl = enc.decode(io.StringIO(tpl_data))
+        tpl = enc.decode(io.StringIO(self.source_data.substitute(tpl_data)))
         merged_data = enc.merge(orig_data, tpl)
         with open(repo_file_path, "w") as f:
             enc.encode(f, merged_data)
 
 
-class DeleteKeys(Action):
+class DeleteKey(Action):
     """
-    DeleteKeys deletes a key from a dictionary.
+    DeleteKey deletes a key from a dictionary.
 
     **Usage**
 
@@ -172,7 +182,7 @@ class DeleteKeys(Action):
 
        name: delete_keys_example
        actions:
-         - action: delete_keys
+         - action: delete_key
            file: config.yaml
            opts:
              keys:
@@ -203,34 +213,38 @@ class DeleteKeys(Action):
       (required)
     """
 
-    def __init__(self, encodings: encoding.Registry):
+    def __init__(self, encodings: encoding.Registry, key_path: list[str]):
         self.encodings = encodings
+        self.key_path = key_path
 
     @staticmethod
-    def factory(er: encoding.Registry, opts: dict):
-        return DeleteKeys(er)
+    def factory(er: encoding.Registry, opts: manifest.Action, pkg_path: str):
+        assert opts.delete_key is not None
+        return DeleteKey(er, opts.delete_key.key.split("."))
 
-    def apply(self, repo_file_path: str, tpl_data: str) -> None:
+    def apply(self, repo_file_path: str, tpl_data: dict) -> None:
         ext = pathlib.Path(repo_file_path).suffix
         enc = self.encodings.get_for_extension(ext)
         with open(repo_file_path, "r") as f:
             orig_data: dict = enc.decode(f)
 
-        query: dict = enc.decode(io.StringIO(tpl_data))
-        new_data = self.process_recursive(query, orig_data)
+        new_data = self.process_recursive(self.key_path, orig_data)
         with open(repo_file_path, "w") as f:
             enc.encode(f, new_data)
 
     @classmethod
-    def process_recursive(cls, query: dict, data: dict) -> dict:
-        for qk in query.keys():
-            if qk not in data:
-                continue
+    def process_recursive(cls, query: list[str], data: dict) -> dict:
+        if len(query) == 0:
+            return data
 
-            if isinstance(query[qk], dict) and isinstance(data[qk], dict):
-                data[qk] = cls.process_recursive(query[qk], data[qk])
-            else:
-                del data[qk]
+        qk = query[0]
+        if qk not in data:
+            return data
+
+        if isinstance(data[qk], dict):
+            data[qk] = cls.process_recursive(query[1:], data[qk])
+        else:
+            del data[qk]
 
         return data
 
@@ -269,7 +283,7 @@ class Exec(Action):
         self.exec_path = exec_path
         self.timeout = timeout
 
-    def apply(self, repo_file_path: str, tpl_data: str) -> None:
+    def apply(self, repo_file_path: str, tpl_data: dict) -> None:
         result = subprocess.run(
             args=[self.exec_path, repo_file_path],
             capture_output=True,
@@ -284,21 +298,25 @@ class Exec(Action):
             )
 
 
-def exec_factory(er: encoding.Registry, opts: dict) -> Exec:
-    exec_path = opts.get("exec_path")
-    if exec_path is None:
-        raise RuntimeError("Exec Action: Required option exec_path not set")
-
-    timeout = opts.get("timeout") or 120
-    return Exec(exec_path, timeout)
+def exec_factory(er: encoding.Registry, opts: manifest.Action, pkg_path: str) -> Exec:
+    assert opts.exec is not None
+    return Exec(opts.exec.path, opts.exec.timeout)
 
 
 class Registry:
     def __init__(self):
-        self.factories: dict[str, Callable[[encoding.Registry, dict], Action]] = {}
+        self.factories: dict[
+            str, Callable[[encoding.Registry, manifest.Action, str], Action]
+        ] = {}
 
-    def add(self, name: str, factory: Callable[[encoding.Registry, dict], Action]):
+    def add(
+        self,
+        name: str,
+        factory: Callable[[encoding.Registry, manifest.Action, str], Action],
+    ):
         self.factories[name] = factory
 
-    def create(self, name: str, er: encoding.Registry, opts: dict) -> Action:
-        return self.factories[name](er, opts)
+    def create(
+        self, name: str, er: encoding.Registry, opts: manifest.Action, pkg_path: str
+    ) -> Action:
+        return self.factories[name](er, opts, pkg_path)

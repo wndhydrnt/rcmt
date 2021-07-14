@@ -1,14 +1,11 @@
 import glob
 import hashlib
 import os
-import string
-from typing import Any, Optional
 
-import pydantic
 import structlog
 import yaml
 
-from rcmt import action, encoding
+from rcmt import action, encoding, manifest
 
 log = structlog.get_logger()
 
@@ -18,55 +15,19 @@ class PackageInvalidError(RuntimeError):
 
 
 class ActionWrapper:
-    def __init__(self, name: str, pattern: str, tpl: str, act: action.Action):
+    def __init__(self, pattern: str, act: action.Action):
         """
 
-        :param name: Name of the file to which the Action applies.
         :param pattern: Glob pattern to select the files to which to apply the action.
-        :param tpl: Raw data of the file to which the action applies. Passes the data to `string.Template`.
         :param act: Action to apply.
         """
-        self.name = name
         self.pattern = pattern
-        self.tpl = string.Template(tpl)
         self.action = act
 
     def apply(self, work_dir: str, mapping: dict):
         pattern = os.path.join(work_dir, self.pattern)
         for path in glob.iglob(pattern, recursive=True):
-            self.action.apply(path, self.tpl.substitute(mapping))
-
-
-class ManifestAction(pydantic.BaseModel):
-    file_selector: str
-    own: Optional[action.OwnOptions]
-    seed: Optional[action.SeedOptions]
-
-    @pydantic.root_validator
-    def check_action_set(cls, values: dict):
-        not_none: list[str] = []
-        for key, val in values.items():
-            if key == "file_selector":
-                continue
-
-            if val is not None:
-                not_none.append(key)
-
-        if len(not_none) == 0:
-            raise ValueError("No action set")
-
-        if len(not_none) > 1:
-            raise ValueError(f"Multiple actions set: {', '.join(not_none)}")
-
-        return values
-
-    def get_action_options(self) -> Any:
-        pass
-
-
-class Manifest(pydantic.BaseModel):
-    actions: list[ManifestAction]
-    name: str
+            self.action.apply(path, mapping)
 
 
 class Package:
@@ -104,23 +65,11 @@ class PackageReader:
             checksum.update(data_raw.encode("utf-8"))
             data = yaml.load(data_raw, Loader=yaml.FullLoader)
 
-        manifest = Manifest(**data)
-        pkg = Package(manifest.name)
-        for ma in manifest.actions:
-            tpl_path = os.path.join(path, ma.file)
-            if not os.path.isfile(tpl_path):
-                raise PackageInvalidError("missing template file in package")
-
-            a = self.action_registry.create(ma.action, self.encoding_registry, ma.opts)
-            with open(tpl_path) as f:
-                data = f.read()
-                checksum.update(data.encode("utf-8"))
-
-            pattern = ma.pattern
-            if pattern is None:
-                pattern = ma.file
-
-            pkg.actions.append(ActionWrapper(ma.file, pattern, data, a))
+        m = manifest.Manifest(**data)
+        pkg = Package(m.name)
+        for ma in m.actions:
+            a = self.action_registry.create(ma.name, self.encoding_registry, ma, path)
+            pkg.actions.append(ActionWrapper(ma.selector, a))
 
         pkg.checksum = checksum
         return pkg
