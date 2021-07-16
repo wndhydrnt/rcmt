@@ -40,9 +40,6 @@ class Action(pydantic.BaseModel):
     def check_action_set(cls, values: dict):
         set_fields: list[str] = []
         for key, val in values.items():
-            if key == "selector":
-                continue
-
             if val is not None:
                 set_fields.append(key)
 
@@ -57,9 +54,6 @@ class Action(pydantic.BaseModel):
     @property
     def name(self) -> str:
         for field, value in self.__dict__.items():
-            if field == "selector":
-                continue
-
             if value is not None:
                 return field
 
