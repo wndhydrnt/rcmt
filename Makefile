@@ -9,5 +9,5 @@ test:
 coverage:
 	rm .coverage || true
 	rm -rf ./htmlcov/
-	coverage run --source=. --omit=.venv/*,tests/* -m pytest .
+	coverage run
 	coverage html

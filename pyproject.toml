@@ -30,7 +30,7 @@ types-PyYAML = "^5.4.3"
 Sphinx = "^4.0.2"
 flake8 = "^3.9.2"
 sphinx-rtd-theme = "^0.5.2"
-coverage = "^5.5"
+coverage = {extras = ["toml"], version = "^5.5"}
 
 [tool.poetry.scripts]
 rcmt = "rcmt.cli:main"
@@ -41,6 +41,11 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.black]
 line-length = 88
+
+[tool.coverage.run]
+command_line = "-m pytest"
+omit = [".venv/*", "tests/*"]
+source = ["."]
 
 [tool.isort]
 profile = "black"

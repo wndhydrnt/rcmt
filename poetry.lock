@@ -123,6 +123,9 @@ category = "dev"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4"
 
+[package.dependencies]
+toml = {version = "*", optional = true, markers = "extra == \"toml\""}
+
 [package.extras]
 toml = ["toml"]
 
@@ -697,7 +700,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "bb13be8993e54816a1dc2fe81ddf0d374ec18e2946a2d9f08cb8a95ad817ece2"
+content-hash = "c51911427dd95afcb4cea1aa9e35fdf89aa328bd74b58d2338feaf3302cd950d"
 
 [metadata.files]
 alabaster = [
