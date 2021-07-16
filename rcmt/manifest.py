@@ -5,27 +5,31 @@ import pydantic
 
 class DeleteKeyOptions(pydantic.BaseModel):
     key: str
+    target: str
 
 
 class ExecOptions(pydantic.BaseModel):
     path: str
+    selector: str
     timeout: int = 120
 
 
 class MergeOptions(pydantic.BaseModel):
-    source_file: str
+    selector: str
+    source: str
 
 
 class OwnOptions(pydantic.BaseModel):
-    source_file: str
+    source: str
+    target: str
 
 
 class SeedOptions(pydantic.BaseModel):
-    source_file: str
+    source: str
+    target: str
 
 
 class Action(pydantic.BaseModel):
-    selector: str
     delete_key: Optional[DeleteKeyOptions]
     exec: Optional[ExecOptions]
     merge: Optional[MergeOptions]

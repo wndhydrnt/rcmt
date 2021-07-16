@@ -1,18 +1,19 @@
 import unittest
 from unittest import mock
 
-from rcmt import encoding
-from rcmt.action import DeleteKey, Exec, exec_factory
+from rcmt.action import DeleteKey, Exec
 
 
 class ExecTest(unittest.TestCase):
     @mock.patch("subprocess.run")
-    def test_exec(self, subprocess_run: mock.MagicMock):
+    @mock.patch("glob.iglob")
+    def test_exec(self, glob_iglob: mock.MagicMock, subprocess_run: mock.MagicMock):
         completed_process = mock.Mock(returncode=1, stderr=b"stderr", stdout=b"stdout")
         subprocess_run.return_value = completed_process
-        ex = Exec(exec_path="/tmp/foo", timeout=120)
+        glob_iglob.return_value = ["/repo-checkout/afile"]
+        ex = Exec(exec_path="/tmp/foo", selector="afile", timeout=120)
         with self.assertRaises(RuntimeError) as e:
-            ex.apply("anyfile", {})
+            ex.apply("/repo-checkout", {})
         self.assertEqual(
             """Exec action call to /tmp/foo failed.
     stdout: stdout

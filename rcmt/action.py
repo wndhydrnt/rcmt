@@ -1,7 +1,7 @@
 """
 Actions encapsulate behavior of how to change a file.
 """
-
+import glob
 import io
 import os
 import pathlib
@@ -49,21 +49,23 @@ class Own(Action):
     This action does not have any options.
     """
 
-    def __init__(self, tpl: string.Template):
+    def __init__(self, target: str, tpl: string.Template):
         self.tpl = tpl
+        self.target = target
 
-    def apply(self, repo_file_path: str, tpl_data: dict) -> None:
-        with open(repo_file_path, "w+") as f:
+    def apply(self, repo_path: str, tpl_data: dict) -> None:
+        file_path = os.path.join(repo_path, self.target)
+        with open(file_path, "w+") as f:
             f.write(self.tpl.substitute(tpl_data))
 
 
 def own_factory(er: encoding.Registry, opts: manifest.Action, pkg_path: str) -> Own:
     assert opts.own is not None
-    source_path = os.path.join(pkg_path, opts.own.source_file)
+    source_path = os.path.join(pkg_path, opts.own.source)
     with open(source_path, "r") as f:
         data = f.read()
 
-    return Own(string.Template(data))
+    return Own(opts.own.target, string.Template(data))
 
 
 class Seed(Own):
@@ -86,7 +88,8 @@ class Seed(Own):
     This action does not have any options.
     """
 
-    def apply(self, repo_file_path: str, tpl_data: dict) -> None:
+    def apply(self, repo_path: str, tpl_data: dict) -> None:
+        repo_file_path = os.path.join(repo_path, self.target)
         if os.path.isfile(repo_file_path):
             return
 
@@ -95,11 +98,11 @@ class Seed(Own):
 
 def seed_factory(er: encoding.Registry, opts: manifest.Action, pkg_path: str) -> Seed:
     assert opts.seed is not None
-    source_path = os.path.join(pkg_path, opts.seed.source_file)
+    source_path = os.path.join(pkg_path, opts.seed.source)
     with open(source_path, "r") as f:
         data = f.read()
 
-    return Seed(string.Template(data))
+    return Seed(opts.seed.target, string.Template(data))
 
 
 class Merge(Action):
@@ -147,29 +150,34 @@ class Merge(Action):
     This action does not have any options.
     """
 
-    def __init__(self, encodings: encoding.Registry, source_data: string.Template):
+    def __init__(
+        self, encodings: encoding.Registry, selector: str, source_data: string.Template
+    ):
         self.encodings = encodings
+        self.selector = selector
         self.source_data = source_data
 
     @staticmethod
     def factory(er: encoding.Registry, opts: manifest.Action, pkg_path: str):
         assert opts.merge is not None
-        source_path = os.path.join(pkg_path, opts.merge.source_file)
+        source_path = os.path.join(pkg_path, opts.merge.source)
         with open(source_path, "r") as f:
             data = f.read()
 
-        return Merge(er, string.Template(data))
+        return Merge(er, opts.merge.selector, string.Template(data))
 
-    def apply(self, repo_file_path: str, tpl_data: dict) -> None:
-        ext = pathlib.Path(repo_file_path).suffix
-        enc = self.encodings.get_for_extension(ext)
-        with open(repo_file_path, "r") as f:
-            orig_data = enc.decode(f)
+    def apply(self, repo_path: str, tpl_data: dict) -> None:
+        paths = glob.iglob(os.path.join(repo_path, self.selector), recursive=True)
+        for p in paths:
+            ext = pathlib.Path(p).suffix
+            enc = self.encodings.get_for_extension(ext)
+            with open(p, "r") as f:
+                orig_data = enc.decode(f)
 
-        tpl = enc.decode(io.StringIO(self.source_data.substitute(tpl_data)))
-        merged_data = enc.merge(orig_data, tpl)
-        with open(repo_file_path, "w") as f:
-            enc.encode(f, merged_data)
+            tpl = enc.decode(io.StringIO(self.source_data.substitute(tpl_data)))
+            merged_data = enc.merge(orig_data, tpl)
+            with open(p, "w") as f:
+                enc.encode(f, merged_data)
 
 
 class DeleteKey(Action):
@@ -213,16 +221,18 @@ class DeleteKey(Action):
       (required)
     """
 
-    def __init__(self, encodings: encoding.Registry, key_path: list[str]):
+    def __init__(self, encodings: encoding.Registry, key_path: list[str], target: str):
         self.encodings = encodings
         self.key_path = key_path
+        self.target = target
 
     @staticmethod
     def factory(er: encoding.Registry, opts: manifest.Action, pkg_path: str):
         assert opts.delete_key is not None
-        return DeleteKey(er, opts.delete_key.key.split("."))
+        return DeleteKey(er, opts.delete_key.key.split("."), opts.delete_key.target)
 
-    def apply(self, repo_file_path: str, tpl_data: dict) -> None:
+    def apply(self, repo_path: str, tpl_data: dict) -> None:
+        repo_file_path = os.path.join(repo_path, self.target)
         ext = pathlib.Path(repo_file_path).suffix
         enc = self.encodings.get_for_extension(ext)
         with open(repo_file_path, "r") as f:
@@ -279,28 +289,31 @@ class Exec(Action):
 
     """
 
-    def __init__(self, exec_path: str, timeout: int):
+    def __init__(self, exec_path: str, selector: str, timeout: int):
         self.exec_path = exec_path
+        self.selector = selector
         self.timeout = timeout
 
-    def apply(self, repo_file_path: str, tpl_data: dict) -> None:
-        result = subprocess.run(
-            args=[self.exec_path, repo_file_path],
-            capture_output=True,
-            shell=True,
-            timeout=self.timeout,
-        )
-        if result.returncode > 0:
-            raise RuntimeError(
-                f"""Exec action call to {self.exec_path} failed.
+    def apply(self, repo_path: str, tpl_data: dict) -> None:
+        repo_file_paths = glob.iglob(os.path.join(repo_path, self.selector))
+        for repo_file_path in repo_file_paths:
+            result = subprocess.run(
+                args=[self.exec_path, repo_file_path],
+                capture_output=True,
+                shell=True,
+                timeout=self.timeout,
+            )
+            if result.returncode > 0:
+                raise RuntimeError(
+                    f"""Exec action call to {self.exec_path} failed.
     stdout: {result.stdout.decode('utf-8')}
     stderr: {result.stderr.decode('utf-8')}"""
-            )
+                )
 
 
 def exec_factory(er: encoding.Registry, opts: manifest.Action, pkg_path: str) -> Exec:
     assert opts.exec is not None
-    return Exec(opts.exec.path, opts.exec.timeout)
+    return Exec(opts.exec.path, opts.exec.selector, opts.exec.timeout)
 
 
 class Registry:

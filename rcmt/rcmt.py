@@ -41,7 +41,7 @@ def run(opts: Options):
             for a in pkg.actions:
                 log.debug(
                     "Applying action",
-                    action=a.action.__class__.__name__,
+                    action=a.__class__.__name__,
                     pkg=pkg.name,
                     repo=str(repo),
                 )

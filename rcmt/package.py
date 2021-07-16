@@ -1,4 +1,3 @@
-import glob
 import hashlib
 import os
 
@@ -14,26 +13,10 @@ class PackageInvalidError(RuntimeError):
     pass
 
 
-class ActionWrapper:
-    def __init__(self, pattern: str, act: action.Action):
-        """
-
-        :param pattern: Glob pattern to select the files to which to apply the action.
-        :param act: Action to apply.
-        """
-        self.pattern = pattern
-        self.action = act
-
-    def apply(self, work_dir: str, mapping: dict):
-        pattern = os.path.join(work_dir, self.pattern)
-        for path in glob.iglob(pattern, recursive=True):
-            self.action.apply(path, mapping)
-
-
 class Package:
     def __init__(self, name):
         self.name = name
-        self.actions: list[ActionWrapper] = []
+        self.actions: list[action.Action] = []
         self.checksum = None
 
     @property
@@ -69,7 +52,7 @@ class PackageReader:
         pkg = Package(m.name)
         for ma in m.actions:
             a = self.action_registry.create(ma.name, self.encoding_registry, ma, path)
-            pkg.actions.append(ActionWrapper(ma.selector, a))
+            pkg.actions.append(a)
 
         pkg.checksum = checksum
         return pkg
