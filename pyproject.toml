@@ -30,6 +30,7 @@ types-PyYAML = "^5.4.3"
 Sphinx = "^4.0.2"
 flake8 = "^3.9.2"
 sphinx-rtd-theme = "^0.5.2"
+coverage = "^5.5"
 
 [tool.poetry.scripts]
 rcmt = "rcmt.cli:main"
