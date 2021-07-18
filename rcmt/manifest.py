@@ -3,6 +3,10 @@ from typing import Optional
 import pydantic
 
 
+class AbsentOptions(pydantic.BaseModel):
+    target: str
+
+
 class DeleteKeyOptions(pydantic.BaseModel):
     key: str
     target: str
@@ -30,6 +34,7 @@ class SeedOptions(pydantic.BaseModel):
 
 
 class Action(pydantic.BaseModel):
+    absent: Optional[AbsentOptions]
     delete_key: Optional[DeleteKeyOptions]
     exec: Optional[ExecOptions]
     merge: Optional[MergeOptions]

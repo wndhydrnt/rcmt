@@ -1,7 +1,22 @@
+import os
+import tempfile
 import unittest
 from unittest import mock
 
-from rcmt.action import DeleteKey, Exec
+from rcmt.action import Absent, DeleteKey, Exec
+
+
+class AbsentTest(unittest.TestCase):
+    def test_apply(self):
+        with tempfile.TemporaryDirectory() as d:
+            to_delete_path = os.path.join(d, "to_delete")
+            with open(to_delete_path, "w+") as to_delete:
+                to_delete.write("test")
+
+            under_test = Absent("to_delete")
+            under_test.apply(d, {})
+
+            self.assertFalse(os.path.exists(to_delete_path))
 
 
 class ExecTest(unittest.TestCase):

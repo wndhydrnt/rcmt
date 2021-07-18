@@ -29,6 +29,16 @@ class Action:
         raise NotImplementedError("class does not implement Action.apply()")
 
 
+class Absent(Action):
+    def __init__(self, target):
+        self.target = target
+
+    def apply(self, repo_path: str, tpl_data: dict) -> None:
+        repo_file_path = os.path.join(repo_path, self.target)
+        if os.path.exists(repo_file_path):
+            os.remove(repo_file_path)
+
+
 class Own(Action):
     """
     Own ensures that a file in a repository stays the same.
