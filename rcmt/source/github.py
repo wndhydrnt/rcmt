@@ -80,7 +80,7 @@ class GithubRepository(Repository):
 
     @property
     def source(self) -> str:
-        return "github"
+        return "github.com"
 
 
 class Github(SourceLister):

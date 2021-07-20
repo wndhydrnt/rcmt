@@ -25,13 +25,13 @@ class Options:
 def run(opts: Options):
     pkg_reader = package.PackageReader(opts.action_registry, opts.encoding_registry)
     pkgs = pkg_reader.read_packages(opts.packages_paths)
-    match_cfg = parse_match_config(opts.config.run_path)
-    pkgs_to_apply = find_packages(match_cfg.packages, pkgs)
+    matcher = parse_matcher(opts.config.run_path)
+    pkgs_to_apply = find_packages(matcher.packages, pkgs)
     repositories = []
     for s in opts.sources:
         repositories += s.list_repositories()
 
-    matched_repos = match_repositories(repositories, match_cfg.match)
+    matched_repos = match_repositories(repositories, matcher.match)
     gitc = git.Git(opts.config.git.branch_name, opts.config.git.data_dir)
     for repo in matched_repos:
         log.info("Matched repository", repository=str(repo))
@@ -50,7 +50,7 @@ def run(opts: Options):
             if gitc.has_changes(work_dir) is True:
                 log.debug("Committing changes", pkg=pkg.name, repo=str(repo))
                 gitc.commit_changes(
-                    work_dir, f"rcmt: Applied {match_cfg.name} package {pkg.name}"
+                    work_dir, f"rcmt: Applied {matcher.name} package {pkg.name}"
                 )
             else:
                 log.debug(
@@ -136,11 +136,11 @@ def match_repositories(
     return matched_repositories
 
 
-def parse_match_config(path: str) -> config.Run:
+def parse_matcher(path: str) -> config.Matcher:
     with open(path, "r") as f:
         raw = yaml.load(f, Loader=yaml.FullLoader)
 
-    return config.Run(**raw)
+    return config.Matcher(**raw)
 
 
 def find_packages(

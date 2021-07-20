@@ -7,7 +7,7 @@ import yaml
 from pydantic.fields import Field
 
 
-class Run(pydantic.BaseModel):
+class Matcher(pydantic.BaseModel):
     name: str
     packages: list[str] = []
     match: str

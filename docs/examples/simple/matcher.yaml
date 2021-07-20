@@ -1,5 +1,5 @@
 # Match all repositories of MyOrg.
-match: github:MyOrg:*
+match: github.com/MyOrg/+*
 # rcmt uses this name when committing changes.
 name: python-defaults
 # A list of package names to apply to all matching repositories.

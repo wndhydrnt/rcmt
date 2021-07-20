@@ -3,7 +3,7 @@ from typing import Any, Union
 
 class Repository:
     def __str__(self):
-        return f"{self.source}:{self.project}:{self.name}"
+        return f"{self.source}/{self.project}/{self.name}"
 
     @property
     def base_branch(self) -> str:
