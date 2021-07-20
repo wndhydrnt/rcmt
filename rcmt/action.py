@@ -1,6 +1,3 @@
-"""
-Actions encapsulate behavior of how to change a file.
-"""
 import glob
 import io
 import os
@@ -40,25 +37,6 @@ class Absent(Action):
 
 
 class Own(Action):
-    """
-    Own ensures that a file in a repository stays the same.
-
-    It always overwrites the data in the file with the data from a package.
-
-    **Usage**
-
-    .. code-block:: yaml
-
-       name: own_example
-       actions:
-         - action: own
-           file: config.yaml
-
-    **Options**
-
-    This action does not have any options.
-    """
-
     def __init__(self, target: str, tpl: string.Template):
         self.tpl = tpl
         self.target = target
@@ -79,25 +57,6 @@ def own_factory(er: encoding.Registry, opts: manifest.Action, pkg_path: str) -> 
 
 
 class Seed(Own):
-    """
-    Seed ensures that a file in a repository is present.
-
-    It does not modify the file again if the file is present in a repository.
-
-    **Usage**
-
-    .. code-block:: yaml
-
-       name: seed_example
-       actions:
-         - action: seed
-           file: config.yaml
-
-    **Options**
-
-    This action does not have any options.
-    """
-
     def apply(self, repo_path: str, tpl_data: dict) -> None:
         repo_file_path = os.path.join(repo_path, self.target)
         if os.path.isfile(repo_file_path):
@@ -116,50 +75,6 @@ def seed_factory(er: encoding.Registry, opts: manifest.Action, pkg_path: str) ->
 
 
 class Merge(Action):
-    """
-    Merge merges the content of a file in a repository with the content of a file from a
-    package.
-
-    It supports merging of various file formats through Encodings<<link>>.
-
-    **Usage**
-
-    .. code-block:: yaml
-
-       # Declaration in Manifest of Package
-       name: merge_example
-       actions:
-         - action: merge
-           file: config.yaml
-
-    .. code-block:: yaml
-
-       # config.yaml in Package
-       database:
-         host: new.example.local
-         username: abc
-         ssl: true
-
-    .. code-block:: yaml
-
-       # config.yaml in a repository
-       database:
-         host: old.example.local
-         username: abc
-
-    .. code-block:: yaml
-
-       # Result after merge
-       database:
-         host: new.example.local
-         username: abc
-         ssl: true
-
-    **Options**
-
-    This action does not have any options.
-    """
-
     def __init__(
         self, encodings: encoding.Registry, selector: str, source_data: string.Template
     ):
@@ -191,46 +106,6 @@ class Merge(Action):
 
 
 class DeleteKey(Action):
-    """
-    DeleteKey deletes a key from a dictionary.
-
-    **Usage**
-
-    .. code-block:: yaml
-
-       name: delete_keys_example
-       actions:
-         - action: delete_key
-           file: config.yaml
-           opts:
-             keys:
-               - "foo.bar.baz"
-
-    Deletes the key `baz` and everything under it.
-
-    Before:
-
-    .. code-block:: yaml
-
-       foo:
-         bar:
-           baz: to be deleted
-        other: keep this
-
-    After:
-
-    .. code-block:: yaml
-
-       foo:
-         bar: {}
-        other: keep this
-
-    **Options**
-
-    * `keys`: A list of strings where each entry is a path to the key to delete.
-      (required)
-    """
-
     def __init__(self, encodings: encoding.Registry, key_path: list[str], target: str):
         self.encodings = encodings
         self.key_path = key_path
@@ -270,35 +145,6 @@ class DeleteKey(Action):
 
 
 class Exec(Action):
-    """
-    Exec calls an executable. This action allows modifications of files that cannot be
-    modified in Python, e.g. source code of other programming languages.
-
-    The executable needs to accept the path to a file in a repository as a parameter:
-
-    .. code-block:: bash
-
-       /my-program /tmp/rcmt/data/github/rcmt-test/file.py
-
-    **Usage**
-
-    .. code-block:: yaml
-
-       name: exec_example
-       actions:
-         - action: exec
-           file: config.yaml
-           opts:
-             exec_path: /home/me/my-program
-             timeout: 30
-
-    **Options**
-
-    * `exec_path`: Path to the executable to call. (required)
-    * `timeout`: Duration, in seconds, after which execution stops. Passes this option to subprocess.run(). (default: `120`)
-
-    """
-
     def __init__(self, exec_path: str, selector: str, timeout: int):
         self.exec_path = exec_path
         self.selector = selector
