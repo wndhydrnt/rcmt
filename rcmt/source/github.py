@@ -7,7 +7,7 @@ import structlog
 
 from .source import Repository, SourceLister
 
-log = structlog.get_logger().bind(source="github")
+log = structlog.get_logger(source="github")
 
 
 class GithubRepository(Repository):

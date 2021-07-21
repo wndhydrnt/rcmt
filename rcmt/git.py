@@ -6,7 +6,7 @@ import structlog
 
 from rcmt import source
 
-log = structlog.get_logger().bind(package="git")
+log = structlog.get_logger(package="git")
 
 
 class Git:

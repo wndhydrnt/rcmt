@@ -7,7 +7,7 @@ import yaml
 from rcmt import action, config, encoding, git, package, source
 
 structlog.configure(
-    wrapper_class=structlog.make_filtering_bound_logger(logging.DEBUG),
+    wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
 )
 
 log = structlog.get_logger()
@@ -24,6 +24,11 @@ class Options:
 
 
 def run(opts: Options):
+    log_level = logging.getLevelName(opts.config.log_level.upper())
+    structlog.configure(
+        wrapper_class=structlog.make_filtering_bound_logger(log_level),
+    )
+
     pkg_reader = package.PackageReader(opts.action_registry, opts.encoding_registry)
     pkgs = pkg_reader.read_packages(opts.packages_paths)
     matcher = parse_matcher(opts.matcher_path)
