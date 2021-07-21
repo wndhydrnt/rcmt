@@ -15,7 +15,7 @@ import rcmt
 @click.argument("matcher")
 def run(config: str, packages: list[str], matcher: str):
     opts = rcmt.options_from_config(config)
-    opts.config.run_path = matcher
+    opts.matcher_path = matcher
     opts.packages_paths = packages
     rcmt.run(opts)
 

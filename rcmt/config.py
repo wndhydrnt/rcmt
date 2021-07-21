@@ -43,11 +43,10 @@ class Config(pydantic.BaseModel):
     github: Github
     # Add _ because json is a reserved field of pydantic
     json_: Json = Field(alias="json", default=Json())
-    log_level: str
+    log_level: str = "info"
     pr_title_prefix: str = "rcmt:"
     pr_title_body: str = "Configuration files changed"
     pr_title_suffix: str = ""
-    run_path: str
     toml: Toml = Toml()
     yaml: Yaml = Yaml()
 

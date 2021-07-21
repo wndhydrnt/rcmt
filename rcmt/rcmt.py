@@ -18,6 +18,7 @@ class Options:
         self.config = cfg
         self.action_registry: action.Registry = action.Registry()
         self.encoding_registry: encoding.Registry = encoding.Registry()
+        self.matcher_path: str = ""
         self.packages_paths: list[str] = []
         self.sources: list[source.SourceLister] = []
 
@@ -25,7 +26,7 @@ class Options:
 def run(opts: Options):
     pkg_reader = package.PackageReader(opts.action_registry, opts.encoding_registry)
     pkgs = pkg_reader.read_packages(opts.packages_paths)
-    matcher = parse_matcher(opts.config.run_path)
+    matcher = parse_matcher(opts.matcher_path)
     pkgs_to_apply = find_packages(matcher.packages, pkgs)
     repositories = []
     for s in opts.sources:
