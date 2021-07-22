@@ -14,7 +14,7 @@ class PullRequest:
 
     @property
     def body(self) -> str:
-        return f"""This update contains changes from following packages:
+        return f"""This update contains changes from the following packages:
 
 {self.render_package_list()}
 
