@@ -1,6 +1,37 @@
 from typing import Any, Union
 
 
+class PullRequest:
+    def __init__(self, title_prefix: str, title_body: str, title_suffix: str):
+        self.title_prefix = title_prefix
+        self.title_body = title_body
+        self.title_suffix = title_suffix
+
+        self.changed_packages: list[str] = []
+
+    def add_package(self, name: str):
+        self.changed_packages.append(name)
+
+    @property
+    def body(self) -> str:
+        return f"""This update contains changes from following packages:
+
+{self.render_package_list()}
+
+---
+
+_This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._
+"""
+
+    def render_package_list(self) -> str:
+        items = [f"- {n}" for n in self.changed_packages]
+        return "\n".join(items)
+
+    @property
+    def title(self) -> str:
+        return f"{self.title_prefix} {self.title_body} {self.title_suffix}"
+
+
 class Repository:
     def __str__(self):
         return f"{self.source}/{self.project}/{self.name}"
@@ -23,13 +54,12 @@ class Repository:
         """
         raise NotImplementedError("class does not implement Repository.clone_url()")
 
-    def create_pull_request(self, branch: str, title: str, body: str) -> None:
+    def create_pull_request(self, branch: str, pr: PullRequest) -> None:
         """
         Creates a pull request for the given branch.
 
         :param branch: Name of the branch.
-        :param title: Title of the pull request.
-        :param body: Message body of the pull request.
+        :param pr: The pull request.
         :return: None
         """
         raise NotImplementedError(

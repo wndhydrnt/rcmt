@@ -5,7 +5,7 @@ import github.PullRequest
 import github.Repository
 import structlog
 
-from .source import Repository, SourceLister
+from .source import PullRequest, Repository, SourceLister
 
 log = structlog.get_logger(source="github")
 
@@ -25,13 +25,13 @@ class GithubRepository(Repository):
     def clone_url(self):
         return self.repo.clone_url
 
-    def create_pull_request(self, branch: str, title: str, body: str):
+    def create_pull_request(self, branch: str, pr: PullRequest):
         log.debug(
             "Creating pull request", base=self.base_branch, head=branch, repo=str(self)
         )
         self.repo.create_pull(
-            title=title,
-            body=body,
+            title=pr.title,
+            body=pr.body,
             base=self.base_branch,
             head=branch,
             maintainer_can_modify=True,

@@ -43,6 +43,11 @@ def run(opts: Options):
         log.info("Matched repository", repository=str(repo))
         work_dir = gitc.prepare(repo)
         tpl_mapping = {"repo_name": repo.name, "repo_project": repo.project}
+        pr = source.PullRequest(
+            opts.config.pr_title_prefix,
+            opts.config.pr_title_body,
+            opts.config.pr_title_suffix,
+        )
         for pkg in pkgs_to_apply:
             for a in pkg.actions:
                 log.debug(
@@ -58,6 +63,7 @@ def run(opts: Options):
                 gitc.commit_changes(
                     work_dir, f"rcmt: Applied {matcher.name} package {pkg.name}"
                 )
+                pr.add_package(pkg.name)
             else:
                 log.debug(
                     "No changes after applying package", pkg=pkg.name, repo=str(repo)
@@ -77,9 +83,7 @@ def run(opts: Options):
                 log.warn("DRY RUN: Not creating pull request")
             else:
                 log.info("Create pull request", repo=str(repo))
-                repo.create_pull_request(
-                    gitc.branch_name, create_pr_title(opts.config), ""
-                )
+                repo.create_pull_request(gitc.branch_name, pr)
 
         if (
             opts.config.auto_merge is True
@@ -164,7 +168,3 @@ def find_packages(
         raise RuntimeError(f"unknown packages {unknown_pkg_names}")
 
     return pkgs_found
-
-
-def create_pr_title(cfg: config.Config) -> str:
-    return f"{cfg.pr_title_prefix} {cfg.pr_title_body} {cfg.pr_title_suffix}"
