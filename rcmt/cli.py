@@ -12,10 +12,10 @@ import rcmt
     required=True,
     type=str,
 )
-@click.argument("matcher")
-def run(config: str, packages: list[str], matcher: str):
+@click.argument("matcher_file")
+def run(config: str, packages: list[str], matcher_file: str):
     opts = rcmt.options_from_config(config)
-    opts.matcher_path = matcher
+    opts.matcher_path = matcher_file
     opts.packages_paths = packages
     rcmt.run(opts)
 
