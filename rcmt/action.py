@@ -62,7 +62,7 @@ class Seed(Own):
         if os.path.isfile(repo_file_path):
             return
 
-        super().apply(repo_file_path, tpl_data)
+        super().apply(repo_path, tpl_data)
 
 
 def seed_factory(er: encoding.Registry, opts: manifest.Action, pkg_path: str) -> Seed:
