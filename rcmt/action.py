@@ -6,6 +6,8 @@ import string
 import subprocess
 from typing import Callable
 
+import mergedeep
+
 from rcmt import encoding, manifest
 
 
@@ -76,11 +78,16 @@ def seed_factory(er: encoding.Registry, opts: manifest.Action, pkg_path: str) ->
 
 class Merge(Action):
     def __init__(
-        self, encodings: encoding.Registry, selector: str, source_data: string.Template
+        self,
+        encodings: encoding.Registry,
+        selector: str,
+        source_data: string.Template,
+        strategy: mergedeep.Strategy,
     ):
         self.encodings = encodings
         self.selector = selector
         self.source_data = source_data
+        self.strategy = strategy
 
     @staticmethod
     def factory(er: encoding.Registry, opts: manifest.Action, pkg_path: str):
@@ -89,7 +96,11 @@ class Merge(Action):
         with open(source_path, "r") as f:
             data = f.read()
 
-        return Merge(er, opts.merge.selector, string.Template(data))
+        strat = mergedeep.Strategy.REPLACE
+        if opts.merge.strategy == "additive":
+            strat = mergedeep.Strategy.ADDITIVE
+
+        return Merge(er, opts.merge.selector, string.Template(data), strat)
 
     def apply(self, repo_path: str, tpl_data: dict) -> None:
         paths = glob.iglob(os.path.join(repo_path, self.selector), recursive=True)
@@ -100,7 +111,7 @@ class Merge(Action):
                 orig_data = enc.decode(f)
 
             tpl = enc.decode(io.StringIO(self.source_data.substitute(tpl_data)))
-            merged_data = enc.merge(orig_data, tpl)
+            merged_data = enc.merge(orig_data, tpl, self.strategy)
             with open(p, "w") as f:
                 enc.encode(f, merged_data)
 

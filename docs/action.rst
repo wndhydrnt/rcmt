@@ -90,12 +90,15 @@ It supports merging of various file formats through :doc:`encoding`.
 Parameters
 ^^^^^^^^^^
 
-======== =============================================== ======== =======
-Name     Description                                     Required Default
-======== =============================================== ======== =======
-selector Glob selector to find the files to merge.       yes      /
-source   Path to the file that contains the source data. yes      /
-======== =============================================== ======== =======
+========= ============================================================= ======== =======
+Name      Description                                                   Required Default
+========= ============================================================= ======== =======
+selector  Glob selector to find the files to merge.                     yes      /
+source    Path to the file that contains the source data.               yes      /
+strategy  | Strategy to use when merging data. ``replace`` replaces a   no       replace
+          | key if it already exists. ``additive`` combines
+          | collections, e.g. ``list`` or ``set``.
+========= ============================================================= ======== =======
 
 Examples
 ^^^^^^^^

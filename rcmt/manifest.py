@@ -21,6 +21,15 @@ class ExecOptions(pydantic.BaseModel):
 class MergeOptions(pydantic.BaseModel):
     selector: str
     source: str
+    strategy: str = "replace"
+
+    @pydantic.validator("strategy")
+    def strategy_allowed_values(cls, v):
+        allowed = ["additive", "replace"]
+        if v not in allowed:
+            raise ValueError("unknown strategy")
+
+        return v
 
 
 class OwnOptions(pydantic.BaseModel):
