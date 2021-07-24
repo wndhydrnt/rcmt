@@ -30,7 +30,10 @@ class Git:
 
     def needs_push(self, repo_dir: str) -> bool:
         git_repo = git.Repo(path=repo_dir)
-        return len(git_repo.index.diff(f"origin/{self.branch_name}")) > 0
+        try:
+            return len(git_repo.index.diff(f"origin/{self.branch_name}")) > 0
+        except git.BadName:
+            return True
 
     def prepare(self, repo: source.Repository) -> str:
         checkout_dir = self.checkout_dir(repo)

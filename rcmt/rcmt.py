@@ -49,6 +49,7 @@ def run(opts: Options):
             opts.config.pr_title_body,
             opts.config.pr_title_suffix,
         )
+        has_changes = False
         for pkg in pkgs_to_apply:
             for a in pkg.actions:
                 log.debug(
@@ -65,12 +66,17 @@ def run(opts: Options):
                     work_dir, f"rcmt: Applied {matcher.name} package {pkg.name}"
                 )
                 pr.add_package(pkg.name)
+                if has_changes is False:
+                    has_changes = True
+
             else:
                 log.info(
                     "No changes after applying package", pkg=pkg.name, repo=str(repo)
                 )
 
-        needs_push = gitc.needs_push(work_dir)
+        # Combining gitc.needs_push and has_changes avoids an unnecessary push of the
+        # branch if the remote branch does not exist.
+        needs_push = gitc.needs_push(work_dir) and has_changes
         if needs_push:
             if opts.config.dry_run:
                 log.warn("DRY RUN: Not pushing changes")
