@@ -37,6 +37,7 @@ def run(opts: Options):
     for s in opts.sources:
         repositories += s.list_repositories()
 
+    log.info("Repositories returned by sources", count=len(repositories))
     matched_repos = match_repositories(repositories, matcher.match)
     gitc = git.Git(opts.config.git.branch_name, opts.config.git.data_dir)
     for repo in matched_repos:
@@ -65,7 +66,7 @@ def run(opts: Options):
                 )
                 pr.add_package(pkg.name)
             else:
-                log.debug(
+                log.info(
                     "No changes after applying package", pkg=pkg.name, repo=str(repo)
                 )
 

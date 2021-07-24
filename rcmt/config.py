@@ -19,7 +19,7 @@ class Git(pydantic.BaseModel):
 
 
 class Github(pydantic.BaseModel):
-    access_token: str = os.getenv("GITHUB_ACCESS_TOKEN", "")
+    access_token: str = os.getenv("RCMT_GITHUB_ACCESS_TOKEN", "")
 
 
 class Json(pydantic.BaseModel):
@@ -39,8 +39,8 @@ class Yaml(pydantic.BaseModel):
 class Config(pydantic.BaseModel):
     auto_merge: bool = False
     dry_run: bool = False
-    git: Git
-    github: Github
+    git: Git = Git()
+    github: Github = Github()
     # Add _ because json is a reserved field of pydantic
     json_: Json = Field(alias="json", default=Json())
     log_level: str = "info"
