@@ -10,18 +10,24 @@ log = structlog.get_logger(package="git")
 
 
 class Git:
-    def __init__(self, branch_name: str, data_dir: str):
+    def __init__(
+        self, branch_name: str, data_dir: str, user_name: str, user_email: str
+    ):
         self.branch_name = branch_name
         self.data_dir = data_dir
+
+        if user_email == "":
+            self.author = user_name
+        else:
+            self.author = f"{user_name} <{user_email}>"
 
     def checkout_dir(self, repo: source.Repository) -> str:
         return os.path.join(self.data_dir, repo.source, repo.project, repo.name)
 
-    @staticmethod
-    def commit_changes(repo_dir: str, msg: str):
+    def commit_changes(self, repo_dir: str, msg: str):
         git_repo = git.Repo(path=repo_dir)
         git_repo.git.add(all=True)
-        git_repo.index.commit(msg)
+        git_repo.index.commit(msg, author=self.author)
 
     @staticmethod
     def has_changes(repo_dir: str) -> bool:

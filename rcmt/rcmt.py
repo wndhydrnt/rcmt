@@ -39,7 +39,12 @@ def run(opts: Options):
 
     log.info("Repositories returned by sources", count=len(repositories))
     matched_repos = match_repositories(repositories, matcher.match)
-    gitc = git.Git(opts.config.git.branch_name, opts.config.git.data_dir)
+    gitc = git.Git(
+        opts.config.git.branch_name,
+        opts.config.git.data_dir,
+        opts.config.git.user_name,
+        opts.config.git.user_email,
+    )
     for repo in matched_repos:
         log.info("Matched repository", repository=str(repo))
         work_dir = gitc.prepare(repo)

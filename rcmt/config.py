@@ -16,6 +16,8 @@ class Matcher(pydantic.BaseModel):
 class Git(pydantic.BaseModel):
     branch_name: str = "rcmt"
     data_dir: str = os.path.join(tempfile.gettempdir(), "rcmt", "data")
+    user_name: str = "rcmt"
+    user_email: str = ""
 
 
 class Github(pydantic.BaseModel):

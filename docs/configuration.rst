@@ -38,6 +38,17 @@ Name of the branch to which rcmt adds its changes. Defaults to `rcmt`.
 Path to a directory where rcmt stores its temporary data, like checkouts of
 repositories. Defaults to `/tmp/rcmt/data`.
 
+``user_email``
+^^^^^^^^^^^^^^
+
+E-mail to set when committing changes. Defaults to ``""``.
+
+``user_name``
+^^^^^^^^^^^^^
+
+Name of the author to set when committing changes. Defaults to ``rcmt``.
+
+
 `github`
 --------
 
