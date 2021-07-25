@@ -54,7 +54,8 @@ Name of the author to set when committing changes. Defaults to ``rcmt``.
 ``access_token``
 ^^^^^^^^^^^^^^^^
 
-Access to authenticate at the GitHub API.
+Access to authenticate at the GitHub API. It is also possible to set the access token
+via the environment variable ``RCMT_GITHUB_ACCESS_TOKEN``.
 
 ``json``
 --------
