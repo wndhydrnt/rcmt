@@ -12,31 +12,31 @@ Example
      branch_name: rcmt-updates
    log_level: debug
 
-`auto_merge`
-------------
+``auto_merge``
+--------------
 
 rcmt automatically merges a pull request on its next run. The pull request must pass all
-its checks. Defaults to `false`.
+its checks. Defaults to ``false``.
 
-`dry_run`
----------
+``dry_run``
+-----------
 
 Matches repositories, checks them out and applies packages but does not create pull
-requests. Defaults to `false`.
+requests. Defaults to ``false``.
 
-`git`
------
+``git``
+-------
 
-`branch_name`
-^^^^^^^^^^^^^
+``branch_name``
+^^^^^^^^^^^^^^^
 
-Name of the branch to which rcmt adds its changes. Defaults to `rcmt`.
+Name of the branch to which rcmt adds its changes. Defaults to ``rcmt``.
 
-`data_dir`
-^^^^^^^^^^
+``data_dir``
+^^^^^^^^^^^^
 
 Path to a directory where rcmt stores its temporary data, like checkouts of
-repositories. Defaults to `/tmp/rcmt/data`.
+repositories. Defaults to ``/tmp/rcmt/data``.
 
 ``user_email``
 ^^^^^^^^^^^^^^
@@ -48,71 +48,72 @@ E-mail to set when committing changes. Defaults to ``""``.
 
 Name of the author to set when committing changes. Defaults to ``rcmt``.
 
+``github``
+----------
 
-`github`
---------
-
-`access_token`
-^^^^^^^^^^^^^^
+``access_token``
+^^^^^^^^^^^^^^^^
 
 Access to authenticate at the GitHub API.
 
-`json`
-------
+``json``
+--------
 
 Settings of the Json encoding.
 
-`extensions`
-^^^^^^^^^^^^
+``extensions``
+^^^^^^^^^^^^^^
 
-List of file extensions that the JSON encoding supports. Defaults to `[".json"]`.
+List of file extensions that the JSON encoding supports. Defaults to ``[".json"]``.
 
-`indent`
-^^^^^^^^
+``indent``
+^^^^^^^^^^
 
-Indentation to use when writing JSON files. Defaults to `2`.
+Indentation to use when writing JSON files. Defaults to ``2``.
 
-`log_level`
------------
+``log_level``
+-------------
 
-Log level of the application. Defaults to `info`.
+Log level of the application. Defaults to ``info``.
 
-`pr_title_prefix`
+``pr_title_prefix``
+-------------------
+
+rcmt prefixes every Pull Request title with this string. Defaults to ``rcmt:``.
+
+``pr_title_body``
 -----------------
 
-rcmt prefixes every Pull Request title with this string. Defaults to `rcmt:`.
+rcmt uses this string to set the title of each Pull Request. Defaults to
+``Configuration files changed``.
 
-`pr_title_body`
----------------
+``pr_title_suffix``
+-------------------
 
-rcmt uses this string to set the title of each Pull Request. Defaults to `Configuration files changed`.
+rcmt suffixes every Pull Request title with this string. Defaults to ``""``.
 
-`pr_title_suffix`
------------------
-
-rcmt suffixes every Pull Request title with this string. Defaults to `""` (empty string).
-
-`toml`
-------
+``toml``
+--------
 
 Settings of the TOML encoding.
 
-`extensions`
-^^^^^^^^^^^^
+``extensions``
+^^^^^^^^^^^^^^
 
-List of file extensions that the TOML encoding supports. Defaults to `[".toml"]`.
+List of file extensions that the TOML encoding supports. Defaults to ``[".toml"]``.
 
-`yaml`
-------
+``yaml``
+--------
 
 Settings of the YAML encoding.
 
-`explicit_start`
-^^^^^^^^^^^^^^^^
+``explicit_start``
+^^^^^^^^^^^^^^^^^^
 
-Add an `---` at the beginning of a document. Defaults to `false`.
+Add an ``---`` at the beginning of a document. Defaults to ``false``.
 
-`extensions`
-^^^^^^^^^^^^
+``extensions``
+^^^^^^^^^^^^^^
 
-List of file extensions that the YAML encoding supports. Defaults to `[".yaml", ".yml"]`.
+List of file extensions that the YAML encoding supports. Defaults to
+``[".yaml", ".yml"]``.
