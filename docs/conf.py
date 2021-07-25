@@ -19,8 +19,8 @@ import sphinx_rtd_theme
 # -- Project information -----------------------------------------------------
 
 project = "rcmt"
-copyright = "2021, markus"
-author = "markus"
+copyright = "2021, Markus Meyer"
+author = "Markus Meyer"
 
 
 # -- General configuration ---------------------------------------------------
