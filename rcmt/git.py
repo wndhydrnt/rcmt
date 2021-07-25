@@ -1,5 +1,4 @@
 import os.path
-import typing
 
 import git
 import structlog
@@ -27,7 +26,11 @@ class Git:
     def commit_changes(self, repo_dir: str, msg: str):
         git_repo = git.Repo(path=repo_dir)
         git_repo.git.add(all=True)
-        git_repo.index.commit(msg, author=self.author)
+        # Bug in GitPython where the type hint of `author`says the parameter is a string
+        # but the underlying code expects an Actor.
+        git_repo.index.commit(
+            msg, author=git.objects.commit.Actor._from_string(self.author)
+        )
 
     @staticmethod
     def has_changes(repo_dir: str) -> bool:
