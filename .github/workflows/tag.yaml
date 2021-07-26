@@ -16,4 +16,4 @@ jobs:
       - env:
           PUBLISH_USERNAME: ${{ secrets.PUBLISH_USERNAME }}
           PUBLISH_PASSWORD: ${{ secrets.PUBLISH_PASSWORD }}
-        run: PUBLISH_VERSION=${{ steps.vars.outputs.tag }} make publish
+        run: make publish
