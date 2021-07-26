@@ -11,3 +11,6 @@ coverage:
 	rm -rf ./htmlcov/
 	poetry run coverage run
 	poetry run coverage html
+
+publish:
+	@poetry publish --build --username $(PUBLISH_USERNAME) --password $(PUBLISH_PASSWORD)

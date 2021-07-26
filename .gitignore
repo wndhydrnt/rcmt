@@ -9,3 +9,4 @@ Pipfile
 docs/_build/
 .coverage
 htmlcov
+dist/
