@@ -79,6 +79,8 @@ Examples
        path: /opt/the-binary
        selector: "**/*.py"
 
+.. _action/Merge:
+
 Merge
 -----
 

@@ -64,5 +64,5 @@ create a Pull Request for each repository.
    package
    action
    matcher
-   encoding
    configuration
+   encoding
