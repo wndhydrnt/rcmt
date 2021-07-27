@@ -1,4 +1,3 @@
-import glob
 import io
 import os
 import pathlib
@@ -8,7 +7,7 @@ from typing import Callable
 
 import mergedeep
 
-from rcmt import encoding, manifest
+from rcmt import encoding, manifest, util
 
 
 class Action:
@@ -103,7 +102,7 @@ class Merge(Action):
         return Merge(er, opts.merge.selector, string.Template(data), strat)
 
     def apply(self, repo_path: str, tpl_data: dict) -> None:
-        paths = glob.iglob(os.path.join(repo_path, self.selector), recursive=True)
+        paths = util.iglob(repo_path, self.selector)
         for p in paths:
             ext = pathlib.Path(p).suffix
             enc = self.encodings.get_for_extension(ext)
@@ -162,7 +161,7 @@ class Exec(Action):
         self.timeout = timeout
 
     def apply(self, repo_path: str, tpl_data: dict) -> None:
-        repo_file_paths = glob.iglob(os.path.join(repo_path, self.selector))
+        repo_file_paths = util.iglob(repo_path, self.selector)
         for repo_file_path in repo_file_paths:
             result = subprocess.run(
                 args=[self.exec_path, repo_file_path],
