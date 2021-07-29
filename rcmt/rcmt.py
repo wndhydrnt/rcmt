@@ -51,7 +51,7 @@ def run(opts: Options):
         tpl_mapping = {"repo_name": repo.name, "repo_project": repo.project}
         pr = source.PullRequest(
             opts.config.pr_title_prefix,
-            opts.config.pr_title_body,
+            opts.config.pr_title_body.format(matcher_name=matcher.name),
             opts.config.pr_title_suffix,
         )
         has_changes = False
@@ -67,9 +67,7 @@ def run(opts: Options):
 
             if gitc.has_changes(work_dir) is True:
                 log.debug("Committing changes", pkg=pkg.name, repo=str(repo))
-                gitc.commit_changes(
-                    work_dir, f"rcmt: Applied {matcher.name} package {pkg.name}"
-                )
+                gitc.commit_changes(work_dir, f"rcmt: Applied package {pkg.name}")
                 pr.add_package(pkg.name)
                 if has_changes is False:
                     has_changes = True
@@ -145,9 +143,9 @@ def config_to_options(cfg: config.Config) -> Options:
 
 
 def match_repositories(
-    repositories: list[source.Repository], match: str
+    repositories: list[source.Repository], match: config.Match
 ) -> list[source.Repository]:
-    pattern = re.compile(match)
+    pattern = match.repository_regex
     matched_repositories = []
     for repo in repositories:
         match_str = str(repo)

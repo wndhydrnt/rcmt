@@ -14,3 +14,7 @@ coverage:
 
 publish:
 	@poetry publish --build --username $(PUBLISH_USERNAME) --password $(PUBLISH_PASSWORD)
+
+.PHONY: docs
+docs:
+	cd docs/ && poetry run make html

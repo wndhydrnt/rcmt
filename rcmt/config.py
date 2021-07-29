@@ -1,4 +1,5 @@
 import os.path
+import re
 import tempfile
 from typing import Optional
 
@@ -7,10 +8,26 @@ import yaml
 from pydantic.fields import Field
 
 
+class Match(pydantic.BaseModel):
+    repository: str
+
+    @pydantic.validator("repository")
+    def repository_is_regex(cls, v):
+        try:
+            re.compile(v)
+            return v
+        except Exception as e:
+            raise ValueError(f"Unable to compile regex: {e}")
+
+    @property
+    def repository_regex(self):
+        return re.compile(self.repository)
+
+
 class Matcher(pydantic.BaseModel):
+    match: Match
     name: str
     packages: list[str] = []
-    match: str
 
 
 class Git(pydantic.BaseModel):
@@ -47,7 +64,7 @@ class Config(pydantic.BaseModel):
     json_: Json = Field(alias="json", default=Json())
     log_level: str = "info"
     pr_title_prefix: str = "rcmt:"
-    pr_title_body: str = "Configuration files changed"
+    pr_title_body: str = "apply matcher {matcher_name}"
     pr_title_suffix: str = ""
     toml: Toml = Toml()
     yaml: Yaml = Yaml()

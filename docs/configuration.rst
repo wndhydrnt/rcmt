@@ -86,7 +86,10 @@ rcmt prefixes every Pull Request title with this string. Defaults to ``rcmt:``.
 -----------------
 
 rcmt uses this string to set the title of each Pull Request. Defaults to
-``Configuration files changed``.
+``apply matcher {matcher_name}``.
+
+``matcher_name`` is a variable referencing the name of a :doc:`Matcher <matcher>`. No
+other variables are supported.
 
 ``pr_title_suffix``
 -------------------

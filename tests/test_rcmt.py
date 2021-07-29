@@ -1,7 +1,7 @@
 import unittest
 from typing import Any, Union
 
-from rcmt import rcmt, source
+from rcmt import config, rcmt, source
 
 
 class RepositoryMock(source.Repository):
@@ -51,11 +51,13 @@ class MatchRepositoriesTest(unittest.TestCase):
             RepositoryMock("other", "wndhydrnt", "github.com"),
         ]
 
-        result = rcmt.match_repositories(repositories, "github.com/wndhydrnt/rcmt")
+        match = config.Match(repository="github.com/wndhydrnt/rcmt")
+        result = rcmt.match_repositories(repositories, match)
         self.assertEqual(2, len(result))
         self.assertEqual(result[0].name, "rcmt")
         self.assertEqual(result[1].name, "rcmt-packages")
 
-        result = rcmt.match_repositories(repositories, "^github.com/wndhydrnt/rcmt$")
+        match = config.Match(repository="^github.com/wndhydrnt/rcmt$")
+        result = rcmt.match_repositories(repositories, match)
         self.assertEqual(1, len(result))
         self.assertEqual(result[0].name, "rcmt")
