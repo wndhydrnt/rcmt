@@ -1,12 +1,26 @@
+[build-system]
+requires = [ "poetry-core>=1.0.0",]
+build-backend = "poetry.core.masonry.api"
+
 [tool.poetry]
 name = "rcmt"
 version = "0.1.0.dev1"
 description = ""
 license = "GPL-3.0-only"
-authors = ["Markus Meyer <hydrantanderwand@gmail.com>"]
+authors = [ "Markus Meyer <hydrantanderwand@gmail.com>",]
 readme = "README.md"
 repository = "https://github.com/wndhydrnt/rcmt"
 documentation = "https://rcmt.readthedocs.io/"
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[tool.mypy]
+ignore_missing_imports = true
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -30,26 +44,15 @@ types-PyYAML = "^5.4.3"
 Sphinx = "^4.0.2"
 flake8 = "^3.9.2"
 sphinx-rtd-theme = "^0.5.2"
-coverage = {extras = ["toml"], version = "^5.5"}
 
 [tool.poetry.scripts]
 rcmt = "rcmt.cli:main"
 
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.black]
-line-length = 88
-
 [tool.coverage.run]
 command_line = "-m pytest"
-omit = [".venv/*", "tests/*"]
-source = ["."]
+omit = [ ".venv/*", "tests/*",]
+source = [ ".",]
 
-[tool.isort]
-profile = "black"
-multi_line_output = 3
-
-[tool.mypy]
-ignore_missing_imports = true
+[tool.poetry.dev-dependencies.coverage]
+extras = [ "toml",]
+version = "^5.5"
