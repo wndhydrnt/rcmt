@@ -27,7 +27,7 @@ jobs:
       - name: Push Docker image
         env:
           DOCKER_REGISTRY: https://index.docker.io/v1/
-          DOCKER_CREDS_USR: wandhydrant
+          DOCKER_CREDS_USR: ${{ secrets.DOCKER_CREDS_USR }}
           DOCKER_CREDS_PSW: ${{ secrets.DOCKER_CREDS_PSW }}
           RCMT_VERSION: main
         run: |
