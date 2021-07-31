@@ -1,3 +1,5 @@
+RCMT_VERSION ?= develop
+
 lint:
 	poetry run black --check .
 	poetry run mypy .
@@ -18,3 +20,9 @@ publish:
 .PHONY: docs
 docs:
 	cd docs/ && poetry run make html
+
+docker_build:
+	docker build -t wandhydrant/rcmt:$(RCMT_VERSION) .
+
+docker_push:
+	docker push wandhydrant/rcmt:$(RCMT_VERSION)
