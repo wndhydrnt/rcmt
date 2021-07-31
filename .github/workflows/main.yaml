@@ -17,8 +17,6 @@ jobs:
       - run: poetry install
       - run: make lint
       - run: make test
-      - name: Build Docker image
-        run: make docker_build
       - name: Configure Docker to use env credentials reader
         run: |
           mkdir -p "$HOME/.docker"
@@ -32,4 +30,6 @@ jobs:
           DOCKER_CREDS_USR: wandhydrant
           DOCKER_CREDS_PSW: ${{ secrets.DOCKER_CREDS_PSW }}
           RCMT_VERSION: main
-        run: make docker_push
+        run: |
+          make docker_build
+          make docker_push
