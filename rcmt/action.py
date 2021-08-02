@@ -203,6 +203,7 @@ class LineInFile(Action):
 def line_in_file_factory(
     er: encoding.Registry, opts: manifest.Action, pkg_path: str
 ) -> LineInFile:
+    assert opts.line_in_file is not None
     return LineInFile(opts.line_in_file.line, opts.line_in_file.selector)
 
 
