@@ -18,6 +18,11 @@ class ExecOptions(pydantic.BaseModel):
     timeout: int = 120
 
 
+class LineInFileOptions(pydantic.BaseModel):
+    line: str
+    selector: str
+
+
 class MergeOptions(pydantic.BaseModel):
     selector: str
     source: str
@@ -46,6 +51,7 @@ class Action(pydantic.BaseModel):
     absent: Optional[AbsentOptions]
     delete_key: Optional[DeleteKeyOptions]
     exec: Optional[ExecOptions]
+    line_in_file: Optional[LineInFileOptions]
     merge: Optional[MergeOptions]
     own: Optional[OwnOptions]
     seed: Optional[SeedOptions]

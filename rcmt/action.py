@@ -15,11 +15,11 @@ class Action:
     Action is the abstract class that defines the interface each action implements.
     """
 
-    def apply(self, repo_file_path: str, tpl_data: dict) -> None:
+    def apply(self, repo_path: str, tpl_data: dict) -> None:
         """
         apply modifies a file in a repository.
 
-        :param repo_file_path: The absolute path to the file in a repository to modify.
+        :param repo_path: The absolute path to the file in a repository to modify.
         :param tpl_data: The content of the file from a package, already populated with
                          template data.
         :return: None
@@ -180,6 +180,30 @@ class Exec(Action):
 def exec_factory(er: encoding.Registry, opts: manifest.Action, pkg_path: str) -> Exec:
     assert opts.exec is not None
     return Exec(opts.exec.path, opts.exec.selector, opts.exec.timeout)
+
+
+class LineInFile(Action):
+    def __init__(self, line: str, selector: str):
+        self.line = line.strip()
+        self.selector = selector
+
+    def apply(self, repo_path: str, tpl_data: dict) -> None:
+        repo_file_paths = util.iglob(repo_path, self.selector)
+        for repo_file_path in repo_file_paths:
+            with open(repo_file_path, "r") as f:
+                for line in f:
+                    if line.strip() == self.line:
+                        return None
+
+            with open(repo_file_path, "a") as f:
+                f.write(self.line)
+                f.write("\n")
+
+
+def line_in_file_factory(
+    er: encoding.Registry, opts: manifest.Action, pkg_path: str
+) -> LineInFile:
+    return LineInFile(opts.line_in_file.line, opts.line_in_file.selector)
 
 
 class Registry:

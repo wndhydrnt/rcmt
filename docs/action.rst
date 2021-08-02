@@ -79,6 +79,30 @@ Examples
        path: /opt/the-binary
        selector: "**/*.py"
 
+LineInFile
+----------
+
+LineInFile ensures that a line exists in a file. It adds the line if it does not exist.
+
+Parameters
+^^^^^^^^^^
+
+======== ============================================== ======== =======
+Name     Description                                    Required Default
+======== ============================================== ======== =======
+line     Line to search for                             yes      /
+selector Glob selector to find the files to modify.     yes      /
+======== ============================================== ======== =======
+
+Examples
+^^^^^^^^
+
+.. code-block:: yaml
+
+   - line_in_file:
+       line: The Line
+       selector: file.txt
+
 .. _action/Merge:
 
 Merge

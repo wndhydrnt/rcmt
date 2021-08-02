@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from unittest import mock
 
-from rcmt.action import Absent, DeleteKey, Exec
+from rcmt.action import Absent, DeleteKey, Exec, LineInFile
 
 
 class AbsentTest(unittest.TestCase):
@@ -43,3 +43,38 @@ class DeleteKeysTest(unittest.TestCase):
         key_to_delete = ["level1", "level2", "level3"]
         result = DeleteKey.process_recursive(key_to_delete, data)
         self.assertDictEqual({"foo": "bar", "level1": {"level2": {}}}, result)
+
+
+class LineInFileTest(unittest.TestCase):
+    def test_apply_line_does_not_exist(self):
+        with tempfile.TemporaryDirectory() as d:
+            test_file_path = os.path.join(d, "test.txt")
+            with open(test_file_path, "w+") as test_file:
+                test_file.write("abc\n")
+                test_file.write("def\n")
+
+            under_test = LineInFile("foobar", "test.txt")
+            under_test.apply(d, {})
+
+            with open(test_file_path, "r") as test_file:
+                lines = test_file.readlines()
+
+            self.assertEqual(3, len(lines))
+            self.assertEqual("foobar\n", lines[2])
+
+    def test_apply_line_does_exist(self):
+        with tempfile.TemporaryDirectory() as d:
+            test_file_path = os.path.join(d, "test.txt")
+            with open(test_file_path, "w+") as test_file:
+                test_file.write("abc\n")
+                test_file.write("foobar\n")
+                test_file.write("def\n")
+
+            under_test = LineInFile("foobar", "test.txt")
+            under_test.apply(d, {})
+
+            with open(test_file_path, "r") as test_file:
+                lines = test_file.readlines()
+
+            self.assertEqual(3, len(lines))
+            self.assertEqual("foobar\n", lines[1])
