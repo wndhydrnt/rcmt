@@ -3,7 +3,7 @@ Actions
 
 Actions encapsulate behavior of how to change a file.
 
-Absent
+absent
 ------
 
 Deletes a file or directory.
@@ -25,8 +25,8 @@ Examples
    - absent:
        target: config.yaml
 
-DeleteKey
----------
+delete_key
+----------
 
 Delete a key in a file. The file has to be in a format supported by :doc:`encoding`.
 
@@ -50,7 +50,7 @@ Examples
        key: "foo.bar"
        target: config.json
 
-Exec
+exec
 ----
 
 Exec calls an executable and passes matching files in a repository to it. The executable
@@ -79,8 +79,8 @@ Examples
        path: /opt/the-binary
        selector: "**/*.py"
 
-LineInFile
-----------
+line_in_file
+------------
 
 LineInFile ensures that a line exists in a file. It adds the line if it does not exist.
 
@@ -105,7 +105,7 @@ Examples
 
 .. _action/Merge:
 
-Merge
+merge
 -----
 
 Merge merges the content of a file in a repository with the content of a file from a
@@ -138,7 +138,7 @@ Examples
 
 .. _action/Own:
 
-Own
+own
 ---
 
 Own ensures that a file in a repository stays the same.
@@ -165,7 +165,7 @@ Examples
        source: .flake8
        target: .flake8
 
-Seed
+seed
 ----
 
 Seed ensures that a file in a repository is present.
