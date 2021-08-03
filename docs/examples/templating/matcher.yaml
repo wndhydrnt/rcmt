@@ -1,0 +1,4 @@
+match:
+  repository: github.com/MyOrg/.+
+name: templating-example
+packages: ["flake8"]

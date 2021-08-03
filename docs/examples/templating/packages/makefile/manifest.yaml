@@ -1,0 +1,5 @@
+name: makefile
+actions:
+  - seed:
+      source: Makefile
+      target: Makefile
