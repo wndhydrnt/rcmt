@@ -22,6 +22,14 @@ Example
 
 The repositories to match. rcmt compiles the string into a regular expression.
 
+Every :doc:`Source <sources>` has its own way of creating this string:
+
+====== =============================================== =============================
+Source Schema                                          Example
+====== =============================================== =============================
+GitHub ``github.com/<owner or org>/<repository name>`` ``github.com/wndhydrnt/rcmt``
+====== =============================================== =============================
+
 ``name``
 --------
 

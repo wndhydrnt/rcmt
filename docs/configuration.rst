@@ -51,6 +51,8 @@ E-mail to set when committing changes. Defaults to ``""``.
 
 Name of the author to set when committing changes. Defaults to ``rcmt``.
 
+.. _configuration/github:
+
 ``github``
 ^^^^^^^^^^
 
