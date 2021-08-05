@@ -17,3 +17,20 @@ jobs:
           PUBLISH_USERNAME: ${{ secrets.PUBLISH_USERNAME }}
           PUBLISH_PASSWORD: ${{ secrets.PUBLISH_PASSWORD }}
         run: make publish
+      - name: Extract tag from ref
+        id: vars
+        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+      - name: Configure Docker to use env credentials reader
+        run: |
+          mkdir -p "$HOME/.docker"
+          echo '{"credsStore": "env"}' > "$HOME/.docker/config.json"
+          echo "$GITHUB_WORKSPACE/build/docker" >> $GITHUB_PATH
+      - name: Push Docker image
+        env:
+          DOCKER_REGISTRY: https://index.docker.io/v1/
+          DOCKER_CREDS_USR: ${{ secrets.DOCKER_CREDS_USR }}
+          DOCKER_CREDS_PSW: ${{ secrets.DOCKER_CREDS_PSW }}
+          RCMT_VERSION: ${{ steps.vars.outputs.tag }}
+        run: |
+          make docker_build
+          make docker_push

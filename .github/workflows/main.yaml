@@ -21,8 +21,6 @@ jobs:
         run: |
           mkdir -p "$HOME/.docker"
           echo '{"credsStore": "env"}' > "$HOME/.docker/config.json"
-      - name: Make Docker env credentials reader available in PATH
-        run: |
           echo "$GITHUB_WORKSPACE/build/docker" >> $GITHUB_PATH
       - name: Push Docker image
         env:
