@@ -23,6 +23,81 @@ class Options:
         self.sources: list[source.SourceLister] = []
 
 
+class Run:
+    def __init__(self, g: git.Git, opts: Options):
+        self.git = g
+        self.opts = opts
+
+    def execute(
+        self,
+        matcher: config.Matcher,
+        pkgs: list[package.Package],
+        repo: source.Repository,
+    ):
+        work_dir = self.git.prepare(repo)
+        tpl_mapping = {"repo_name": repo.name, "repo_project": repo.project}
+        pr = source.PullRequest(
+            self.opts.config.pr_title_prefix,
+            self.opts.config.pr_title_body.format(matcher_name=matcher.name),
+            self.opts.config.pr_title_suffix,
+        )
+        has_changes = False
+        for pkg in pkgs:
+            for a in pkg.actions:
+                log.debug(
+                    "Applying action",
+                    action=a.__class__.__name__,
+                    pkg=pkg.name,
+                    repo=str(repo),
+                )
+                a.apply(work_dir, tpl_mapping)
+
+            if self.git.has_changes(work_dir) is True:
+                log.debug("Committing changes", pkg=pkg.name, repo=str(repo))
+                self.git.commit_changes(work_dir, f"rcmt: Applied package {pkg.name}")
+                pr.add_package(pkg.name)
+                has_changes = True
+
+            else:
+                log.info(
+                    "No changes after applying package", pkg=pkg.name, repo=str(repo)
+                )
+
+        # Combining self.git.needs_push and has_changes avoids an unnecessary push of the
+        # branch if the remote branch does not exist.
+        needs_push = self.git.needs_push(work_dir) and has_changes
+        if needs_push:
+            if self.opts.config.dry_run:
+                log.warn("DRY RUN: Not pushing changes")
+            else:
+                log.debug("Pushing changes", repo=str(repo))
+                self.git.push(work_dir)
+
+        open_pr_identifier = repo.find_open_pull_request(self.git.branch_name)
+        if needs_push is True and open_pr_identifier is None:
+            if self.opts.config.dry_run:
+                log.warn("DRY RUN: Not creating pull request")
+            else:
+                log.info("Create pull request", repo=str(repo))
+                repo.create_pull_request(self.git.branch_name, pr)
+
+        if (
+            self.opts.config.auto_merge is True
+            and needs_push is False
+            and open_pr_identifier is not None
+        ):
+            if repo.has_successful_pr_build(open_pr_identifier):
+                if self.opts.config.dry_run:
+                    log.warn("DRY RUN: Not merging pull request", repo=str(repo))
+                else:
+                    log.info("Merge pull request", repo=str(repo))
+                    repo.merge_pull_request(open_pr_identifier)
+            else:
+                log.warn(
+                    "Cannot merge because build of pull request failed", repo=str(repo)
+                )
+
+
 def run(opts: Options):
     log_level = logging.getLevelName(opts.config.log_level.upper())
     structlog.configure(
@@ -45,71 +120,10 @@ def run(opts: Options):
         opts.config.git.user_name,
         opts.config.git.user_email,
     )
+    runner = Run(gitc, opts)
     for repo in matched_repos:
         log.info("Matched repository", repository=str(repo))
-        work_dir = gitc.prepare(repo)
-        tpl_mapping = {"repo_name": repo.name, "repo_project": repo.project}
-        pr = source.PullRequest(
-            opts.config.pr_title_prefix,
-            opts.config.pr_title_body.format(matcher_name=matcher.name),
-            opts.config.pr_title_suffix,
-        )
-        has_changes = False
-        for pkg in pkgs_to_apply:
-            for a in pkg.actions:
-                log.debug(
-                    "Applying action",
-                    action=a.__class__.__name__,
-                    pkg=pkg.name,
-                    repo=str(repo),
-                )
-                a.apply(work_dir, tpl_mapping)
-
-            if gitc.has_changes(work_dir) is True:
-                log.debug("Committing changes", pkg=pkg.name, repo=str(repo))
-                gitc.commit_changes(work_dir, f"rcmt: Applied package {pkg.name}")
-                pr.add_package(pkg.name)
-                if has_changes is False:
-                    has_changes = True
-
-            else:
-                log.info(
-                    "No changes after applying package", pkg=pkg.name, repo=str(repo)
-                )
-
-        # Combining gitc.needs_push and has_changes avoids an unnecessary push of the
-        # branch if the remote branch does not exist.
-        needs_push = gitc.needs_push(work_dir) and has_changes
-        if needs_push:
-            if opts.config.dry_run:
-                log.warn("DRY RUN: Not pushing changes")
-            else:
-                log.debug("Pushing changes", repo=str(repo))
-                gitc.push(work_dir)
-
-        open_pr_identifier = repo.find_open_pull_request(gitc.branch_name)
-        if needs_push is True and open_pr_identifier is None:
-            if opts.config.dry_run:
-                log.warn("DRY RUN: Not creating pull request")
-            else:
-                log.info("Create pull request", repo=str(repo))
-                repo.create_pull_request(gitc.branch_name, pr)
-
-        if (
-            opts.config.auto_merge is True
-            and needs_push is False
-            and open_pr_identifier is not None
-        ):
-            if repo.has_successful_pr_build(open_pr_identifier):
-                if opts.config.dry_run:
-                    log.warn("DRY RUN: Not merging pull request", repo=str(repo))
-                else:
-                    log.info("Merge pull request", repo=str(repo))
-                    repo.merge_pull_request(open_pr_identifier)
-            else:
-                log.warn(
-                    "Cannot merge because build of pull request failed", repo=str(repo)
-                )
+        runner.execute(matcher, pkgs_to_apply, repo)
 
 
 def options_from_config(path: str) -> Options:
