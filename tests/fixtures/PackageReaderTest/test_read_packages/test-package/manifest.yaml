@@ -1,0 +1,5 @@
+name: test-package
+actions:
+  - seed:
+      source: test.yaml
+      target: test.yaml
