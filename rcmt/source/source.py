@@ -9,23 +9,23 @@ class PullRequest:
 
         self.changed_packages: list[str] = []
 
-    def __eq__(self, other: "PullRequest") -> bool:
+    def __eq__(self, other: object) -> bool:
         """
         Aids with checking equality during unit tests.
 
         :param other: Other PullRequest
         :return: bool
         """
-        if self.title_prefix != other.title_prefix:
+        if self.title_prefix != getattr(other, "title_prefix"):
             return False
 
-        if self.title_body != other.title_body:
+        if self.title_body != getattr(other, "title_body"):
             return False
 
-        if self.title_suffix != other.title_suffix:
+        if self.title_suffix != getattr(other, "title_suffix"):
             return False
 
-        return self.changed_packages == other.changed_packages
+        return self.changed_packages == getattr(other, "changed_packages")
 
     def add_package(self, name: str):
         self.changed_packages.append(name)
