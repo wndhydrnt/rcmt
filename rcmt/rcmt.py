@@ -40,6 +40,8 @@ class Run:
             self.opts.config.pr_title_prefix,
             self.opts.config.pr_title_body.format(matcher_name=matcher.name),
             self.opts.config.pr_title_suffix,
+            matcher.pr_body,
+            matcher.pr_title,
         )
         has_changes = False
         for pkg in pkgs:

@@ -13,6 +13,11 @@ Example
      repository: ^github.com/wndhydrnt/rcmt$
    name: python-defaults
    packages: ["flake8"]
+   pr_title: A custom PR title
+   pr_body: |
+     A custom PR title.
+     It supports multiline strings.
+
 
 ``match``
 ---------
@@ -40,3 +45,14 @@ The name of the matcher.
 
 A list of :doc:`Packages<package>`. rcmt applies each package to each matching
 repository.
+
+``pr_body``
+-----------
+
+Define a custom body of a pull request.
+
+``pr_title``
+------------
+
+Set a custom title for a pull request. Overrides :ref:`pr_title_prefix <configuration/pr_title_prefix>`,
+:ref:`pr_title_body <configuration/pr_title_body>` and :ref:`pr_title_suffix <configuration/pr_title_suffix>`.

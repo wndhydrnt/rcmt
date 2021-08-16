@@ -82,10 +82,14 @@ Indentation to use when writing JSON files. Defaults to ``2``.
 
 Log level of the application. Defaults to ``info``.
 
+.. _configuration/pr_title_prefix:
+
 ``pr_title_prefix``
 ^^^^^^^^^^^^^^^^^^^
 
 rcmt prefixes every Pull Request title with this string. Defaults to ``rcmt:``.
+
+.. _configuration/pr_title_body:
 
 ``pr_title_body``
 ^^^^^^^^^^^^^^^^^
@@ -95,6 +99,8 @@ rcmt uses this string to set the title of each Pull Request. Defaults to
 
 ``matcher_name`` is a variable referencing the name of a :doc:`Matcher <matcher>`. No
 other variables are supported.
+
+.. _configuration/pr_title_suffix:
 
 ``pr_title_suffix``
 ^^^^^^^^^^^^^^^^^^^

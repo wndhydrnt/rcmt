@@ -28,6 +28,8 @@ class Matcher(pydantic.BaseModel):
     match: Match
     name: str
     packages: list[str] = []
+    pr_body: str = ""
+    pr_title: str = ""
 
 
 class Git(pydantic.BaseModel):

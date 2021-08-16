@@ -2,7 +2,16 @@ from typing import Any, Union
 
 
 class PullRequest:
-    def __init__(self, title_prefix: str, title_body: str, title_suffix: str):
+    def __init__(
+        self,
+        title_prefix: str,
+        title_body: str,
+        title_suffix: str,
+        custom_body="",
+        custom_title="",
+    ):
+        self.custom_body = custom_body
+        self.custom_title = custom_title
         self.title_prefix = title_prefix
         self.title_body = title_body
         self.title_suffix = title_suffix
@@ -16,6 +25,12 @@ class PullRequest:
         :param other: Other PullRequest
         :return: bool
         """
+        if self.custom_body != getattr(other, "custom_body"):
+            return False
+
+        if self.custom_title != getattr(other, "custom_title"):
+            return False
+
         if self.title_prefix != getattr(other, "title_prefix"):
             return False
 
@@ -32,6 +47,9 @@ class PullRequest:
 
     @property
     def body(self) -> str:
+        if self.custom_body != "":
+            return self.custom_body
+
         return f"""This update contains changes from the following packages:
 
 {self.render_package_list()}
@@ -47,6 +65,9 @@ _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._
 
     @property
     def title(self) -> str:
+        if self.custom_title != "":
+            return self.custom_title
+
         return f"{self.title_prefix} {self.title_body} {self.title_suffix}"
 
 
