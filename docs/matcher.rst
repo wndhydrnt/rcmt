@@ -9,6 +9,7 @@ Example
 
 .. code-block:: yaml
 
+   auto_merge_after: P7D
    match:
      repository: ^github.com/wndhydrnt/rcmt$
    name: python-defaults
@@ -18,6 +19,15 @@ Example
      A custom PR title.
      It supports multiline strings.
 
+
+``auto_merge_after``
+--------------------
+
+A duration after which to automatically merge a Pull Request. Requires
+:ref:`auto_merge <configuration/auto_merge>` to be set to ``true``.
+
+The duration is given in
+the format of `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601#Durations>`_.
 
 ``match``
 ---------

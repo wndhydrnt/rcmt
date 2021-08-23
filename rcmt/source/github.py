@@ -1,3 +1,4 @@
+import datetime
 from typing import Any, Union
 
 import github
@@ -73,6 +74,9 @@ class GithubRepository(Repository):
     @property
     def name(self) -> str:
         return self.repo.name
+
+    def pr_created_at(self, pr: github.PullRequest.PullRequest) -> datetime.datetime:
+        return pr.created_at
 
     @property
     def project(self) -> str:

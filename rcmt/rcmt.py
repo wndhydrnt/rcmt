@@ -1,5 +1,7 @@
+import datetime
 import logging
 import re
+from typing import Optional
 
 import structlog
 import yaml
@@ -21,6 +23,16 @@ class Options:
         self.matcher_path: str = ""
         self.packages_paths: list[str] = []
         self.sources: list[source.SourceLister] = []
+
+
+def can_merge_after(
+    created_at: datetime.datetime, delay: Optional[datetime.timedelta]
+) -> bool:
+    if delay is None:
+        return True
+
+    passed = datetime.datetime.now() - created_at
+    return passed >= delay
 
 
 class Run:
@@ -88,16 +100,23 @@ class Run:
             and needs_push is False
             and open_pr_identifier is not None
         ):
-            if repo.has_successful_pr_build(open_pr_identifier):
-                if self.opts.config.dry_run:
-                    log.warn("DRY RUN: Not merging pull request", repo=str(repo))
-                else:
-                    log.info("Merge pull request", repo=str(repo))
-                    repo.merge_pull_request(open_pr_identifier)
-            else:
+            if not repo.has_successful_pr_build(open_pr_identifier):
                 log.warn(
                     "Cannot merge because build of pull request failed", repo=str(repo)
                 )
+                return
+
+            if not can_merge_after(
+                repo.pr_created_at(open_pr_identifier), matcher.auto_merge_after
+            ):
+                log.info("Too early to merge pull request", repo=str(repo))
+                return
+
+            if self.opts.config.dry_run:
+                log.warn("DRY RUN: Not merging pull request", repo=str(repo))
+            else:
+                log.info("Merge pull request", repo=str(repo))
+                repo.merge_pull_request(open_pr_identifier)
 
 
 def run(opts: Options):

@@ -1,3 +1,4 @@
+import datetime
 import os.path
 import re
 import tempfile
@@ -25,6 +26,7 @@ class Match(pydantic.BaseModel):
 
 
 class Matcher(pydantic.BaseModel):
+    auto_merge_after: Optional[datetime.timedelta]
     match: Match
     name: str
     packages: list[str] = []

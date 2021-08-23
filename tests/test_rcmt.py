@@ -1,3 +1,4 @@
+import datetime
 import unittest
 import unittest.mock
 from typing import Any, Union
@@ -116,7 +117,9 @@ class RunTest(unittest.TestCase):
         git_mock = create_git_mock("rcmt", "/unit/test", False)
         runner = Run(git_mock, opts)
         matcher = config.Matcher(
-            match=config.Match(repository="local"), name="testmatch"
+            auto_merge_after="PT12H",
+            match=config.Match(repository="local"),
+            name="testmatch",
         )
         pkg = package.Package("testpackage")
         action_mock = unittest.mock.Mock(spec=action.Action)
@@ -126,6 +129,9 @@ class RunTest(unittest.TestCase):
         repo_mock.project = "myproject"
         repo_mock.find_open_pull_request.return_value = "someid"
         repo_mock.has_successful_pr_build.return_value = True
+        repo_mock.pr_created_at.return_value = (
+            datetime.datetime.now() - datetime.timedelta(days=1)
+        )
 
         runner.execute(matcher, [pkg], repo_mock)
 
