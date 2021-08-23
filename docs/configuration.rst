@@ -15,6 +15,8 @@ Example
 Reference
 ---------
 
+.. _configuration/auto_merge:
+
 ``auto_merge``
 ^^^^^^^^^^^^^^
 

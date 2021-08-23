@@ -1,3 +1,4 @@
+import datetime
 from typing import Any, Union
 
 
@@ -148,6 +149,15 @@ class Repository:
         :return: str
         """
         raise NotImplementedError("class does not implement Repository.name()")
+
+    def pr_created_at(self, pr: Any) -> datetime.datetime:
+        """
+        Returns the date and time at which the pull request was created.
+
+        :param pr: The pull request identifier as returned by find_open_pull_request().
+        :return: datetime.datetime
+        """
+        raise NotImplementedError("class does not implement Repository.pr_created_at()")
 
     @property
     def project(self) -> str:
