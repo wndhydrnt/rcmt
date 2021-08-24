@@ -35,7 +35,7 @@ class Git:
     @staticmethod
     def has_changes(repo_dir: str) -> bool:
         git_repo = git.Repo(path=repo_dir)
-        return len(git_repo.index.diff(None)) > 0
+        return len(git_repo.index.diff(None)) > 0 or len(git_repo.untracked_files) > 0
 
     def needs_push(self, repo_dir: str) -> bool:
         git_repo = git.Repo(path=repo_dir)
