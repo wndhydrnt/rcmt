@@ -45,6 +45,11 @@ class Github(pydantic.BaseModel):
     access_token: str = os.getenv("RCMT_GITHUB_ACCESS_TOKEN", "")
 
 
+class Gitlab(pydantic.BaseModel):
+    private_token = ""
+    url = "https://gitlab.com"
+
+
 class Json(pydantic.BaseModel):
     indent: int = 2
     extensions: list[str] = [".json"]
@@ -64,6 +69,7 @@ class Config(pydantic.BaseModel):
     dry_run: bool = False
     git: Git = Git()
     github: Github = Github()
+    gitlab = Gitlab()
     # Add _ because json is a reserved field of pydantic
     json_: Json = Field(alias="json", default=Json())
     log_level: str = "info"

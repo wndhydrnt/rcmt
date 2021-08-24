@@ -175,6 +175,10 @@ def config_to_options(cfg: config.Config) -> Options:
         source_github = source.Github(cfg.github.access_token)
         opts.sources.append(source_github)
 
+    if cfg.gitlab.private_token != "":
+        source_gitlab = source.Gitlab(cfg.gitlab.url, cfg.gitlab.private_token)
+        opts.sources.append(source_gitlab)
+
     return opts
 
 
