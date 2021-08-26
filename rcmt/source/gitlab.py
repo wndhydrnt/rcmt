@@ -3,9 +3,13 @@ from typing import Any, Union
 from urllib.parse import urlparse
 
 import gitlab
+import structlog
 from gitlab.v4.objects import Project as GitlabProject
+from gitlab.v4.objects.merge_requests import ProjectMergeRequest as GitlabMergeRequest
 
 from .source import PullRequest, Repository, SourceLister
+
+log = structlog.get_logger(source="gitlab")
 
 
 class GitlabRepository(Repository):
@@ -21,28 +25,59 @@ class GitlabRepository(Repository):
     def clone_url(self) -> str:
         return self._project.http_url_to_repo
 
-    # def create_pull_request(self, branch: str, pr: PullRequest) -> None:
-    #     pass
+    def create_pull_request(self, branch: str, pr: PullRequest) -> None:
+        log.debug(
+            "Creating merge request", base=self.base_branch, head=branch, repo=str(self)
+        )
+        self._project.mergerequests.create(
+            {
+                "description": pr.body,
+                "source_branch": branch,
+                "target_branch": self.base_branch,
+                "title": pr.title,
+            }
+        )
 
     def find_open_pull_request(self, branch: str) -> Union[Any, None]:
-        prs = self._project.mergerequests.list(state="opened", source_branch=branch)
-        if len(prs) == 0:
+        log.debug("Listing merge requests", repo=str(self))
+        mrs = self._project.mergerequests.list(state="opened", source_branch=branch)
+        if len(mrs) == 0:
             return None
 
-        return prs[0]
+        return mrs[0]
 
-    # def has_successful_pr_build(self, identifier: Any) -> bool:
-    #     pass
-    #
-    # def merge_pull_request(self, identifier: Any) -> None:
-    #     pass
+    def has_successful_pr_build(self, identifier: GitlabMergeRequest) -> bool:
+        pipelines = identifier.pipelines.list()
+        if len(pipelines) == 0:
+            log.debug("No pipelines", repo=str(self), id=identifier.get_id())
+            return True
+
+        for pl in pipelines:
+            if pl.sha == identifier.sha and pl.status != "success":
+                log.warn(
+                    "Pipeline not successful",
+                    pipeline_id=pl.id,
+                    repo=str(self),
+                    status=pl.status,
+                )
+                return False
+
+        log.debug(
+            "All pipeline runs successful", repo=str(self), id=identifier.get_id()
+        )
+        return True
+
+    def merge_pull_request(self, identifier: GitlabMergeRequest) -> None:
+        log.debug("Merging merge request", repo=str(self), id=identifier.get_id())
+        identifier.merge()
 
     @property
     def name(self) -> str:
         return self._project.path
 
-    # def pr_created_at(self, pr: Any) -> datetime.datetime:
-    #     pass
+    def pr_created_at(self, pr: GitlabMergeRequest) -> datetime.datetime:
+        corrected = pr.created_at.replace("Z", "+00:00")
+        return datetime.datetime.fromisoformat(corrected)
 
     @property
     def project(self) -> str:
