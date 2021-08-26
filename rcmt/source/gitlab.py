@@ -97,8 +97,8 @@ class Gitlab(SourceLister):
         projects = self.client.projects.list(
             all=True, archived=False, min_access_level=30
         )
-        repositories: list[GitlabRepository] = []
+        repositories: list[Repository] = []
         for p in projects:
-            repositories.append(GitlabRepository(project=p, url=self.url))
+            repositories.append(GitlabRepository(project=p, url=self.url))  # type: ignore
 
         return repositories
