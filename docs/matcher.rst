@@ -43,6 +43,7 @@ Every :doc:`Source <sources>` has its own way of creating this string:
 Source Schema                                          Example
 ====== =============================================== =============================
 GitHub ``github.com/<owner or org>/<repository name>`` ``github.com/wndhydrnt/rcmt``
+GitLab ``<address>/<owner>/<project>``                 ``gitlab.com/wndhydrnt/rcmt``
 ====== =============================================== =============================
 
 ``name``
