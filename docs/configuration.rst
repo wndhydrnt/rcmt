@@ -64,6 +64,22 @@ Name of the author to set when committing changes. Defaults to ``rcmt``.
 Access to authenticate at the GitHub API. It is also possible to set the access token
 via the environment variable ``RCMT_GITHUB_ACCESS_TOKEN``.
 
+.. _configuration/gitlab:
+
+``gitlab``
+^^^^^^^^^^
+
+``private_token``
+"""""""""""""""""
+
+Private token to authenticate at the GitLab API.
+
+``url``
+"""""""
+
+URL of the GitLab installation. Defaults to ``https://gitlab.com``. It is also possible
+to set the private token via the environment variable ``RCMT_GITLAB_PRIVATE_TOKEN``.
+
 ``json``
 ^^^^^^^^
 

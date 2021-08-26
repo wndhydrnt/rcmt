@@ -46,7 +46,7 @@ class Github(pydantic.BaseModel):
 
 
 class Gitlab(pydantic.BaseModel):
-    private_token = ""
+    private_token = os.getenv("RCMT_GITLAB_PRIVATE_TOKEN", "")
     url = "https://gitlab.com"
 
 

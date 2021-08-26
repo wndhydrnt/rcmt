@@ -11,3 +11,6 @@ GitHub
 ------
 
 - :ref:`Configuration <configuration/github>`
+
+Gitlab
+------
