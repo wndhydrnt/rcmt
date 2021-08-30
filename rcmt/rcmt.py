@@ -96,7 +96,7 @@ class Run:
                 repo.create_pull_request(self.git.branch_name, pr)
 
         if (
-            self.opts.config.auto_merge is True
+            matcher.auto_merge is True
             and needs_push is False
             and open_pr_identifier is not None
         ):
