@@ -20,11 +20,20 @@ Example
      It supports multiline strings.
 
 
+.. _matcher/auto_merge:
+
+``auto_merge``
+--------------
+
+rcmt automatically merges a pull request on its next run. The pull request must pass all
+its checks. Defaults to ``false``.
+
+
 ``auto_merge_after``
 --------------------
 
 A duration after which to automatically merge a Pull Request. Requires
-:ref:`auto_merge <configuration/auto_merge>` to be set to ``true``.
+:ref:`auto_merge <matcher/auto_merge>` to be set to ``true``.
 
 The duration is given in
 the format of `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601#Durations>`_.

@@ -15,14 +15,6 @@ Example
 Reference
 ---------
 
-.. _configuration/auto_merge:
-
-``auto_merge``
-^^^^^^^^^^^^^^
-
-rcmt automatically merges a pull request on its next run. The pull request must pass all
-its checks. Defaults to ``false``.
-
 ``dry_run``
 ^^^^^^^^^^^
 

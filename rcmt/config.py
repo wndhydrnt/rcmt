@@ -26,6 +26,7 @@ class Match(pydantic.BaseModel):
 
 
 class Matcher(pydantic.BaseModel):
+    auto_merge = False
     auto_merge_after: Optional[datetime.timedelta]
     match: Match
     name: str
@@ -65,7 +66,6 @@ class Yaml(pydantic.BaseModel):
 
 
 class Config(pydantic.BaseModel):
-    auto_merge: bool = False
     dry_run: bool = False
     git: Git = Git()
     github: Github = Github()

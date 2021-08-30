@@ -112,11 +112,12 @@ class RunTest(unittest.TestCase):
         repo_mock.merge_pull_request.assert_not_called()
 
     def test_auto_merge_pr(self):
-        cfg = config.Config(auto_merge=True)
+        cfg = config.Config()
         opts = Options(cfg)
         git_mock = create_git_mock("rcmt", "/unit/test", False)
         runner = Run(git_mock, opts)
         matcher = config.Matcher(
+            auto_merge=True,
             auto_merge_after="PT12H",
             match=config.Match(repository="local"),
             name="testmatch",
