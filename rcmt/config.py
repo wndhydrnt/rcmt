@@ -9,7 +9,7 @@ from pydantic.fields import Field
 
 
 class Match(pydantic.BaseModel):
-    paths: list[str] = []
+    files: list[str] = []
     repository: Pattern
 
 

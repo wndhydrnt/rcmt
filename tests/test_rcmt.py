@@ -165,14 +165,14 @@ class MatchRepositoriesTest(unittest.TestCase):
         self.assertEqual(result[1].name, "rcmt-packages")
 
         match = config.Match(
-            paths=["pyproject.toml"], repository="^github.com/wndhydrnt/rcmt$"
+            files=["pyproject.toml"], repository="^github.com/wndhydrnt/rcmt$"
         )
         result = rcmt.match_repositories(repositories, match)
         self.assertEqual(1, len(result))
         self.assertEqual(result[0].name, "rcmt")
 
         match = config.Match(
-            paths=["pyproject.toml"], repository="^github.com/wndhydrnt/rcmt$"
+            files=["pyproject.toml"], repository="^github.com/wndhydrnt/rcmt$"
         )
         result = rcmt.match_repositories(
             [RepositoryMock("rcmt", "wndhydrnt", "github.com", has_file=False)], match
