@@ -118,6 +118,18 @@ class Repository:
             "class does not implement Repository.has_open_pull_request()"
         )
 
+    def has_file(self, path: str) -> bool:
+        """
+        Checks if a file exists in a repository.
+
+        rcmt calls this function when matching repositories. This is more efficient than
+        checking out the whole repository to check if a file exists.
+
+        :param path: Path to a file or directory in the repository.
+        :return: bool
+        """
+        raise NotImplementedError("class does not implement Repository.has_file()")
+
     def has_successful_pr_build(self, identifier: Any) -> bool:
         """
         Checks if a pull request has passed all checks. rcmt will call merge_pull_request if this function returns

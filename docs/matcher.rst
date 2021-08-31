@@ -11,6 +11,8 @@ Example
 
    auto_merge_after: P7D
    match:
+     files:
+       - pyproject.toml
      repository: ^github.com/wndhydrnt/rcmt$
    name: python-defaults
    packages: ["flake8"]
@@ -40,6 +42,14 @@ the format of `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601#Durations>`_.
 
 ``match``
 ---------
+
+``files``
+^^^^^^^^^
+
+A list of files or directories that need to exist inside a repository for it to match.
+
+rcmt queries a :doc:`Source <sources>` via its API instead of checking out the whole
+repository.
 
 ``repository``
 ^^^^^^^^^^^^^^

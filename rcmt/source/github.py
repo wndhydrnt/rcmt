@@ -46,6 +46,17 @@ class GithubRepository(Repository):
 
         return None
 
+    def has_file(self, path: str) -> bool:
+        try:
+            self.repo.get_contents(path=path, ref=self.base_branch)
+        except github.UnknownObjectException as e:
+            if e.status == 404:
+                return False
+            else:
+                raise e
+
+        return True
+
     def has_successful_pr_build(self, pr: github.PullRequest.PullRequest) -> bool:
         log.debug("Checking PR builds", repo=str(self))
         for cr in self.repo.get_commit(pr.head.sha).get_check_runs():

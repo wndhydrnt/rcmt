@@ -1,8 +1,7 @@
 import datetime
 import os.path
-import re
 import tempfile
-from typing import Optional
+from typing import Optional, Pattern
 
 import pydantic
 import yaml
@@ -10,19 +9,8 @@ from pydantic.fields import Field
 
 
 class Match(pydantic.BaseModel):
-    repository: str
-
-    @pydantic.validator("repository")
-    def repository_is_regex(cls, v):
-        try:
-            re.compile(v)
-            return v
-        except Exception as e:
-            raise ValueError(f"Unable to compile regex: {e}")
-
-    @property
-    def repository_regex(self):
-        return re.compile(self.repository)
+    files: list[str] = []
+    repository: Pattern
 
 
 class Matcher(pydantic.BaseModel):

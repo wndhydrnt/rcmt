@@ -185,12 +185,22 @@ def config_to_options(cfg: config.Config) -> Options:
 def match_repositories(
     repositories: list[source.Repository], match: config.Match
 ) -> list[source.Repository]:
-    pattern = match.repository_regex
     matched_repositories = []
     for repo in repositories:
         match_str = str(repo)
-        result = pattern.match(match_str)
-        if result is not None:
+        result = match.repository.match(match_str)
+        if result is None:
+            continue
+
+        files_match = True
+        if len(match.files) > 0:
+            for f in match.files:
+                if repo.has_file(f) is False:
+                    log.debug("Repo does not contain file", file=f, repo=str(repo))
+                    files_match = False
+                    break
+
+        if files_match:
             matched_repositories.append(repo)
 
     return matched_repositories

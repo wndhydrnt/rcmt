@@ -8,7 +8,8 @@ from rcmt.rcmt import Options, Run
 
 
 class RepositoryMock(source.Repository):
-    def __init__(self, name: str, project: str, src: str):
+    def __init__(self, name: str, project: str, src: str, has_file=True):
+        self._has_file = has_file
         self._name = name
         self._project = project
         self._source = src
@@ -26,6 +27,9 @@ class RepositoryMock(source.Repository):
 
     def find_open_pull_request(self, branch: str) -> Union[Any, None]:
         return None
+
+    def has_file(self, path: str) -> bool:
+        return self._has_file
 
     def has_successful_pr_build(self, identifier: Any) -> bool:
         return False
@@ -160,7 +164,17 @@ class MatchRepositoriesTest(unittest.TestCase):
         self.assertEqual(result[0].name, "rcmt")
         self.assertEqual(result[1].name, "rcmt-packages")
 
-        match = config.Match(repository="^github.com/wndhydrnt/rcmt$")
+        match = config.Match(
+            files=["pyproject.toml"], repository="^github.com/wndhydrnt/rcmt$"
+        )
         result = rcmt.match_repositories(repositories, match)
         self.assertEqual(1, len(result))
         self.assertEqual(result[0].name, "rcmt")
+
+        match = config.Match(
+            files=["pyproject.toml"], repository="^github.com/wndhydrnt/rcmt$"
+        )
+        result = rcmt.match_repositories(
+            [RepositoryMock("rcmt", "wndhydrnt", "github.com", has_file=False)], match
+        )
+        self.assertEqual(0, len(result))

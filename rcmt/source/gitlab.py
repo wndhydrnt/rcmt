@@ -46,6 +46,17 @@ class GitlabRepository(Repository):
 
         return mrs[0]
 
+    def has_file(self, path: str) -> bool:
+        try:
+            self._project.repositories.get(file_path=path, ref=self.base_branch)
+        except gitlab.exceptions.GitlabGetError as e:
+            if e.response_code == 404:
+                return False
+            else:
+                raise e
+
+        return True
+
     def has_successful_pr_build(self, identifier: GitlabMergeRequest) -> bool:
         pipelines = identifier.pipelines.list()
         if len(pipelines) == 0:
