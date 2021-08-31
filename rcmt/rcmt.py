@@ -196,7 +196,7 @@ def match_repositories(
         if len(match.files) > 0:
             for f in match.files:
                 if repo.has_file(f) is False:
-                    log.debug("Does not contain path", path=f, repo=str(repo))
+                    log.debug("Repo does not contain file", file=f, repo=str(repo))
                     files_match = False
                     break
 
