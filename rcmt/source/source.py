@@ -73,24 +73,27 @@ _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._
 
 
 class Repository:
+    """
+    Repository provides all methods needed to interact with a single repository of a
+    Source.
+    """
+
     def __str__(self):
         return f"{self.source}/{self.project}/{self.name}"
 
     @property
     def base_branch(self) -> str:
         """
-        Name of the base branch of this repository.
-
-        :return: str
+        :return: Name of the base branch of this repository.
+        :rtype: str
         """
         raise NotImplementedError("class does not implement Repository.base_branch()")
 
     @property
     def clone_url(self) -> str:
         """
-        Url to clone this repository.
-
-        :return: str
+        :return: Url to clone this repository.
+        :rtype: str
         """
         raise NotImplementedError("class does not implement Repository.clone_url()")
 
@@ -100,7 +103,7 @@ class Repository:
 
         :param branch: Name of the branch.
         :param pr: The pull request.
-        :return: None
+        :rtype: None
         """
         raise NotImplementedError(
             "class does not implement Repository.create_pull_request()"
@@ -113,6 +116,7 @@ class Repository:
         :param branch: Name of the branch from which a pull request has been created.
         :return: Implementation of this method should return None if no pull request is open. Any other value will be
                  passed to merge_pull_request() so it can identify which PR to merge.
+        :rtype: Any, None
         """
         raise NotImplementedError(
             "class does not implement Repository.has_open_pull_request()"
@@ -126,7 +130,8 @@ class Repository:
         checking out the whole repository to check if a file exists.
 
         :param path: Path to a file or directory in the repository.
-        :return: bool
+        :return: Indicates if the files exists.
+        :rtype: bool
         """
         raise NotImplementedError("class does not implement Repository.has_file()")
 
@@ -136,7 +141,8 @@ class Repository:
         True.
 
         :param identifier: Data to identify the pull request as returned by find_open_pull_request.
-        :return: bool
+        :return: Indicates if the build is successful.
+        :rtype: bool
         """
         raise NotImplementedError(
             "class does not implement Repository.has_successful_build()"
@@ -147,7 +153,7 @@ class Repository:
         Merges a pull request.
 
         :param identifier: Data to identify the pull request as returned by find_open_pull_request.
-        :return: None
+        :rtype: None
         """
         raise NotImplementedError(
             "class does not implement Repository.merge_pull_request()"
@@ -156,9 +162,8 @@ class Repository:
     @property
     def name(self) -> str:
         """
-        Name of the repository.
-
-        :return: str
+        :return: Name of the repository.
+        :rtype: str
         """
         raise NotImplementedError("class does not implement Repository.name()")
 
@@ -167,16 +172,16 @@ class Repository:
         Returns the date and time at which the pull request was created.
 
         :param pr: The pull request identifier as returned by find_open_pull_request().
-        :return: datetime.datetime
+        :return: Date and time at which the pull request was created.
+        :rtype: datetime.datetime
         """
         raise NotImplementedError("class does not implement Repository.pr_created_at()")
 
     @property
     def project(self) -> str:
         """
-        Name of the project the repository belongs to.
-
-        :return: str
+        :return: Name of the project the repository belongs to.
+        :rtype: str
         """
 
         raise NotImplementedError("class does not implement Repository.project()")
@@ -184,19 +189,23 @@ class Repository:
     @property
     def source(self) -> str:
         """
-        Name of the source that hosts the repository.
-
-        :return: str
+        :return: Name of the source that hosts the repository.
+        :rtype: str
         """
         raise NotImplementedError("class does not implement Repository.source()")
 
 
-class Source:
-    pass
+class Base:
+    """
+    Base defines the methods every Source needs to implement.
 
+    """
 
-class SourceLister:
     def list_repositories(self) -> list[Repository]:
+        """
+        :return: List of all known repositories.
+        :rtype: list[rcmt.source.Repository]
+        """
         raise NotImplementedError(
             "class does not implement SourceLister.list_repositories()"
         )

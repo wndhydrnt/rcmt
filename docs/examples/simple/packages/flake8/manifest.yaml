@@ -6,7 +6,7 @@ actions:
     # The action to apply. The "own" action lets rcmt
     # take ownership of the file.
     # rcmt resets the file if somebody changes it in a repository.
-    own:
+    - own:
       # Path to the source file rcmt should put in a repository.
       # This path is relative to the manifest.yaml file.
       source: .flake8

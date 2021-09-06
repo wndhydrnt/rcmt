@@ -67,3 +67,4 @@ create a Pull Request for each repository.
    sources
    configuration
    encoding
+   customization

@@ -6,7 +6,7 @@ import github.PullRequest
 import github.Repository
 import structlog
 
-from .source import PullRequest, Repository, SourceLister
+from .source import Base, PullRequest, Repository
 
 log = structlog.get_logger(source="github")
 
@@ -98,7 +98,7 @@ class GithubRepository(Repository):
         return "github.com"
 
 
-class Github(SourceLister):
+class Github(Base):
     def __init__(self, access_token):
         self.client = github.Github(access_token)
 

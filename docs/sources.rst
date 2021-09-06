@@ -14,3 +14,14 @@ GitHub
 
 Gitlab
 ------
+
+- :ref:`Configuration <configuration/gitlab>`
+
+Base Classes
+------------
+
+.. autoclass:: rcmt.source.Base
+   :members:
+
+.. autoclass:: rcmt.source.Repository
+   :members:

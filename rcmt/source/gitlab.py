@@ -7,7 +7,7 @@ import structlog
 from gitlab.v4.objects import Project as GitlabProject
 from gitlab.v4.objects.merge_requests import ProjectMergeRequest as GitlabMergeRequest
 
-from .source import PullRequest, Repository, SourceLister
+from .source import Base, PullRequest, Repository
 
 log = structlog.get_logger(source="gitlab")
 
@@ -99,7 +99,7 @@ class GitlabRepository(Repository):
         return self.url
 
 
-class Gitlab(SourceLister):
+class Gitlab(Base):
     def __init__(self, url: str, private_token: str):
         self.client = gitlab.Gitlab(url, private_token=private_token)
         self.url = urlparse(url).netloc
