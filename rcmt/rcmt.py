@@ -22,7 +22,7 @@ class Options:
         self.encoding_registry: encoding.Registry = encoding.Registry()
         self.matcher_path: str = ""
         self.packages_paths: list[str] = []
-        self.sources: list[source.SourceLister] = []
+        self.sources: list[source.Base] = []
 
 
 def can_merge_after(
