@@ -16,15 +16,22 @@ class Match(pydantic.BaseModel):
 class Matcher(pydantic.BaseModel):
     auto_merge = False
     auto_merge_after: Optional[datetime.timedelta]
+    branch_name: str = ""
     match: Match
     name: str
     packages: list[str] = []
     pr_body: str = ""
     pr_title: str = ""
 
+    def branch(self, prefix: str) -> str:
+        if self.branch_name != "":
+            return self.branch_name
+
+        return f"{prefix}{self.name}"
+
 
 class Git(pydantic.BaseModel):
-    branch_name: str = "rcmt"
+    branch_prefix = "rcmt/"
     data_dir: str = os.path.join(tempfile.gettempdir(), "rcmt", "data")
     user_name: str = "rcmt"
     user_email: str = ""

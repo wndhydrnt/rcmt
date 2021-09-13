@@ -24,10 +24,13 @@ requests. Defaults to ``false``.
 ``git``
 ^^^^^^^
 
-``branch_name``
-"""""""""""""""
+.. _configuration/branch_prefix:
 
-Name of the branch to which rcmt adds its changes. Defaults to ``rcmt``.
+``branch_prefix``
+"""""""""""""""""
+
+Prefix of git branches that rcmt creates. Not used if a Matcher defines its own
+:ref:`branch_name <matcher/branch_name>`. Defaults to ``rcmt/``.
 
 ``data_dir``
 """"""""""""

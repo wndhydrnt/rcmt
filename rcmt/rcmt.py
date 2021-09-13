@@ -1,6 +1,5 @@
 import datetime
 import logging
-import re
 from typing import Optional
 
 import structlog
@@ -136,7 +135,7 @@ def run(opts: Options):
     log.info("Repositories returned by sources", count=len(repositories))
     matched_repos = match_repositories(repositories, matcher.match)
     gitc = git.Git(
-        opts.config.git.branch_name,
+        matcher.branch(opts.config.git.branch_prefix),
         opts.config.git.data_dir,
         opts.config.git.user_name,
         opts.config.git.user_email,
