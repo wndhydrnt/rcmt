@@ -37,8 +37,16 @@ its checks. Defaults to ``false``.
 A duration after which to automatically merge a Pull Request. Requires
 :ref:`auto_merge <matcher/auto_merge>` to be set to ``true``.
 
-The duration is given in
-the format of `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601#Durations>`_.
+The duration is given in `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601#Durations>`_
+format.
+
+.. _matcher/branch_name:
+
+``branch_name``
+---------------
+
+Name of the branch in git. Defaults to :ref:`branch_prefix <configuration/branch_prefix>` +
+:ref:`name <matcher/name>`.
 
 ``match``
 ---------
@@ -64,6 +72,8 @@ Source Schema                                          Example
 GitHub ``github.com/<owner or org>/<repository name>`` ``github.com/wndhydrnt/rcmt``
 GitLab ``<address>/<owner>/<project>``                 ``gitlab.com/wndhydrnt/rcmt``
 ====== =============================================== =============================
+
+.. _matcher/name:
 
 ``name``
 --------
