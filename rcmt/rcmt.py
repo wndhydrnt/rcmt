@@ -86,8 +86,16 @@ class Run:
                 log.debug("Pushing changes", repo=str(repo))
                 self.git.push(work_dir)
 
-        open_pr_identifier = repo.find_open_pull_request(self.git.branch_name)
-        if needs_push is True and open_pr_identifier is None:
+        pr_identifier = repo.find_pull_request(self.git.branch_name)
+        if pr_identifier is not None and repo.is_pr_closed(pr_identifier) is True:
+            log.info(
+                "Existing PR has been closed by the user",
+                branch=self.git.branch_name,
+                repo=str(repo),
+            )
+            return
+
+        if needs_push is True and pr_identifier is None:
             if self.opts.config.dry_run:
                 log.warn("DRY RUN: Not creating pull request")
             else:
@@ -97,16 +105,17 @@ class Run:
         if (
             matcher.auto_merge is True
             and needs_push is False
-            and open_pr_identifier is not None
+            and pr_identifier is not None
+            and repo.is_pr_open(pr_identifier) is True
         ):
-            if not repo.has_successful_pr_build(open_pr_identifier):
+            if not repo.has_successful_pr_build(pr_identifier):
                 log.warn(
                     "Cannot merge because build of pull request failed", repo=str(repo)
                 )
                 return
 
             if not can_merge_after(
-                repo.pr_created_at(open_pr_identifier), matcher.auto_merge_after
+                repo.pr_created_at(pr_identifier), matcher.auto_merge_after
             ):
                 log.info("Too early to merge pull request", repo=str(repo))
                 return
@@ -115,7 +124,7 @@ class Run:
                 log.warn("DRY RUN: Not merging pull request", repo=str(repo))
             else:
                 log.info("Merge pull request", repo=str(repo))
-                repo.merge_pull_request(open_pr_identifier)
+                repo.merge_pull_request(pr_identifier)
 
 
 def run(opts: Options):

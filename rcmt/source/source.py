@@ -109,7 +109,7 @@ class Repository:
             "class does not implement Repository.create_pull_request()"
         )
 
-    def find_open_pull_request(self, branch: str) -> Union[Any, None]:
+    def find_pull_request(self, branch: str) -> Union[Any, None]:
         """
         Finds and returns the pull request opened by rcmt.
 
@@ -140,7 +140,7 @@ class Repository:
         Checks if a pull request has passed all checks. rcmt will call merge_pull_request if this function returns
         True.
 
-        :param identifier: Data to identify the pull request as returned by find_open_pull_request.
+        :param identifier: Data to identify the pull request as returned by find_pull_request.
         :return: Indicates if the build is successful.
         :rtype: bool
         """
@@ -148,11 +148,36 @@ class Repository:
             "class does not implement Repository.has_successful_build()"
         )
 
+    def is_pr_closed(self, identifier: Any) -> bool:
+        """
+        Checks if a pull request has been closed by the user.
+        A pull request is closed if a user manually closes it without merging it.
+        If a user has closed a pull request without merging it, rcmt will not create a
+        new one.
+
+        :param identifier: Data to identify the pull request as returned by find_pull_request.
+        :return: Indicates that a pull request has been closed by the user.
+        :rtype: bool
+        """
+        raise NotImplementedError("class does not implement Repository.is_pr_closed()")
+
+    def is_pr_open(self, identifier: Any) -> bool:
+        """
+        Checks if a pull request is open.
+        rcmt will attempt to merge the pull request if this method returns true and
+        there are no new changes from packages.
+
+        :param identifier: Data to identify the pull request as returned by find_pull_request.
+        :return: Indicates that a pull request is open.
+        :rtype: bool
+        """
+        raise NotImplementedError("class does not implement Repository.is_pr_open()")
+
     def merge_pull_request(self, identifier: Any) -> None:
         """
         Merges a pull request.
 
-        :param identifier: Data to identify the pull request as returned by find_open_pull_request.
+        :param identifier: Data to identify the pull request as returned by find_pull_request.
         :rtype: None
         """
         raise NotImplementedError(
@@ -171,7 +196,7 @@ class Repository:
         """
         Returns the date and time at which the pull request was created.
 
-        :param pr: The pull request identifier as returned by find_open_pull_request().
+        :param pr: The pull request identifier as returned by find_pull_request().
         :return: Date and time at which the pull request was created.
         :rtype: datetime.datetime
         """

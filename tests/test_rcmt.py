@@ -25,7 +25,7 @@ class RepositoryMock(source.Repository):
     def create_pull_request(self, branch: str, pr: source.PullRequest) -> None:
         return None
 
-    def find_open_pull_request(self, branch: str) -> Union[Any, None]:
+    def find_pull_request(self, branch: str) -> Union[Any, None]:
         return None
 
     def has_file(self, path: str) -> bool:
@@ -74,14 +74,14 @@ class RunTest(unittest.TestCase):
         repo_mock = unittest.mock.Mock(spec=source.Repository)
         repo_mock.name = "myrepo"
         repo_mock.project = "myproject"
-        repo_mock.find_open_pull_request.return_value = None
+        repo_mock.find_pull_request.return_value = None
 
         runner.execute(matcher, [pkg], repo_mock)
 
         action_mock.apply.assert_called_once_with(
             "/unit/test", {"repo_name": "myrepo", "repo_project": "myproject"}
         )
-        repo_mock.find_open_pull_request.assert_called_once_with("rcmt")
+        repo_mock.find_pull_request.assert_called_once_with("rcmt")
         repo_mock.create_pull_request.assert_not_called()
         repo_mock.merge_pull_request.assert_not_called()
 
@@ -99,14 +99,14 @@ class RunTest(unittest.TestCase):
         repo_mock = unittest.mock.Mock(spec=source.Repository)
         repo_mock.name = "myrepo"
         repo_mock.project = "myproject"
-        repo_mock.find_open_pull_request.return_value = None
+        repo_mock.find_pull_request.return_value = None
 
         runner.execute(matcher, [pkg], repo_mock)
 
         action_mock.apply.assert_called_once_with(
             "/unit/test", {"repo_name": "myrepo", "repo_project": "myproject"}
         )
-        repo_mock.find_open_pull_request.assert_called_once_with("rcmt")
+        repo_mock.find_pull_request.assert_called_once_with("rcmt")
         git_mock.push.assert_called_once_with("/unit/test")
         expected_pr = source.PullRequest(
             cfg.pr_title_prefix, "apply matcher testmatch", cfg.pr_title_suffix
@@ -132,8 +132,10 @@ class RunTest(unittest.TestCase):
         repo_mock = unittest.mock.Mock(spec=source.Repository)
         repo_mock.name = "myrepo"
         repo_mock.project = "myproject"
-        repo_mock.find_open_pull_request.return_value = "someid"
+        repo_mock.find_pull_request.return_value = "someid"
         repo_mock.has_successful_pr_build.return_value = True
+        repo_mock.is_pr_closed.return_value = False
+        repo_mock.is_pr_open.return_value = True
         repo_mock.pr_created_at.return_value = (
             datetime.datetime.now() - datetime.timedelta(days=1)
         )
@@ -143,11 +145,39 @@ class RunTest(unittest.TestCase):
         action_mock.apply.assert_called_once_with(
             "/unit/test", {"repo_name": "myrepo", "repo_project": "myproject"}
         )
-        repo_mock.find_open_pull_request.assert_called_once_with("rcmt")
+        repo_mock.find_pull_request.assert_called_once_with("rcmt")
         git_mock.push.assert_not_called()
         repo_mock.create_pull_request.assert_not_called()
         repo_mock.has_successful_pr_build.assert_called_once_with("someid")
         repo_mock.merge_pull_request.assert_called_once_with("someid")
+
+    def test_no_merge_closed_pr(self):
+        cfg = config.Config()
+        opts = Options(cfg)
+        git_mock = create_git_mock("rcmt", "/unit/test", True)
+        runner = Run(git_mock, opts)
+        matcher = config.Matcher(
+            match=config.Match(repository="local"), name="testmatch"
+        )
+        pkg = package.Package("testpackage")
+        action_mock = unittest.mock.Mock(spec=action.Action)
+        pkg.actions.append(action_mock)
+        repo_mock = unittest.mock.Mock(spec=source.Repository)
+        repo_mock.name = "myrepo"
+        repo_mock.project = "myproject"
+        repo_mock.find_pull_request.return_value = "someid"
+        repo_mock.is_pr_closed.return_value = True
+
+        runner.execute(matcher, [pkg], repo_mock)
+
+        action_mock.apply.assert_called_once_with(
+            "/unit/test", {"repo_name": "myrepo", "repo_project": "myproject"}
+        )
+        repo_mock.find_pull_request.assert_called_once_with("rcmt")
+        repo_mock.is_pr_closed.assert_called_once_with("someid")
+        git_mock.push.assert_called_once_with("/unit/test")
+        repo_mock.create_pull_request.assert_not_called()
+        repo_mock.merge_pull_request.assert_not_called()
 
 
 class MatchRepositoriesTest(unittest.TestCase):
