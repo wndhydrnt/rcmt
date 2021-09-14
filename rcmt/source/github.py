@@ -38,9 +38,9 @@ class GithubRepository(Repository):
             maintainer_can_modify=True,
         )
 
-    def find_open_pull_request(self, branch: str) -> Union[Any, None]:
+    def find_pull_request(self, branch: str) -> Union[Any, None]:
         log.debug("Listing pull requests", repo=str(self))
-        for pr in self.repo.get_pulls(state="open"):
+        for pr in self.repo.get_pulls(state="all"):
             if pr.head.ref == branch:
                 return pr
 
@@ -70,6 +70,12 @@ class GithubRepository(Repository):
                 return False
 
         return True
+
+    def is_pr_closed(self, pr: github.PullRequest.PullRequest) -> bool:
+        return pr.state == "closed" and pr.merged is False
+
+    def is_pr_open(self, pr: github.PullRequest.PullRequest) -> bool:
+        return pr.state == "open"
 
     def merge_pull_request(self, pr: github.PullRequest.PullRequest):
         if pr.mergeable:

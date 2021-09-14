@@ -68,3 +68,4 @@ create a Pull Request for each repository.
    configuration
    encoding
    customization
+   faq

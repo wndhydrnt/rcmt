@@ -38,9 +38,9 @@ class GitlabRepository(Repository):
             }
         )
 
-    def find_open_pull_request(self, branch: str) -> Union[Any, None]:
+    def find_pull_request(self, branch: str) -> Union[Any, None]:
         log.debug("Listing merge requests", repo=str(self))
-        mrs = self._project.mergerequests.list(state="opened", source_branch=branch)
+        mrs = self._project.mergerequests.list(state="all", source_branch=branch)
         if len(mrs) == 0:
             return None
 
@@ -77,6 +77,12 @@ class GitlabRepository(Repository):
             "All pipeline runs successful", repo=str(self), id=identifier.get_id()
         )
         return True
+
+    def is_pr_closed(self, mr: GitlabMergeRequest) -> bool:
+        return mr.state == "closed" or mr.state == "locked"
+
+    def is_pr_open(self, mr: GitlabMergeRequest) -> bool:
+        return mr.state == "opened"
 
     def merge_pull_request(self, identifier: GitlabMergeRequest) -> None:
         log.debug("Merging merge request", repo=str(self), id=identifier.get_id())
