@@ -5,7 +5,7 @@ from typing import Optional
 import structlog
 import yaml
 
-from rcmt import action, config, encoding, git, package, source
+from rcmt import action, config, encoding, git, package, run, source
 
 structlog.configure(
     wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
@@ -34,14 +34,14 @@ def can_merge_after(
     return passed >= delay
 
 
-class Run:
+class RepoRun:
     def __init__(self, g: git.Git, opts: Options):
         self.git = g
         self.opts = opts
 
     def execute(
         self,
-        matcher: config.Matcher,
+        matcher: run.Run,
         pkgs: list[package.Package],
         repo: source.Repository,
     ):
@@ -127,7 +127,7 @@ class Run:
                 repo.merge_pull_request(pr_identifier)
 
 
-def run(opts: Options):
+def execute(opts: Options):
     log_level = logging.getLevelName(opts.config.log_level.upper())
     structlog.configure(
         wrapper_class=structlog.make_filtering_bound_logger(log_level),
@@ -135,22 +135,24 @@ def run(opts: Options):
 
     pkg_reader = package.PackageReader(opts.action_registry, opts.encoding_registry)
     pkgs = pkg_reader.read_packages(opts.packages_paths)
-    matcher = parse_matcher(opts.matcher_path)
+    matcher = run.read(opts.matcher_path)
     pkgs_to_apply = find_packages(matcher.packages, pkgs)
     repositories = []
     for s in opts.sources:
         repositories += s.list_repositories()
 
     log.info("Repositories returned by sources", count=len(repositories))
-    matched_repos = match_repositories(repositories, matcher.match)
     gitc = git.Git(
         matcher.branch(opts.config.git.branch_prefix),
         opts.config.git.data_dir,
         opts.config.git.user_name,
         opts.config.git.user_email,
     )
-    runner = Run(gitc, opts)
-    for repo in matched_repos:
+    runner = RepoRun(gitc, opts)
+    for repo in repositories:
+        if matcher.match(repo) is False:
+            continue
+
         log.info("Matched repository", repository=str(repo))
         runner.execute(matcher, pkgs_to_apply, repo)
 

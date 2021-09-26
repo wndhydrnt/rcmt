@@ -1,6 +1,9 @@
 import importlib.metadata
 
-from .rcmt import options_from_config, run
+from .matcher import FileExists as FileExistsMatcher
+from .matcher import RepoName as RepoNameMatcher
+from .rcmt import execute, options_from_config
+from .run import Run
 
 try:
     __version__ = importlib.metadata.version(__name__)
