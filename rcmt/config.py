@@ -1,4 +1,3 @@
-import datetime
 import os.path
 import tempfile
 from typing import Optional, Pattern
@@ -6,28 +5,6 @@ from typing import Optional, Pattern
 import pydantic
 import yaml
 from pydantic.fields import Field
-
-
-class Match(pydantic.BaseModel):
-    files: list[str] = []
-    repository: Pattern
-
-
-class Matcher(pydantic.BaseModel):
-    auto_merge = False
-    auto_merge_after: Optional[datetime.timedelta]
-    branch_name: str = ""
-    match: Match
-    name: str
-    packages: list[str] = []
-    pr_body: str = ""
-    pr_title: str = ""
-
-    def branch(self, prefix: str) -> str:
-        if self.branch_name != "":
-            return self.branch_name
-
-        return f"{prefix}{self.name}"
 
 
 class Git(pydantic.BaseModel):

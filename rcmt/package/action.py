@@ -3,11 +3,21 @@ import os
 import pathlib
 import string
 import subprocess
-from typing import Callable
+from typing import Union
 
 import mergedeep
 
-from rcmt import encoding, manifest, util
+from rcmt import encoding, util
+
+from .loader import FileLoader
+
+
+def load_file_or_str(input: Union[str, FileLoader], pkg_path: str) -> str:
+    if isinstance(input, str):
+        return input
+
+    if isinstance(input, FileLoader):
+        return input.load(pkg_path)
 
 
 class Action:
@@ -15,7 +25,7 @@ class Action:
     Action is the abstract class that defines the interface each action implements.
     """
 
-    def apply(self, repo_path: str, tpl_data: dict) -> None:
+    def apply(self, pkg_path: str, repo_path: str, tpl_data: dict) -> None:
         """
         apply modifies a file in a repository.
 
@@ -31,77 +41,64 @@ class Absent(Action):
     def __init__(self, target):
         self.target = target
 
-    def apply(self, repo_path: str, tpl_data: dict) -> None:
+    def apply(self, pkg_path: str, repo_path: str, tpl_data: dict) -> None:
         repo_file_path = os.path.join(repo_path, self.target)
         if os.path.exists(repo_file_path):
             os.remove(repo_file_path)
 
 
 class Own(Action):
-    def __init__(self, target: str, tpl: string.Template):
-        self.tpl = tpl
+    def __init__(self, target: str, source: Union[str, FileLoader]):
+        self.source = source
         self.target = target
 
-    def apply(self, repo_path: str, tpl_data: dict) -> None:
+    def apply(self, pkg_path: str, repo_path: str, tpl_data: dict) -> None:
+        data = load_file_or_str(self.source, pkg_path)
         file_path = os.path.join(repo_path, self.target)
         with open(file_path, "w+") as f:
-            f.write(self.tpl.substitute(tpl_data))
-
-
-def own_factory(er: encoding.Registry, opts: manifest.Action, pkg_path: str) -> Own:
-    assert opts.own is not None
-    source_path = os.path.join(pkg_path, opts.own.source)
-    with open(source_path, "r") as f:
-        data = f.read()
-
-    return Own(opts.own.target, string.Template(data))
+            f.write(string.Template(data).substitute(tpl_data))
 
 
 class Seed(Own):
-    def apply(self, repo_path: str, tpl_data: dict) -> None:
+    def apply(self, pkg_path: str, repo_path: str, tpl_data: dict) -> None:
         repo_file_path = os.path.join(repo_path, self.target)
         if os.path.isfile(repo_file_path):
             return
 
-        super().apply(repo_path, tpl_data)
+        super().apply(pkg_path, repo_path, tpl_data)
 
 
-def seed_factory(er: encoding.Registry, opts: manifest.Action, pkg_path: str) -> Seed:
-    assert opts.seed is not None
-    source_path = os.path.join(pkg_path, opts.seed.source)
-    with open(source_path, "r") as f:
-        data = f.read()
+class EncodingAware:
+    def __init__(self):
+        self._encodings: encoding.Registry
 
-    return Seed(opts.seed.target, string.Template(data))
+    @property
+    def encodings(self) -> encoding.Registry:
+        return self._encodings
+
+    @encodings.setter
+    def encodings(self, er: encoding.Registry):
+        self._encodings = er
 
 
-class Merge(Action):
+class Merge(Action, EncodingAware):
     def __init__(
         self,
-        encodings: encoding.Registry,
         selector: str,
-        source_data: string.Template,
-        strategy: mergedeep.Strategy,
+        source: Union[str, FileLoader],
+        merge_strategy="replace",
     ):
-        self.encodings = encodings
+        super().__init__()
         self.selector = selector
-        self.source_data = source_data
-        self.strategy = strategy
+        self.source_data = source
+        self.strategy = mergedeep.Strategy.REPLACE
+        if merge_strategy == "additive":
+            self.strategy = mergedeep.Strategy.ADDITIVE
 
-    @staticmethod
-    def factory(er: encoding.Registry, opts: manifest.Action, pkg_path: str):
-        assert opts.merge is not None
-        source_path = os.path.join(pkg_path, opts.merge.source)
-        with open(source_path, "r") as f:
-            data = f.read()
-
-        strat = mergedeep.Strategy.REPLACE
-        if opts.merge.strategy == "additive":
-            strat = mergedeep.Strategy.ADDITIVE
-
-        return Merge(er, opts.merge.selector, string.Template(data), strat)
-
-    def apply(self, repo_path: str, tpl_data: dict) -> None:
+    def apply(self, pkg_path: str, repo_path: str, tpl_data: dict) -> None:
+        data = string.Template(load_file_or_str(self.source_data, pkg_path)).substitute(
+            tpl_data
+        )
         paths = util.iglob(repo_path, self.selector)
         for p in paths:
             ext = pathlib.Path(p).suffix
@@ -109,24 +106,19 @@ class Merge(Action):
             with open(p, "r") as f:
                 orig_data = enc.decode(f)
 
-            tpl = enc.decode(io.StringIO(self.source_data.substitute(tpl_data)))
+            tpl = enc.decode(io.StringIO(data))
             merged_data = enc.merge(orig_data, tpl, self.strategy)
             with open(p, "w") as f:
                 enc.encode(f, merged_data)
 
 
-class DeleteKey(Action):
-    def __init__(self, encodings: encoding.Registry, key_path: list[str], target: str):
-        self.encodings = encodings
-        self.key_path = key_path
+class DeleteKey(Action, EncodingAware):
+    def __init__(self, key: str, target: str):
+        super().__init__()
+        self.key_path = key.split(".")
         self.target = target
 
-    @staticmethod
-    def factory(er: encoding.Registry, opts: manifest.Action, pkg_path: str):
-        assert opts.delete_key is not None
-        return DeleteKey(er, opts.delete_key.key.split("."), opts.delete_key.target)
-
-    def apply(self, repo_path: str, tpl_data: dict) -> None:
+    def apply(self, pkg_path: str, repo_path: str, tpl_data: dict) -> None:
         repo_file_path = os.path.join(repo_path, self.target)
         ext = pathlib.Path(repo_file_path).suffix
         enc = self.encodings.get_for_extension(ext)
@@ -160,7 +152,7 @@ class Exec(Action):
         self.selector = selector
         self.timeout = timeout
 
-    def apply(self, repo_path: str, tpl_data: dict) -> None:
+    def apply(self, pkg_path: str, repo_path: str, tpl_data: dict) -> None:
         repo_file_paths = util.iglob(repo_path, self.selector)
         for repo_file_path in repo_file_paths:
             result = subprocess.run(
@@ -177,17 +169,12 @@ class Exec(Action):
                 )
 
 
-def exec_factory(er: encoding.Registry, opts: manifest.Action, pkg_path: str) -> Exec:
-    assert opts.exec is not None
-    return Exec(opts.exec.path, opts.exec.selector, opts.exec.timeout)
-
-
 class LineInFile(Action):
     def __init__(self, line: str, selector: str):
         self.line = line.strip()
         self.selector = selector
 
-    def apply(self, repo_path: str, tpl_data: dict) -> None:
+    def apply(self, pkg_path: str, repo_path: str, tpl_data: dict) -> None:
         repo_file_paths = util.iglob(repo_path, self.selector)
         for repo_file_path in repo_file_paths:
             with open(repo_file_path, "r") as f:
@@ -198,29 +185,3 @@ class LineInFile(Action):
             with open(repo_file_path, "a") as f:
                 f.write(self.line)
                 f.write("\n")
-
-
-def line_in_file_factory(
-    er: encoding.Registry, opts: manifest.Action, pkg_path: str
-) -> LineInFile:
-    assert opts.line_in_file is not None
-    return LineInFile(opts.line_in_file.line, opts.line_in_file.selector)
-
-
-class Registry:
-    def __init__(self):
-        self.factories: dict[
-            str, Callable[[encoding.Registry, manifest.Action, str], Action]
-        ] = {}
-
-    def add(
-        self,
-        name: str,
-        factory: Callable[[encoding.Registry, manifest.Action, str], Action],
-    ):
-        self.factories[name] = factory
-
-    def create(
-        self, name: str, er: encoding.Registry, opts: manifest.Action, pkg_path: str
-    ) -> Action:
-        return self.factories[name](er, opts, pkg_path)

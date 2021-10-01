@@ -3,8 +3,11 @@ import unittest
 import unittest.mock
 from typing import Any, Union
 
-from rcmt import action, config, git, package, rcmt, source
-from rcmt.rcmt import Options, Run
+from rcmt import config, git, package, rcmt, source
+from rcmt.matcher import RepoName
+from rcmt.package import action
+from rcmt.rcmt import Options, RepoRun
+from rcmt.run import Run
 
 
 class RepositoryMock(source.Repository):
@@ -60,15 +63,16 @@ def create_git_mock(branch_name: str, checkout_dir: str, needs_push: bool):
 
 
 class RunTest(unittest.TestCase):
+    pkg_path = "/tmp/test/pkg"
+
     def test_no_changes(self):
         cfg = config.Config()
         opts = Options(cfg)
         git_mock = create_git_mock("rcmt", "/unit/test", False)
-        runner = Run(git_mock, opts)
-        matcher = config.Matcher(
-            match=config.Match(repository="local"), name="testmatch"
-        )
-        pkg = package.Package("testpackage")
+        runner = RepoRun(git_mock, opts)
+        run = Run(name="testrun")
+        run.add_matcher(RepoName("local"))
+        pkg = package.Package("testpackage", self.pkg_path)
         action_mock = unittest.mock.Mock(spec=action.Action)
         pkg.actions.append(action_mock)
         repo_mock = unittest.mock.Mock(spec=source.Repository)
@@ -76,10 +80,12 @@ class RunTest(unittest.TestCase):
         repo_mock.project = "myproject"
         repo_mock.find_pull_request.return_value = None
 
-        runner.execute(matcher, [pkg], repo_mock)
+        runner.execute(run, [pkg], repo_mock)
 
         action_mock.apply.assert_called_once_with(
-            "/unit/test", {"repo_name": "myrepo", "repo_project": "myproject"}
+            self.pkg_path,
+            "/unit/test",
+            {"repo_name": "myrepo", "repo_project": "myproject"},
         )
         repo_mock.find_pull_request.assert_called_once_with("rcmt")
         repo_mock.create_pull_request.assert_not_called()
@@ -89,11 +95,10 @@ class RunTest(unittest.TestCase):
         cfg = config.Config()
         opts = Options(cfg)
         git_mock = create_git_mock("rcmt", "/unit/test", True)
-        runner = Run(git_mock, opts)
-        matcher = config.Matcher(
-            match=config.Match(repository="local"), name="testmatch"
-        )
-        pkg = package.Package("testpackage")
+        runner = RepoRun(git_mock, opts)
+        run = Run(name="testrun")
+        run.add_matcher(RepoName("local"))
+        pkg = package.Package("testpackage", self.pkg_path)
         action_mock = unittest.mock.Mock(spec=action.Action)
         pkg.actions.append(action_mock)
         repo_mock = unittest.mock.Mock(spec=source.Repository)
@@ -101,15 +106,17 @@ class RunTest(unittest.TestCase):
         repo_mock.project = "myproject"
         repo_mock.find_pull_request.return_value = None
 
-        runner.execute(matcher, [pkg], repo_mock)
+        runner.execute(run, [pkg], repo_mock)
 
         action_mock.apply.assert_called_once_with(
-            "/unit/test", {"repo_name": "myrepo", "repo_project": "myproject"}
+            self.pkg_path,
+            "/unit/test",
+            {"repo_name": "myrepo", "repo_project": "myproject"},
         )
         repo_mock.find_pull_request.assert_called_once_with("rcmt")
         git_mock.push.assert_called_once_with("/unit/test")
         expected_pr = source.PullRequest(
-            cfg.pr_title_prefix, "apply matcher testmatch", cfg.pr_title_suffix
+            cfg.pr_title_prefix, "apply matcher testrun", cfg.pr_title_suffix
         )
         expected_pr.add_package("testpackage")
         repo_mock.create_pull_request.assert_called_once_with("rcmt", expected_pr)
@@ -119,14 +126,14 @@ class RunTest(unittest.TestCase):
         cfg = config.Config()
         opts = Options(cfg)
         git_mock = create_git_mock("rcmt", "/unit/test", False)
-        runner = Run(git_mock, opts)
-        matcher = config.Matcher(
+        runner = RepoRun(git_mock, opts)
+        run = Run(
             auto_merge=True,
-            auto_merge_after="PT12H",
-            match=config.Match(repository="local"),
+            auto_merge_after=datetime.timedelta(hours=12),
             name="testmatch",
         )
-        pkg = package.Package("testpackage")
+        run.add_matcher(RepoName("local"))
+        pkg = package.Package("testpackage", self.pkg_path)
         action_mock = unittest.mock.Mock(spec=action.Action)
         pkg.actions.append(action_mock)
         repo_mock = unittest.mock.Mock(spec=source.Repository)
@@ -140,10 +147,12 @@ class RunTest(unittest.TestCase):
             datetime.datetime.now() - datetime.timedelta(days=1)
         )
 
-        runner.execute(matcher, [pkg], repo_mock)
+        runner.execute(run, [pkg], repo_mock)
 
         action_mock.apply.assert_called_once_with(
-            "/unit/test", {"repo_name": "myrepo", "repo_project": "myproject"}
+            self.pkg_path,
+            "/unit/test",
+            {"repo_name": "myrepo", "repo_project": "myproject"},
         )
         repo_mock.find_pull_request.assert_called_once_with("rcmt")
         git_mock.push.assert_not_called()
@@ -155,11 +164,10 @@ class RunTest(unittest.TestCase):
         cfg = config.Config()
         opts = Options(cfg)
         git_mock = create_git_mock("rcmt", "/unit/test", True)
-        runner = Run(git_mock, opts)
-        matcher = config.Matcher(
-            match=config.Match(repository="local"), name="testmatch"
-        )
-        pkg = package.Package("testpackage")
+        runner = RepoRun(git_mock, opts)
+        run = Run(name="testmatch")
+        run.add_matcher(RepoName("local"))
+        pkg = package.Package("testpackage", self.pkg_path)
         action_mock = unittest.mock.Mock(spec=action.Action)
         pkg.actions.append(action_mock)
         repo_mock = unittest.mock.Mock(spec=source.Repository)
@@ -168,43 +176,15 @@ class RunTest(unittest.TestCase):
         repo_mock.find_pull_request.return_value = "someid"
         repo_mock.is_pr_closed.return_value = True
 
-        runner.execute(matcher, [pkg], repo_mock)
+        runner.execute(run, [pkg], repo_mock)
 
         action_mock.apply.assert_called_once_with(
-            "/unit/test", {"repo_name": "myrepo", "repo_project": "myproject"}
+            self.pkg_path,
+            "/unit/test",
+            {"repo_name": "myrepo", "repo_project": "myproject"},
         )
         repo_mock.find_pull_request.assert_called_once_with("rcmt")
         repo_mock.is_pr_closed.assert_called_once_with("someid")
         git_mock.push.assert_called_once_with("/unit/test")
         repo_mock.create_pull_request.assert_not_called()
         repo_mock.merge_pull_request.assert_not_called()
-
-
-class MatchRepositoriesTest(unittest.TestCase):
-    def test_match_repositories(self):
-        repositories = [
-            RepositoryMock("rcmt", "wndhydrnt", "github.com"),
-            RepositoryMock("rcmt-packages", "wndhydrnt", "github.com"),
-            RepositoryMock("other", "wndhydrnt", "github.com"),
-        ]
-
-        match = config.Match(repository="github.com/wndhydrnt/rcmt")
-        result = rcmt.match_repositories(repositories, match)
-        self.assertEqual(2, len(result))
-        self.assertEqual(result[0].name, "rcmt")
-        self.assertEqual(result[1].name, "rcmt-packages")
-
-        match = config.Match(
-            files=["pyproject.toml"], repository="^github.com/wndhydrnt/rcmt$"
-        )
-        result = rcmt.match_repositories(repositories, match)
-        self.assertEqual(1, len(result))
-        self.assertEqual(result[0].name, "rcmt")
-
-        match = config.Match(
-            files=["pyproject.toml"], repository="^github.com/wndhydrnt/rcmt$"
-        )
-        result = rcmt.match_repositories(
-            [RepositoryMock("rcmt", "wndhydrnt", "github.com", has_file=False)], match
-        )
-        self.assertEqual(0, len(result))

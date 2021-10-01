@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from unittest import mock
 
-from rcmt.action import Absent, DeleteKey, Exec, LineInFile
+from rcmt.package.action import Absent, DeleteKey, Exec, LineInFile
 
 
 class AbsentTest(unittest.TestCase):
@@ -14,7 +14,7 @@ class AbsentTest(unittest.TestCase):
                 to_delete.write("test")
 
             under_test = Absent("to_delete")
-            under_test.apply(d, {})
+            under_test.apply("", d, {})
 
             self.assertFalse(os.path.exists(to_delete_path))
 
@@ -28,7 +28,7 @@ class ExecTest(unittest.TestCase):
         glob_iglob.return_value = ["/repo-checkout/afile"]
         ex = Exec(exec_path="/tmp/foo", selector="afile", timeout=120)
         with self.assertRaises(RuntimeError) as e:
-            ex.apply("/repo-checkout", {})
+            ex.apply("", "/repo-checkout", {})
         self.assertEqual(
             """Exec action call to /tmp/foo failed.
     stdout: stdout
@@ -54,7 +54,7 @@ class LineInFileTest(unittest.TestCase):
                 test_file.write("def\n")
 
             under_test = LineInFile("foobar", "test.txt")
-            under_test.apply(d, {})
+            under_test.apply("", d, {})
 
             with open(test_file_path, "r") as test_file:
                 lines = test_file.readlines()
@@ -71,7 +71,7 @@ class LineInFileTest(unittest.TestCase):
                 test_file.write("def\n")
 
             under_test = LineInFile("foobar", "test.txt")
-            under_test.apply(d, {})
+            under_test.apply("", d, {})
 
             with open(test_file_path, "r") as test_file:
                 lines = test_file.readlines()
