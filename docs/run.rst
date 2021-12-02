@@ -4,103 +4,26 @@ Run
 A Run connects packages with repositories. rcmt reads the Run, finds
 repositories and then applies packages to each repository.
 
-Example
--------
-
-.. code-block:: python
-
-   from datetime import timedelta
-
-   from rcmt import Run
-   from rcmt.matcher import FileExists, RepoName
-
-   with Run(
-       name="python-defaults",
-       auto_merge=True,
-       auto_merge_after=timedelta(days=7)
-   ) as run:
-       run.add_matcher(FileExists("pyproject.toml"))
-       run.add_matcher(RepoName("^github.com/wndhydrnt/rcmt$"))
-
-       run.add_package("flake8")
-
-       run.pr_title = "A custom PR title"
-       run.pr_body = """A custom PR title.
-       It supports multiline strings."""
-
 .. autoclass:: rcmt.run.Run
+   :members:
 
-.. _matcher/auto_merge:
-
-``auto_merge``
---------------
-
-rcmt automatically merges a pull request on its next run. The pull request must pass all
-its checks. Defaults to ``false``.
-
-
-``auto_merge_after``
---------------------
-
-A duration after which to automatically merge a Pull Request. Requires
-:ref:`auto_merge <matcher/auto_merge>` to be set to ``true``.
-
-The duration is given in `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601#Durations>`_
-format.
-
-.. _matcher/branch_name:
-
-``branch_name``
----------------
-
-Name of the branch in git. Defaults to :ref:`branch_prefix <configuration/branch_prefix>` +
-:ref:`name <matcher/name>`.
-
-``match``
----------
-
-``files``
-^^^^^^^^^
-
-A list of files or directories that need to exist inside a repository for it to match.
-
-rcmt queries a :doc:`Source <sources>` via its API instead of checking out the whole
-repository.
-
-``repository``
-^^^^^^^^^^^^^^
-
-The repositories to match. rcmt compiles the string into a regular expression.
-
-Every :doc:`Source <sources>` has its own way of creating this string:
-
-====== =============================================== =============================
-Source Schema                                          Example
-====== =============================================== =============================
-GitHub ``github.com/<owner or org>/<repository name>`` ``github.com/wndhydrnt/rcmt``
-GitLab ``<address>/<owner>/<project>``                 ``gitlab.com/wndhydrnt/rcmt``
-====== =============================================== =============================
-
-.. _matcher/name:
-
-``name``
+Matchers
 --------
 
-The name of the matcher.
+A Run uses Matchers to find the repositories to which it applies Packages.
 
-``packages``
-------------
+FileExists
+^^^^^^^^^^
 
-A list of :doc:`Packages<package>`. rcmt applies each package to each matching
-repository.
+.. autoclass:: rcmt.matcher.FileExists
 
-``pr_body``
------------
+RepoName
+^^^^^^^^
 
-Define a custom body of a pull request.
+.. autoclass:: rcmt.matcher.RepoName
 
-``pr_title``
-------------
+Base Class
+^^^^^^^^^^
 
-Set a custom title for a pull request. Overrides :ref:`pr_title_prefix <configuration/pr_title_prefix>`,
-:ref:`pr_title_body <configuration/pr_title_body>` and :ref:`pr_title_suffix <configuration/pr_title_suffix>`.
+.. autoclass:: rcmt.matcher.Base
+   :members:

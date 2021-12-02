@@ -23,6 +23,29 @@ class Run:
                         ``name``.
     :param pr_body: Define a custom body of a pull request.
     :param pr_title: Set a custom title for a pull request.
+
+    **Example**
+
+    .. code-block:: python
+
+       from datetime import timedelta
+
+       from rcmt import Run
+       from rcmt.matcher import FileExists, RepoName
+
+       with Run(
+           name="python-defaults",
+           auto_merge=True,
+           auto_merge_after=timedelta(days=7)
+       ) as run:
+           run.add_matcher(FileExists("pyproject.toml"))
+           run.add_matcher(RepoName("^github.com/wndhydrnt/rcmt$"))
+
+           run.add_package("flake8")
+
+           run.pr_title = "A custom PR title"
+           run.pr_body = '''A custom PR title.
+           It supports multiline strings.'''
     """
 
     def __init__(
