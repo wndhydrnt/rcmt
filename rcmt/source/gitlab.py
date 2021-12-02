@@ -81,6 +81,9 @@ class GitlabRepository(Repository):
     def is_pr_closed(self, mr: GitlabMergeRequest) -> bool:
         return mr.state == "closed" or mr.state == "locked"
 
+    def is_pr_merged(self, mr: GitlabMergeRequest) -> bool:
+        return mr.state == "merged"
+
     def is_pr_open(self, mr: GitlabMergeRequest) -> bool:
         return mr.state == "opened"
 

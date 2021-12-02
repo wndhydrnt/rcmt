@@ -1,26 +1,34 @@
-Matcher
-=======
+Run
+===
 
-A Matcher connects packages with repositories. rcmt reads the Matcher, finds
+A Run connects packages with repositories. rcmt reads the Run, finds
 repositories and then applies packages to each repository.
 
 Example
 -------
 
-.. code-block:: yaml
+.. code-block:: python
 
-   auto_merge_after: P7D
-   match:
-     files:
-       - pyproject.toml
-     repository: ^github.com/wndhydrnt/rcmt$
-   name: python-defaults
-   packages: ["flake8"]
-   pr_title: A custom PR title
-   pr_body: |
-     A custom PR title.
-     It supports multiline strings.
+   from datetime import timedelta
 
+   from rcmt import Run
+   from rcmt.matcher import FileExists, RepoName
+
+   with Run(
+       name="python-defaults",
+       auto_merge=True,
+       auto_merge_after=timedelta(days=7)
+   ) as run:
+       run.add_matcher(FileExists("pyproject.toml"))
+       run.add_matcher(RepoName("^github.com/wndhydrnt/rcmt$"))
+
+       run.add_package("flake8")
+
+       run.pr_title = "A custom PR title"
+       run.pr_body = """A custom PR title.
+       It supports multiline strings."""
+
+.. autoclass:: rcmt.run.Run
 
 .. _matcher/auto_merge:
 

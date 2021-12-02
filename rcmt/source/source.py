@@ -161,6 +161,17 @@ class Repository:
         """
         raise NotImplementedError("class does not implement Repository.is_pr_closed()")
 
+    def is_pr_merged(self, identifier: Any) -> bool:
+        """
+        Checks if a pull request has been merged.
+        rcmt uses this information to determine if it can create new pull requests.
+
+        :param identifier: Data to identify the pull request as returned by find_pull_request.
+        :return: Indicates that a pull request has been merged.
+        :rtype: bool
+        """
+        raise NotImplementedError("class does not implement Repository.is_pr_merged()")
+
     def is_pr_open(self, identifier: Any) -> bool:
         """
         Checks if a pull request is open.

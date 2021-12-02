@@ -3,21 +3,16 @@ import os
 import pathlib
 import string
 import subprocess
-from typing import Union
 
 import mergedeep
 
 from rcmt import encoding, util
 
-from .loader import FileLoader
 
-
-def load_file_or_str(input: Union[str, FileLoader], pkg_path: str) -> str:
-    if isinstance(input, str):
-        return input
-
-    if isinstance(input, FileLoader):
-        return input.load(pkg_path)
+def load_file(pkg_path: str, file_path: str) -> str:
+    p = os.path.join(pkg_path, file_path)
+    with open(p, "r") as f:
+        return f.read()
 
 
 class Action:
@@ -38,7 +33,20 @@ class Action:
 
 
 class Absent(Action):
-    def __init__(self, target):
+    """
+    Deletes a file or directory.
+
+    :param target: Path to the file or directory to delete.
+
+    **Example**
+
+    .. code-block:: python
+
+       # Delete the file config.yaml at the root of a repository.
+       Absent(target="config.yaml")
+    """
+
+    def __init__(self, target: str):
         self.target = target
 
     def apply(self, pkg_path: str, repo_path: str, tpl_data: dict) -> None:
@@ -48,18 +56,50 @@ class Absent(Action):
 
 
 class Own(Action):
-    def __init__(self, target: str, source: Union[str, FileLoader]):
+    """
+    Own ensures that a file in a repository stays the same.
+
+    It always overwrites the data in the file with the data from a package.
+
+    :param target: Path to the file in a repository to own.
+    :param source: Path to the file in the package that contains the source data.
+
+    **Example**
+
+    .. code-block:: python
+
+       # Ensure that .flake8 looks the same across all repositories.
+       Own(target=".flake8", source=".flake8")
+    """
+
+    def __init__(self, target: str, source: str):
         self.source = source
         self.target = target
 
     def apply(self, pkg_path: str, repo_path: str, tpl_data: dict) -> None:
-        data = load_file_or_str(self.source, pkg_path)
+        data = load_file(pkg_path, self.source)
         file_path = os.path.join(repo_path, self.target)
         with open(file_path, "w+") as f:
             f.write(string.Template(data).substitute(tpl_data))
 
 
 class Seed(Own):
+    """
+    Seed ensures that a file in a repository is present.
+
+    It does not modify the file again if the file is present in a repository.
+
+    :param target: Path to the file in a repository to seed.
+    :param source: Path to the file in the package that contains the source data.
+
+    **Example**
+
+    .. code-block:: python
+
+       # Ensure that the default Makefile is present.
+       Seed(target="Makefile", source="Makefile")
+    """
+
     def apply(self, pkg_path: str, repo_path: str, tpl_data: dict) -> None:
         repo_file_path = os.path.join(repo_path, self.target)
         if os.path.isfile(repo_file_path):
@@ -82,23 +122,36 @@ class EncodingAware:
 
 
 class Merge(Action, EncodingAware):
-    def __init__(
-        self,
-        selector: str,
-        source: Union[str, FileLoader],
-        merge_strategy="replace",
-    ):
+    """
+    Merge merges the content of a file in a repository with the content of a file from a
+    package.
+
+    It supports merging of various file formats through :doc:`encoding`.
+
+    :param selector: Glob selector to find the files to merge.
+    :param source: Path to the file that contains the source data.
+    :param merge_strategy: Strategy to use when merging data. ``replace`` replaces a
+                           key if it already exists. ``additive`` combines collections,
+                           e.g. ``list`` or ``set``.
+
+    **Example**
+
+    .. code-block:: python
+
+       # Ensure that pyproject.toml contains specific keys.
+       Merge(selector="pyproject.toml", source="pyproject.toml")
+    """
+
+    def __init__(self, selector: str, source: str, merge_strategy: str = "replace"):
         super().__init__()
         self.selector = selector
-        self.source_data = source
+        self.source = source
         self.strategy = mergedeep.Strategy.REPLACE
         if merge_strategy == "additive":
             self.strategy = mergedeep.Strategy.ADDITIVE
 
     def apply(self, pkg_path: str, repo_path: str, tpl_data: dict) -> None:
-        data = string.Template(load_file_or_str(self.source_data, pkg_path)).substitute(
-            tpl_data
-        )
+        data = string.Template(load_file(pkg_path, self.source)).substitute(tpl_data)
         paths = util.iglob(repo_path, self.selector)
         for p in paths:
             ext = pathlib.Path(p).suffix
@@ -113,6 +166,20 @@ class Merge(Action, EncodingAware):
 
 
 class DeleteKey(Action, EncodingAware):
+    """
+    Delete a key in a file. The file has to be in a format supported by :doc:`encoding`.
+
+    :param key: Path to the key in the data structure.
+    :param target: Path to the file to modify.
+
+    **Example**
+
+    .. code-block:: python
+
+       # Delete key "bar" in dict "foo" in file config.json.
+       DeleteKey(key="foo.bar", target="config.json")
+    """
+
     def __init__(self, key: str, target: str):
         super().__init__()
         self.key_path = key.split(".")
@@ -147,7 +214,25 @@ class DeleteKey(Action, EncodingAware):
 
 
 class Exec(Action):
-    def __init__(self, exec_path: str, selector: str, timeout: int):
+    """
+    Exec calls an executable and passes matching files in a repository to it. The
+    executable can then modify each file.
+
+    The executable should expect the path of a file as its only positional argument.
+
+    :param exec_path: Path to the executable.
+    :param selector: Glob selector to find the files to modify.
+    :param timeout: Maximum runtime of the executable, in seconds.
+
+    **Example**
+
+    .. code-block:: python
+
+       # Find all Python files in a repository recursively and pass each path to /opt/the-binary.
+       Exec(exec_path="/opt/the-binary", selector="**/*.py")
+    """
+
+    def __init__(self, exec_path: str, selector: str, timeout: int = 120):
         self.exec_path = exec_path
         self.selector = selector
         self.timeout = timeout
@@ -170,6 +255,19 @@ class Exec(Action):
 
 
 class LineInFile(Action):
+    """
+    LineInFile ensures that a line exists in a file. It adds the line if it does not exist.
+
+    :param line: Line to search for.
+    :param selector: Glob selector to find the files to modify.
+
+    **Example**
+
+    .. code-block:: python
+
+       LineInFile(line="The Line", selector="file.txt")
+    """
+
     def __init__(self, line: str, selector: str):
         self.line = line.strip()
         self.selector = selector

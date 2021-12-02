@@ -2,7 +2,7 @@ RCMT_VERSION ?= develop
 
 lint:
 	poetry run black --check .
-	poetry run mypy .
+	poetry run mypy --exclude 'docs/examples/.+\.py' .
 	poetry run isort --check-only .
 
 test:

@@ -10,14 +10,29 @@ from rcmt import matcher, source
 
 
 class Run:
+    """
+    A Run connects packages with repositories. rcmt reads the Run, finds repositories
+    and packages and then applies these packages to each repository.
+
+    :param name: The name of the Run. rcmt uses the name to identify a run.
+    :param auto_merge: rcmt automatically merges a pull request on its next run. The
+                       pull request must pass all its checks.
+    :param auto_merge_after: A duration after which to automatically merge a Pull
+                             Request. Requires ``auto_merge`` to be set to ``true``.
+    :param branch_name: Name of the branch in git. Defaults to ``branch_prefix`` +
+                        ``name``.
+    :param pr_body: Define a custom body of a pull request.
+    :param pr_title: Set a custom title for a pull request.
+    """
+
     def __init__(
         self,
         name: str,
-        auto_merge=False,
+        auto_merge: bool = False,
         auto_merge_after: Optional[datetime.timedelta] = None,
         branch_name: str = "",
         pr_body: str = "",
-        pr_title="",
+        pr_title: str = "",
     ):
         self.auto_merge = auto_merge
         self.auto_merge_after = auto_merge_after
@@ -35,10 +50,20 @@ class Run:
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
-    def add_matcher(self, m: matcher.Base):
+    def add_matcher(self, m: matcher.Base) -> None:
+        """
+        Add a Matcher that matches repositories.
+
+        :param m: The matcher to add.
+        """
         self.matchers.append(m)
 
-    def add_package(self, name: str):
+    def add_package(self, name: str) -> None:
+        """
+        Add a Package to apply to every matching repository.
+
+        :param name: The name of the Package.
+        """
         self.packages.append(name)
 
     def branch(self, prefix: str) -> str:

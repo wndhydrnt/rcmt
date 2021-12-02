@@ -3,7 +3,6 @@ import logging
 from typing import Optional
 
 import structlog
-import yaml
 
 from . import config, encoding, git, package, run, source
 
@@ -94,7 +93,9 @@ class RepoRun:
             )
             return
 
-        if needs_push is True and pr_identifier is None:
+        if needs_push is True and (
+            pr_identifier is None or repo.is_pr_merged(pr_identifier) is True
+        ):
             if self.opts.config.dry_run:
                 log.warn("DRY RUN: Not creating pull request")
             else:
