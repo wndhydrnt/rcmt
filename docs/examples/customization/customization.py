@@ -28,7 +28,7 @@ opts.matcher_path = "<path to run file>"
 opts.packages_paths = ["<path to packages directory>"]
 
 # Add the custom Source
-opts.sources.append(MyCustomSource())
+opts.sources["custom"] = MyCustomSource()
 
 # Add the custom Encoding
 opts.encoding_registry.register(enc=MyCustomEncoding(), extensions=[".myc"])
