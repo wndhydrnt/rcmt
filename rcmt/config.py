@@ -2,7 +2,6 @@ import os.path
 import tempfile
 from typing import Optional, Pattern
 
-import github.MainClass
 import pydantic
 import yaml
 from pydantic.fields import Field
@@ -17,7 +16,7 @@ class Git(pydantic.BaseModel):
 
 class Github(pydantic.BaseModel):
     access_token: str = os.getenv("RCMT_GITHUB_ACCESS_TOKEN", "")
-    base_url: str = github.MainClass.DEFAULT_BASE_URL
+    base_url: str = "https://api.github.com"
 
 
 class Gitlab(pydantic.BaseModel):
