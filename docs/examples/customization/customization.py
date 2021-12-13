@@ -24,7 +24,7 @@ class MyCustomEncoding(rcmt.encoding.Encoding):
 
 # Basic setup
 opts = rcmt.options_from_config("<path to rcmt config file>")
-opts.matcher_path = "<path to matcher file>"
+opts.matcher_path = "<path to run file>"
 opts.packages_paths = ["<path to packages directory>"]
 
 # Add the custom Source
@@ -34,4 +34,4 @@ opts.sources.append(MyCustomSource())
 opts.encoding_registry.register(enc=MyCustomEncoding(), extensions=[".myc"])
 
 # Execute rcmt
-rcmt.run(opts)
+rcmt.execute(opts)

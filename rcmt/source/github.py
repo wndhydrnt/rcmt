@@ -74,6 +74,9 @@ class GithubRepository(Repository):
     def is_pr_closed(self, pr: github.PullRequest.PullRequest) -> bool:
         return pr.state == "closed" and pr.merged is False
 
+    def is_pr_merged(self, pr: github.PullRequest.PullRequest) -> bool:
+        return pr.state == "closed" and pr.merged is True
+
     def is_pr_open(self, pr: github.PullRequest.PullRequest) -> bool:
         return pr.state == "open"
 

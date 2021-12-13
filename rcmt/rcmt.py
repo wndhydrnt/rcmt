@@ -3,9 +3,8 @@ import logging
 from typing import Optional
 
 import structlog
-import yaml
 
-from rcmt import action, config, encoding, git, package, source
+from . import config, encoding, git, package, run, source
 
 structlog.configure(
     wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
@@ -17,7 +16,6 @@ log = structlog.get_logger()
 class Options:
     def __init__(self, cfg: config.Config):
         self.config = cfg
-        self.action_registry: action.Registry = action.Registry()
         self.encoding_registry: encoding.Registry = encoding.Registry()
         self.matcher_path: str = ""
         self.packages_paths: list[str] = []
@@ -34,14 +32,14 @@ def can_merge_after(
     return passed >= delay
 
 
-class Run:
+class RepoRun:
     def __init__(self, g: git.Git, opts: Options):
         self.git = g
         self.opts = opts
 
     def execute(
         self,
-        matcher: config.Matcher,
+        matcher: run.Run,
         pkgs: list[package.Package],
         repo: source.Repository,
     ):
@@ -63,7 +61,7 @@ class Run:
                     pkg=pkg.name,
                     repo=str(repo),
                 )
-                a.apply(work_dir, tpl_mapping)
+                a.apply(pkg.path, work_dir, tpl_mapping)
 
             if self.git.has_changes(work_dir) is True:
                 log.debug("Committing changes", pkg=pkg.name, repo=str(repo))
@@ -95,7 +93,9 @@ class Run:
             )
             return
 
-        if needs_push is True and pr_identifier is None:
+        if needs_push is True and (
+            pr_identifier is None or repo.is_pr_merged(pr_identifier) is True
+        ):
             if self.opts.config.dry_run:
                 log.warn("DRY RUN: Not creating pull request")
             else:
@@ -127,30 +127,32 @@ class Run:
                 repo.merge_pull_request(pr_identifier)
 
 
-def run(opts: Options):
+def execute(opts: Options):
     log_level = logging.getLevelName(opts.config.log_level.upper())
     structlog.configure(
         wrapper_class=structlog.make_filtering_bound_logger(log_level),
     )
 
-    pkg_reader = package.PackageReader(opts.action_registry, opts.encoding_registry)
+    pkg_reader = package.PackageReader(opts.encoding_registry)
     pkgs = pkg_reader.read_packages(opts.packages_paths)
-    matcher = parse_matcher(opts.matcher_path)
+    matcher = run.read(opts.matcher_path)
     pkgs_to_apply = find_packages(matcher.packages, pkgs)
     repositories = []
     for s in opts.sources:
         repositories += s.list_repositories()
 
     log.info("Repositories returned by sources", count=len(repositories))
-    matched_repos = match_repositories(repositories, matcher.match)
     gitc = git.Git(
         matcher.branch(opts.config.git.branch_prefix),
         opts.config.git.data_dir,
         opts.config.git.user_name,
         opts.config.git.user_email,
     )
-    runner = Run(gitc, opts)
-    for repo in matched_repos:
+    runner = RepoRun(gitc, opts)
+    for repo in repositories:
+        if matcher.match(repo) is False:
+            continue
+
         log.info("Matched repository", repository=str(repo))
         runner.execute(matcher, pkgs_to_apply, repo)
 
@@ -172,13 +174,6 @@ def config_to_options(cfg: config.Config) -> Options:
         encoding.Yaml(cfg.yaml.explicit_start), cfg.yaml.extensions
     )
 
-    opts.action_registry.add("delete_key", action.DeleteKey.factory)
-    opts.action_registry.add("exec", action.exec_factory)
-    opts.action_registry.add("merge", action.Merge.factory)
-    opts.action_registry.add("line_in_file", action.line_in_file_factory)
-    opts.action_registry.add("own", action.own_factory)
-    opts.action_registry.add("seed", action.seed_factory)
-
     if cfg.github.access_token != "":
         source_github = source.Github(cfg.github.access_token)
         opts.sources.append(source_github)
@@ -188,37 +183,6 @@ def config_to_options(cfg: config.Config) -> Options:
         opts.sources.append(source_gitlab)
 
     return opts
-
-
-def match_repositories(
-    repositories: list[source.Repository], match: config.Match
-) -> list[source.Repository]:
-    matched_repositories = []
-    for repo in repositories:
-        match_str = str(repo)
-        result = match.repository.match(match_str)
-        if result is None:
-            continue
-
-        files_match = True
-        if len(match.files) > 0:
-            for f in match.files:
-                if repo.has_file(f) is False:
-                    log.debug("Repo does not contain file", file=f, repo=str(repo))
-                    files_match = False
-                    break
-
-        if files_match:
-            matched_repositories.append(repo)
-
-    return matched_repositories
-
-
-def parse_matcher(path: str) -> config.Matcher:
-    with open(path, "r") as f:
-        raw = yaml.load(f, Loader=yaml.FullLoader)
-
-    return config.Matcher(**raw)
 
 
 def find_packages(

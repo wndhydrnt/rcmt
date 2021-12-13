@@ -10,7 +10,7 @@ class PackageReaderTest(unittest.TestCase):
         cfg = config.Config()
         opts = rcmt.rcmt.config_to_options(cfg)
 
-        reader = PackageReader(opts.action_registry, opts.encoding_registry)
+        reader = PackageReader(opts.encoding_registry)
         pkgs = reader.read_packages(
             ["tests/fixtures/PackageReaderTest/test_read_packages/"]
         )
@@ -23,7 +23,7 @@ class PackageReaderTest(unittest.TestCase):
         cfg = config.Config()
         opts = rcmt.rcmt.config_to_options(cfg)
 
-        reader = PackageReader(opts.action_registry, opts.encoding_registry)
+        reader = PackageReader(opts.encoding_registry)
         with self.assertRaises(PackageInvalidError):
             reader.read_packages(
                 ["tests/fixtures/PackageReaderTest/test_read_packages_no_manifest/"]

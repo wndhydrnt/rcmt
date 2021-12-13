@@ -33,26 +33,26 @@ The basic directory structure of a package looks like this:
    |____packages
    | |____flake8
    | | |____.flake8
-   | | |____manifest.yaml
+   | | |____manifest.py
 
 And the Manifest looks like this:
 
-.. highlight:: yaml
-.. include:: ./examples/simple/packages/flake8/manifest.yaml
+.. highlight:: python
+.. include:: ./examples/simple/packages/flake8/manifest.py
    :code:
 
 Packages describe what to do, but not to which repositories they apply. rcmt expects a
 **matcher** to do this:
 
-.. highlight:: yaml
-.. include:: ./examples/simple/matcher.yaml
+.. highlight:: python
+.. include:: ./examples/simple/run.py
    :code:
 
 Everything is ready. Run rcmt:
 
 .. code-block:: bash
 
-   rcmt run --packages ./packages ./matcher.yaml
+   rcmt run --packages ./packages ./run.py
 
 rcmt will find all matching repositories, check them out locally, apply the package and
 create a Pull Request for each repository.
@@ -63,7 +63,7 @@ create a Pull Request for each repository.
    installation
    package
    action
-   matcher
+   run
    sources
    configuration
    encoding

@@ -573,6 +573,21 @@ lint = ["flake8 (>=3.5.0)", "isort", "mypy (>=0.800)", "docutils-stubs"]
 test = ["pytest", "pytest-cov", "html5lib", "cython", "typed-ast"]
 
 [[package]]
+name = "sphinx-autodoc-typehints"
+version = "1.12.0"
+description = "Type hints (PEP 484) support for the Sphinx autodoc extension"
+category = "dev"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+Sphinx = ">=3.0"
+
+[package.extras]
+test = ["pytest (>=3.1.0)", "typing-extensions (>=3.5)", "sphobjinv (>=2.0)", "Sphinx (>=3.2.0)", "dataclasses"]
+type_comments = ["typed-ast (>=1.4.0)"]
+
+[[package]]
 name = "sphinx-rtd-theme"
 version = "0.5.2"
 description = "Read the Docs theme for Sphinx"
@@ -727,7 +742,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "1b651009513a1888722105f1884cd287d41fc0c88142012d20e4a9514b6ba939"
+content-hash = "eb8c66ec4a807c79001e52e644955ec8b35b73f25af3655b225cfe60eea7ffdc"
 
 [metadata.files]
 alabaster = [
@@ -1185,6 +1200,10 @@ snowballstemmer = [
 sphinx = [
     {file = "Sphinx-4.0.2-py3-none-any.whl", hash = "sha256:d1cb10bee9c4231f1700ec2e24a91be3f3a3aba066ea4ca9f3bbe47e59d5a1d4"},
     {file = "Sphinx-4.0.2.tar.gz", hash = "sha256:b5c2ae4120bf00c799ba9b3699bc895816d272d120080fbc967292f29b52b48c"},
+]
+sphinx-autodoc-typehints = [
+    {file = "sphinx-autodoc-typehints-1.12.0.tar.gz", hash = "sha256:193617d9dbe0847281b1399d369e74e34cd959c82e02c7efde077fca908a9f52"},
+    {file = "sphinx_autodoc_typehints-1.12.0-py3-none-any.whl", hash = "sha256:5e81776ec422dd168d688ab60f034fccfafbcd94329e9537712c93003bddc04a"},
 ]
 sphinx-rtd-theme = [
     {file = "sphinx_rtd_theme-0.5.2-py2.py3-none-any.whl", hash = "sha256:4a05bdbe8b1446d77a01e20a23ebc6777c74f43237035e76be89699308987d6f"},
