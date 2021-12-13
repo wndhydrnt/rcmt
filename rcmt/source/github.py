@@ -108,8 +108,8 @@ class GithubRepository(Repository):
 
 
 class Github(Base):
-    def __init__(self, access_token):
-        self.client = github.Github(access_token)
+    def __init__(self, access_token: str, base_url: str):
+        self.client = github.Github(login_or_token=access_token, base_url=base_url)
 
     def list_repositories(self) -> list[Repository]:
         log.debug("start fetching repositories")

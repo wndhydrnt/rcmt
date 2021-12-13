@@ -16,6 +16,7 @@ class Git(pydantic.BaseModel):
 
 class Github(pydantic.BaseModel):
     access_token: str = os.getenv("RCMT_GITHUB_ACCESS_TOKEN", "")
+    base_url: str = "https://api.github.com"
 
 
 class Gitlab(pydantic.BaseModel):
