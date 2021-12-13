@@ -19,7 +19,7 @@ class Options:
         self.encoding_registry: encoding.Registry = encoding.Registry()
         self.matcher_path: str = ""
         self.packages_paths: list[str] = []
-        self.sources: list[source.Base] = []
+        self.sources: dict[str, source.Base] = []
 
 
 def can_merge_after(
@@ -138,7 +138,7 @@ def execute(opts: Options):
     matcher = run.read(opts.matcher_path)
     pkgs_to_apply = find_packages(matcher.packages, pkgs)
     repositories = []
-    for s in opts.sources:
+    for s in opts.sources.values():
         repositories += s.list_repositories()
 
     log.info("Repositories returned by sources", count=len(repositories))
@@ -176,11 +176,11 @@ def config_to_options(cfg: config.Config) -> Options:
 
     if cfg.github.access_token != "":
         source_github = source.Github(cfg.github.access_token, cfg.github.base_url)
-        opts.sources.append(source_github)
+        opts.sources["github"] = source_github
 
     if cfg.gitlab.private_token != "":
         source_gitlab = source.Gitlab(cfg.gitlab.url, cfg.gitlab.private_token)
-        opts.sources.append(source_gitlab)
+        opts.sources["gitlab"] = source_gitlab
 
     return opts
 
