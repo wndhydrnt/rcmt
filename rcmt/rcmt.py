@@ -19,7 +19,7 @@ class Options:
         self.encoding_registry: encoding.Registry = encoding.Registry()
         self.matcher_path: str = ""
         self.packages_paths: list[str] = []
-        self.sources: dict[str, source.Base] = []
+        self.sources: dict[str, source.Base] = {}
 
 
 def can_merge_after(
