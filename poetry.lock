@@ -450,14 +450,14 @@ testing = ["argcomplete", "hypothesis (>=3.56)", "mock", "nose", "requests", "xm
 
 [[package]]
 name = "python-gitlab"
-version = "2.10.0"
+version = "2.10.1"
 description = "Interact with GitLab API"
 category = "main"
 optional = false
 python-versions = ">=3.6.0"
 
 [package.dependencies]
-requests = ">=2.22.0"
+requests = ">=2.25.0"
 requests-toolbelt = ">=0.9.1"
 
 [package.extras]
@@ -1136,8 +1136,8 @@ pytest = [
     {file = "pytest-6.2.4.tar.gz", hash = "sha256:50bcad0a0b9c5a72c8e4e7c9855a3ad496ca6a881a3641b4260605450772c54b"},
 ]
 python-gitlab = [
-    {file = "python-gitlab-2.10.0.tar.gz", hash = "sha256:376b3e982381cec734471c502b3da2c6e7858a8df4d03c993499e6a7593950e6"},
-    {file = "python_gitlab-2.10.0-py3-none-any.whl", hash = "sha256:707767f11a3cbc1207b30bf69219e53ff7da5404fa49710096fb9298384d4be0"},
+    {file = "python-gitlab-2.10.1.tar.gz", hash = "sha256:7afa7d7c062fa62c173190452265a30feefb844428efc58ea5244f3b9fc0d40f"},
+    {file = "python_gitlab-2.10.1-py3-none-any.whl", hash = "sha256:581a219759515513ea9399e936ed7137437cfb681f52d2641626685c492c999d"},
 ]
 pytz = [
     {file = "pytz-2021.1-py2.py3-none-any.whl", hash = "sha256:eb10ce3e7736052ed3623d49975ce333bcd712c7bb19a58b9e2089d4057d0798"},
