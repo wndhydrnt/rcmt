@@ -36,10 +36,10 @@ colorama = "^0.4.4"
 python-gitlab = "^2.10.0"
 
 [tool.poetry.dev-dependencies]
-black = "^21.6b0"
-isort = "^5.10.1"
+black = "21.6b0"
+isort = "5.9.1"
 pytest = "^6.2.4"
-mypy = "^0.920"
+mypy = "0.910"
 types-toml = "^0.10.1"
 types-PyYAML = "^5.4.3"
 Sphinx = "^4.3.2"
@@ -57,4 +57,4 @@ source = [ ".",]
 
 [tool.poetry.dev-dependencies.coverage]
 extras = [ "toml",]
-version = "^5.5"
+version = "5.5"

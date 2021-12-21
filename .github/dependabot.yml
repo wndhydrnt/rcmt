@@ -1,6 +1,10 @@
-version: 2
 updates:
-  - package-ecosystem: pip
-    directory: /
-    schedule:
-      interval: daily
+- directory: /
+  ignore:
+  - dependency-name: black
+  - dependency-name: isort
+  - dependency-name: mypy
+  package-ecosystem: pip
+  schedule:
+    interval: daily
+version: 2
