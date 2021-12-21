@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from unittest import mock
 
-from rcmt.package.action import Absent, DeleteKey, Exec, LineInFile
+from rcmt.package.action import Absent, DeleteKey, DeleteLineInFile, Exec, LineInFile
 
 
 class AbsentTest(unittest.TestCase):
@@ -78,3 +78,37 @@ class LineInFileTest(unittest.TestCase):
 
             self.assertEqual(3, len(lines))
             self.assertEqual("foobar\n", lines[1])
+
+
+class DeleteLineInFileTest(unittest.TestCase):
+    def test_apply_delete_line(self):
+        with tempfile.TemporaryDirectory() as d:
+            test_file_path = os.path.join(d, "test.txt")
+            with open(test_file_path, "w+") as test_file:
+                test_file.write("abc\n")
+                test_file.write("foobar\n")
+                test_file.write("def\n")
+
+            under_test = DeleteLineInFile(line="foobar", selector="test.txt")
+            under_test.apply("", d, {})
+
+            with open(test_file_path, "r") as test_file:
+                lines = test_file.readlines()
+
+            self.assertEqual(2, len(lines))
+
+    def test_apply_line_not_found(self):
+        with tempfile.TemporaryDirectory() as d:
+            test_file_path = os.path.join(d, "test.txt")
+            with open(test_file_path, "w+") as test_file:
+                test_file.write("abc\n")
+                test_file.write("foo\n")
+                test_file.write("def\n")
+
+            under_test = DeleteLineInFile(line="bar", selector="test.txt")
+            under_test.apply("", d, {})
+
+            with open(test_file_path, "r") as test_file:
+                lines = test_file.readlines()
+
+            self.assertEqual(3, len(lines))
