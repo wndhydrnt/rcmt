@@ -13,6 +13,12 @@ DeleteKey
 
 .. autoclass:: rcmt.package.action.DeleteKey
 
+
+DeleteLineInFile
+----------------
+
+.. autoclass:: rcmt.package.action.DeleteLineInFile
+
 Exec
 ----
 

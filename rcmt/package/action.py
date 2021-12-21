@@ -1,8 +1,10 @@
 import io
 import os
 import pathlib
+import shutil
 import string
 import subprocess
+import tempfile
 
 import mergedeep
 
@@ -283,3 +285,38 @@ class LineInFile(Action):
             with open(repo_file_path, "a") as f:
                 f.write(self.line)
                 f.write("\n")
+
+
+class DeleteLineInFile(Action):
+    """
+    DeleteLineInFile deletes a line in a file if the file contains the line.
+
+    :param line: Line to search for.
+    :param selector: Glob selector to find the files to modify.
+
+    **Example**
+
+    .. code-block:: python
+
+       DeleteLineInFile(line="The Line", selector="file.txt")
+    """
+
+    def __init__(self, line: str, selector: str):
+        self.line = line.strip()
+        self.selector = selector
+
+    def apply(self, pkg_path: str, repo_path: str, tpl_data: dict) -> None:
+        repo_file_paths = util.iglob(repo_path, self.selector)
+        for repo_file_path in repo_file_paths:
+            with open(repo_file_path, "r") as f:
+                with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmpf:
+                    tmp_file_path = tmpf.name
+                    line_deleted = False
+                    for line in f:
+                        if line.strip() != self.line:
+                            tmpf.write(line)
+                        else:
+                            line_deleted = True
+
+            if line_deleted:
+                shutil.move(tmp_file_path, repo_file_path)
