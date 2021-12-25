@@ -10,7 +10,7 @@ structlog.configure(
     wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
 )
 
-log = structlog.get_logger()
+log: structlog.stdlib.BoundLogger = structlog.get_logger()
 
 
 class Options:
@@ -149,12 +149,21 @@ def execute(opts: Options):
         opts.config.git.user_email,
     )
     runner = RepoRun(gitc, opts)
+    failed = False
     for repo in repositories:
         if matcher.match(repo) is False:
             continue
 
         log.info("Matched repository", repository=str(repo))
-        runner.execute(matcher, pkgs_to_apply, repo)
+        try:
+            runner.execute(matcher, pkgs_to_apply, repo)
+        except Exception:
+            log.exception("Run failed", repository=str(repo))
+            failed = True
+
+    if failed is True:
+        log.error("Errors during execution - check previous log messages")
+        exit(1)
 
 
 def options_from_config(path: str) -> Options:
