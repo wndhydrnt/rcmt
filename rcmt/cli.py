@@ -17,7 +17,9 @@ def run(config: str, packages: list[str], matcher_file: str):
     opts = rcmt.options_from_config(config)
     opts.matcher_path = matcher_file
     opts.packages_paths = packages
-    rcmt.execute(opts)
+    result = rcmt.execute(opts)
+    if result is False:
+        exit(1)
 
 
 @click.command()

@@ -10,7 +10,7 @@ structlog.configure(
     wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
 )
 
-log = structlog.get_logger()
+log: structlog.stdlib.BoundLogger = structlog.get_logger()
 
 
 class Options:
@@ -127,7 +127,7 @@ class RepoRun:
                 repo.merge_pull_request(pr_identifier)
 
 
-def execute(opts: Options):
+def execute(opts: Options) -> bool:
     log_level = logging.getLevelName(opts.config.log_level.upper())
     structlog.configure(
         wrapper_class=structlog.make_filtering_bound_logger(log_level),
@@ -149,12 +149,22 @@ def execute(opts: Options):
         opts.config.git.user_email,
     )
     runner = RepoRun(gitc, opts)
+    success = True
     for repo in repositories:
         if matcher.match(repo) is False:
             continue
 
         log.info("Matched repository", repository=str(repo))
-        runner.execute(matcher, pkgs_to_apply, repo)
+        try:
+            runner.execute(matcher, pkgs_to_apply, repo)
+        except Exception:
+            log.exception("Apply failed", repository=str(repo))
+            success = False
+
+    if success is False:
+        log.error("Errors during execution - check previous log messages")
+
+    return success
 
 
 def options_from_config(path: str) -> Options:
