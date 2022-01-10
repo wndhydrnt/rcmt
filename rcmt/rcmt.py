@@ -43,6 +43,15 @@ class RepoRun:
         pkgs: list[package.Package],
         repo: source.Repository,
     ):
+        pr_identifier = repo.find_pull_request(self.git.branch_name)
+        if pr_identifier is not None and repo.is_pr_closed(pr_identifier) is True:
+            log.info(
+                "Existing PR has been closed by the user",
+                branch=self.git.branch_name,
+                repo=str(repo),
+            )
+            return
+
         work_dir = self.git.prepare(repo)
         tpl_mapping = {"repo_name": repo.name, "repo_project": repo.project}
         pr = source.PullRequest(
@@ -83,15 +92,6 @@ class RepoRun:
             else:
                 log.debug("Pushing changes", repo=str(repo))
                 self.git.push(work_dir)
-
-        pr_identifier = repo.find_pull_request(self.git.branch_name)
-        if pr_identifier is not None and repo.is_pr_closed(pr_identifier) is True:
-            log.info(
-                "Existing PR has been closed by the user",
-                branch=self.git.branch_name,
-                repo=str(repo),
-            )
-            return
 
         if needs_push is True and (
             pr_identifier is None or repo.is_pr_merged(pr_identifier) is True
