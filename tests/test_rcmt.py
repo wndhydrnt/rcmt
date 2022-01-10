@@ -178,13 +178,9 @@ class RunTest(unittest.TestCase):
 
         runner.execute(run, [pkg], repo_mock)
 
-        action_mock.apply.assert_called_once_with(
-            self.pkg_path,
-            "/unit/test",
-            {"repo_name": "myrepo", "repo_project": "myproject"},
-        )
+        action_mock.apply.assert_not_called()
         repo_mock.find_pull_request.assert_called_once_with("rcmt")
         repo_mock.is_pr_closed.assert_called_once_with("someid")
-        git_mock.push.assert_called_once_with("/unit/test")
+        git_mock.push.assert_not_called()
         repo_mock.create_pull_request.assert_not_called()
         repo_mock.merge_pull_request.assert_not_called()
