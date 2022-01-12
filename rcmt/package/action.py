@@ -1,6 +1,7 @@
 import io
 import os
 import pathlib
+import re
 import shutil
 import string
 import subprocess
@@ -291,7 +292,8 @@ class DeleteLineInFile(Action):
     """
     DeleteLineInFile deletes a line in a file if the file contains the line.
 
-    :param line: Line to search for.
+    :param line: Line to search for. This is a regular expression. Input gets wrapped
+                 with ``^`` and ``$``.
     :param selector: Glob selector to find the files to modify.
 
     **Example**
@@ -302,7 +304,14 @@ class DeleteLineInFile(Action):
     """
 
     def __init__(self, line: str, selector: str):
-        self.line = line.strip()
+        line = line.strip()
+        if line.startswith("^") is False:
+            line = f"^{line}"
+
+        if line.endswith("$") is False:
+            line = f"{line}$"
+
+        self.regex = re.compile(line)
         self.selector = selector
 
     def apply(self, pkg_path: str, repo_path: str, tpl_data: dict) -> None:
@@ -313,7 +322,7 @@ class DeleteLineInFile(Action):
                     tmp_file_path = tmpf.name
                     line_deleted = False
                     for line in f:
-                        if line.strip() != self.line:
+                        if self.regex.search(line.strip()) is None:
                             tmpf.write(line)
                         else:
                             line_deleted = True
