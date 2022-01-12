@@ -4,6 +4,7 @@ from urllib.parse import urlparse
 
 import gitlab
 import structlog
+from gitlab.base import RESTObjectList
 from gitlab.v4.objects import Project as GitlabProject
 from gitlab.v4.objects.merge_requests import ProjectMergeRequest as GitlabMergeRequest
 
@@ -44,11 +45,19 @@ class GitlabRepository(Repository):
         if len(mrs) == 0:
             return None
 
-        return mrs[0]
+        if isinstance(mrs, list):
+            return mrs[0]
+
+        if isinstance(mrs, RESTObjectList):
+            return mrs.next()
+
+        raise RuntimeError(
+            f"GitLab API returned an unexpected object {mrs.__class__.__name__}"
+        )
 
     def has_file(self, path: str) -> bool:
         try:
-            self._project.repositories.get(file_path=path, ref=self.base_branch)
+            self._project.files.get(file_path=path, ref=self.base_branch)
         except gitlab.exceptions.GitlabGetError as e:
             if e.response_code == 404:
                 return False
