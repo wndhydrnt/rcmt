@@ -46,7 +46,19 @@ class RepoRun:
         pr_identifier = repo.find_pull_request(self.git.branch_name)
         if pr_identifier is not None and repo.is_pr_closed(pr_identifier) is True:
             log.info(
-                "Existing PR has been closed by the user",
+                "Existing PR has been closed",
+                branch=self.git.branch_name,
+                repo=str(repo),
+            )
+            return
+
+        if (
+            pr_identifier is not None
+            and repo.is_pr_merged(pr_identifier) is True
+            and matcher.merge_once
+        ):
+            log.info(
+                "Existing PR has been merged",
                 branch=self.git.branch_name,
                 repo=str(repo),
             )

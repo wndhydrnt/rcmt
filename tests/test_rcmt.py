@@ -184,3 +184,28 @@ class RunTest(unittest.TestCase):
         git_mock.push.assert_not_called()
         repo_mock.create_pull_request.assert_not_called()
         repo_mock.merge_pull_request.assert_not_called()
+
+    def test_no_new_pr_if_merge_once_true(self):
+        cfg = config.Config()
+        opts = Options(cfg)
+        git_mock = create_git_mock("rcmt", "/unit/test", True)
+        runner = RepoRun(git_mock, opts)
+        run = Run(name="testmatch", merge_once=True)
+        run.add_matcher(RepoName("local"))
+        pkg = package.Package("testpackage", self.pkg_path)
+        action_mock = unittest.mock.Mock(spec=action.Action)
+        pkg.actions.append(action_mock)
+        repo_mock = unittest.mock.Mock(spec=source.Repository)
+        repo_mock.name = "myrepo"
+        repo_mock.project = "myproject"
+        repo_mock.find_pull_request.return_value = "someid"
+        repo_mock.is_pr_merged.return_value = True
+
+        runner.execute(run, [pkg], repo_mock)
+
+        action_mock.apply.assert_not_called()
+        repo_mock.find_pull_request.assert_called_once_with("rcmt")
+        repo_mock.is_pr_merged.assert_called_once_with("someid")
+        git_mock.push.assert_not_called()
+        repo_mock.create_pull_request.assert_not_called()
+        repo_mock.merge_pull_request.assert_not_called()

@@ -21,6 +21,9 @@ class Run:
                              Request. Requires ``auto_merge`` to be set to ``true``.
     :param branch_name: Name of the branch in git. Defaults to ``branch_prefix`` +
                         ``name``.
+    :param merge_once: If ``True``, rcmt does not create another pull request if it
+                       created a pull request for the same branch before and that pull
+                       request has been merged.
     :param pr_body: Define a custom body of a pull request.
     :param pr_title: Set a custom title for a pull request.
 
@@ -54,6 +57,7 @@ class Run:
         auto_merge: bool = False,
         auto_merge_after: Optional[datetime.timedelta] = None,
         branch_name: str = "",
+        merge_once: bool = False,
         pr_body: str = "",
         pr_title: str = "",
     ):
@@ -62,6 +66,7 @@ class Run:
         self.branch_name = branch_name
         self.pr_body = pr_body
         self.pr_title = pr_title
+        self.merge_once = merge_once
         self.name = name
 
         self.matchers: list[matcher.Base] = []
