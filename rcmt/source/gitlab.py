@@ -123,6 +123,7 @@ class Gitlab(Base):
         self.url = urlparse(url).netloc
 
     def list_repositories(self) -> list[Repository]:
+        log.debug("start fetching repositories")
         projects = self.client.projects.list(
             all=True, archived=False, min_access_level=30
         )
@@ -130,4 +131,5 @@ class Gitlab(Base):
         for p in projects:
             repositories.append(GitlabRepository(project=p, url=self.url))  # type: ignore
 
+        log.debug("finished fetching repositories")
         return repositories
