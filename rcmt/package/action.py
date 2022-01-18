@@ -35,6 +35,27 @@ class Action:
         raise NotImplementedError("class does not implement Action.apply()")
 
 
+class GlobMixin:
+    """
+    GlobMixin simplifies working with glob selectors.
+
+    Classes that extend GlobMixin do not need to implement calls to ``glob`` from stdlib.
+    Instead, a class implements ``process_file()`` to process each file that matches the
+    glob selector.
+    """
+
+    def __init__(self, selector: str):
+        self.selector = selector
+
+    def apply(self, pkg_path: str, repo_path: str, tpl_data: dict):
+        repo_file_paths = util.iglob(repo_path, self.selector)
+        for repo_file_path in repo_file_paths:
+            self.process_file(repo_file_path, pkg_path, tpl_data)
+
+    def process_file(self, path: str, pkg_path: str, tpl_data: dict):
+        raise NotImplementedError("Action does not implement GlobMixin.process_file()")
+
+
 class Absent(Action):
     """
     Deletes a file or directory.
@@ -216,7 +237,7 @@ class DeleteKey(Action, EncodingAware):
         return data
 
 
-class Exec(Action):
+class Exec(GlobMixin, Action):
     """
     Exec calls an executable and passes matching files in a repository to it. The
     executable can then modify each file.
@@ -236,28 +257,27 @@ class Exec(Action):
     """
 
     def __init__(self, exec_path: str, selector: str, timeout: int = 120):
+        super(Exec, self).__init__(selector)
+
         self.exec_path = exec_path
-        self.selector = selector
         self.timeout = timeout
 
-    def apply(self, pkg_path: str, repo_path: str, tpl_data: dict) -> None:
-        repo_file_paths = util.iglob(repo_path, self.selector)
-        for repo_file_path in repo_file_paths:
-            result = subprocess.run(
-                args=[self.exec_path, repo_file_path],
-                capture_output=True,
-                shell=True,
-                timeout=self.timeout,
-            )
-            if result.returncode > 0:
-                raise RuntimeError(
-                    f"""Exec action call to {self.exec_path} failed.
+    def process_file(self, path: str, pkg_path: str, tpl_data: dict):
+        result = subprocess.run(
+            args=[self.exec_path, path],
+            capture_output=True,
+            shell=True,
+            timeout=self.timeout,
+        )
+        if result.returncode > 0:
+            raise RuntimeError(
+                f"""Exec action call to {self.exec_path} failed.
     stdout: {result.stdout.decode('utf-8')}
     stderr: {result.stderr.decode('utf-8')}"""
-                )
+            )
 
 
-class LineInFile(Action):
+class LineInFile(GlobMixin, Action):
     """
     LineInFile ensures that a line exists in a file. It adds the line if it does not exist.
 
@@ -272,23 +292,22 @@ class LineInFile(Action):
     """
 
     def __init__(self, line: str, selector: str):
+        super(LineInFile, self).__init__(selector)
+
         self.line = line.strip()
-        self.selector = selector
 
-    def apply(self, pkg_path: str, repo_path: str, tpl_data: dict) -> None:
-        repo_file_paths = util.iglob(repo_path, self.selector)
-        for repo_file_path in repo_file_paths:
-            with open(repo_file_path, "r") as f:
-                for line in f:
-                    if line.strip() == self.line:
-                        return None
+    def process_file(self, path: str, pkg_path: str, tpl_data: dict):
+        with open(path, "r") as f:
+            for line in f:
+                if line.strip() == self.line:
+                    return None
 
-            with open(repo_file_path, "a") as f:
-                f.write(self.line)
-                f.write("\n")
+        with open(path, "a") as f:
+            f.write(self.line)
+            f.write("\n")
 
 
-class DeleteLineInFile(Action):
+class DeleteLineInFile(GlobMixin, Action):
     """
     DeleteLineInFile deletes a line in a file if the file contains the line.
 
@@ -304,6 +323,8 @@ class DeleteLineInFile(Action):
     """
 
     def __init__(self, line: str, selector: str):
+        super().__init__(selector)
+
         line = line.strip()
         if line.startswith("^") is False:
             line = f"^{line}"
@@ -312,20 +333,17 @@ class DeleteLineInFile(Action):
             line = f"{line}$"
 
         self.regex = re.compile(line)
-        self.selector = selector
 
-    def apply(self, pkg_path: str, repo_path: str, tpl_data: dict) -> None:
-        repo_file_paths = util.iglob(repo_path, self.selector)
-        for repo_file_path in repo_file_paths:
-            with open(repo_file_path, "r") as f:
-                with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmpf:
-                    tmp_file_path = tmpf.name
-                    line_deleted = False
-                    for line in f:
-                        if self.regex.search(line.strip()) is None:
-                            tmpf.write(line)
-                        else:
-                            line_deleted = True
+    def process_file(self, path: str, pkg_path: str, tpl_data: dict):
+        with open(path, "r") as f:
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmpf:
+                tmp_file_path = tmpf.name
+                line_deleted = False
+                for line in f:
+                    if self.regex.search(line.strip()) is None:
+                        tmpf.write(line)
+                    else:
+                        line_deleted = True
 
-            if line_deleted:
-                shutil.move(tmp_file_path, repo_file_path)
+        if line_deleted:
+            shutil.move(tmp_file_path, path)
