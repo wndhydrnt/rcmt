@@ -86,13 +86,30 @@ class Run:
         """
         self.matchers.append(m)
 
-    def add_package(self, name: str) -> None:
+    def add_package(self, location: str) -> None:
         """
         Add a Package to apply to every matching repository.
 
-        :param name: The name of the Package.
+        rcmt can read packages from the following sources:
+
+        - local directory
+        - git repository
+
+        Example local directory:
+
+        .. code-block:: python
+
+           run.add_package("<path to directory containing the manifest.py file>")
+
+        Example git repository:
+
+        .. code-block:: python
+
+           run.add_package("git::https://github.com/wndhydrnt/rcmt-packages.git?ref=main&path=packages/python-dev-env")
+
+        :param location: Location of the package.
         """
-        self.packages.append(name)
+        self.packages.append(location)
 
     def branch(self, prefix: str) -> str:
         if self.branch_name != "":

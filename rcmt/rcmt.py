@@ -5,6 +5,8 @@ from typing import Optional
 import structlog
 
 from . import config, encoding, git, package, run, source
+from .package import Package
+from .package.loader import create_loader
 
 structlog.configure(
     wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
@@ -18,7 +20,6 @@ class Options:
         self.config = cfg
         self.encoding_registry: encoding.Registry = encoding.Registry()
         self.matcher_path: str = ""
-        self.packages_paths: list[str] = []
         self.sources: dict[str, source.Base] = {}
 
 
@@ -146,9 +147,12 @@ def execute(opts: Options) -> bool:
     )
 
     pkg_reader = package.PackageReader(opts.encoding_registry)
-    pkgs = pkg_reader.read_packages(opts.packages_paths)
+    pkgs: list[Package] = []
     matcher = run.read(opts.matcher_path)
-    pkgs_to_apply = find_packages(matcher.packages, pkgs)
+    for p in matcher.packages:
+        loader = create_loader(opts.config.git.data_dir, p)
+        pkgs.append(loader.load(pkg_reader))
+
     repositories = []
     for s in opts.sources.values():
         repositories += s.list_repositories()
@@ -168,7 +172,7 @@ def execute(opts: Options) -> bool:
 
         log.info("Matched repository", repository=str(repo))
         try:
-            runner.execute(matcher, pkgs_to_apply, repo)
+            runner.execute(matcher, pkgs, repo)
         except Exception:
             log.exception("Apply failed", repository=str(repo))
             success = False

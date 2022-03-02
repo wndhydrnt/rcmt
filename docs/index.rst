@@ -22,7 +22,7 @@ wait for a build job to succeed and then merge the pull request is no fun. This 
 rcmt can help.
 
 First, you create a :doc:`Package <package>`. A package is a directory that contains the
-file **manifest.yaml**. The manifest describes which :doc:`Actions <action>` to apply to
+file **manifest.py**. The manifest describes which :doc:`Actions <action>` to apply to
 a repository. The directory can contain additional files that some actions need to work.
 
 The basic directory structure of a package looks like this:
@@ -42,7 +42,7 @@ And the Manifest looks like this:
    :code:
 
 Packages describe what to do, but not to which repositories they apply. rcmt expects a
-**matcher** to do this:
+**run** to do this:
 
 .. highlight:: python
 .. include:: ./examples/simple/run.py
@@ -52,7 +52,7 @@ Everything is ready. Run rcmt:
 
 .. code-block:: bash
 
-   rcmt run --packages ./packages ./run.py
+   rcmt run ./run.py
 
 rcmt will find all matching repositories, check them out locally, apply the package and
 create a Pull Request for each repository.
