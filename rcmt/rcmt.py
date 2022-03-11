@@ -74,26 +74,32 @@ class RepoRun:
             matcher.pr_title,
         )
         has_changes = False
+        for a in matcher.actions:
+            log.debug(
+                "Applying action from run",
+                action=a.__class__.__name__,
+                run=matcher.name,
+                repo=str(repo),
+            )
+            a.apply("", work_dir, tpl_mapping)
+
         for pkg in pkgs:
             for a in pkg.actions:
                 log.debug(
-                    "Applying action",
+                    "Applying action from package",
                     action=a.__class__.__name__,
                     pkg=pkg.name,
                     repo=str(repo),
                 )
                 a.apply(pkg.path, work_dir, tpl_mapping)
 
-            if self.git.has_changes(work_dir) is True:
-                log.debug("Committing changes", pkg=pkg.name, repo=str(repo))
-                self.git.commit_changes(work_dir, f"rcmt: Applied package {pkg.name}")
-                pr.add_package(pkg.name)
-                has_changes = True
+        if self.git.has_changes(work_dir) is True:
+            log.debug("Committing changes", repo=str(repo))
+            self.git.commit_changes(work_dir, "Applied actions")
+            has_changes = True
 
-            else:
-                log.info(
-                    "No changes after applying package", pkg=pkg.name, repo=str(repo)
-                )
+        else:
+            log.info("No changes after applying actions", repo=str(repo))
 
         # Combining self.git.needs_push and has_changes avoids an unnecessary push of the
         # branch if the remote branch does not exist.

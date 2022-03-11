@@ -85,26 +85,25 @@ class Own(Action):
 
     It always overwrites the data in the file with the data from a package.
 
+    :param content: Content of the file to write.
     :param target: Path to the file in a repository to own.
-    :param source: Path to the file in the package that contains the source data.
 
     **Example**
 
     .. code-block:: python
 
        # Ensure that .flake8 looks the same across all repositories.
-       Own(target=".flake8", source=".flake8")
+       Own(content="[flake8]\nmax-line-length = 88\nextend-ignore = E203", target=".flake8")
     """
 
-    def __init__(self, target: str, source: str):
-        self.source = source
+    def __init__(self, content: str, target: str):
+        self.content = content
         self.target = target
 
     def apply(self, pkg_path: str, repo_path: str, tpl_data: dict) -> None:
-        data = load_file(pkg_path, self.source)
         file_path = os.path.join(repo_path, self.target)
         with open(file_path, "w+") as f:
-            f.write(string.Template(data).substitute(tpl_data))
+            f.write(string.Template(self.content).substitute(tpl_data))
 
 
 class Seed(Own):
@@ -121,7 +120,7 @@ class Seed(Own):
     .. code-block:: python
 
        # Ensure that the default Makefile is present.
-       Seed(target="Makefile", source="Makefile")
+       Seed(content="foo:\n\t# foo", target="Makefile")
     """
 
     def apply(self, pkg_path: str, repo_path: str, tpl_data: dict) -> None:

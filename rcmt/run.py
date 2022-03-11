@@ -1,12 +1,14 @@
 import datetime
 import importlib.machinery
 import importlib.util
+import os.path
 import random
 import string
 import sys
-from typing import Optional
+from typing import AnyStr, Optional
 
 from rcmt import matcher, source
+from rcmt.package import action
 
 
 class Run:
@@ -69,6 +71,7 @@ class Run:
         self.merge_once = merge_once
         self.name = name
 
+        self.actions: list[action.Action] = []
         self.matchers: list[matcher.Base] = []
         self.packages: list[str] = []
 
@@ -77,6 +80,14 @@ class Run:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
+
+    def add_action(self, a: action.Action) -> None:
+        """
+        Add an Action to apply to every matching repository.
+
+        :param a: The Action.
+        """
+        self.actions.append(a)
 
     def add_matcher(self, m: matcher.Base) -> None:
         """
