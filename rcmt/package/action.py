@@ -14,7 +14,7 @@ from rcmt import encoding, util
 from rcmt.fs import FileProxy, read_file_or_str
 
 
-def load_file(pkg_path: str, file_path: str) -> str:
+def load_file(file_path: str) -> str:
     p = os.path.join(pkg_path, file_path)
     with open(p, "r") as f:
         return f.read()
@@ -25,7 +25,7 @@ class Action:
     Action is the abstract class that defines the interface each action implements.
     """
 
-    def apply(self, pkg_path: str, repo_path: str, tpl_data: dict) -> None:
+    def apply(self, repo_path: str, tpl_data: dict) -> None:
         """
         apply modifies a file in a repository.
 
@@ -49,12 +49,12 @@ class GlobMixin:
     def __init__(self, selector: str):
         self.selector = selector
 
-    def apply(self, pkg_path: str, repo_path: str, tpl_data: dict):
+    def apply(self, repo_path: str, tpl_data: dict):
         repo_file_paths = util.iglob(repo_path, self.selector)
         for repo_file_path in repo_file_paths:
-            self.process_file(repo_file_path, pkg_path, tpl_data)
+            self.process_file(repo_file_path, tpl_data)
 
-    def process_file(self, path: str, pkg_path: str, tpl_data: dict):
+    def process_file(self, path: str, tpl_data: dict):
         raise NotImplementedError("Action does not implement GlobMixin.process_file()")
 
 
@@ -75,7 +75,7 @@ class Absent(Action):
     def __init__(self, target: str):
         self.target = target
 
-    def apply(self, pkg_path: str, repo_path: str, tpl_data: dict) -> None:
+    def apply(self, repo_path: str, tpl_data: dict) -> None:
         repo_file_path = os.path.join(repo_path, self.target)
         if os.path.exists(repo_file_path):
             os.remove(repo_file_path)
@@ -102,7 +102,7 @@ class Own(Action):
         self.content = content
         self.target = target
 
-    def apply(self, pkg_path: str, repo_path: str, tpl_data: dict) -> None:
+    def apply(self, repo_path: str, tpl_data: dict) -> None:
         content = read_file_or_str(self.content)
         file_path = os.path.join(repo_path, self.target)
         with open(file_path, "w+") as f:
@@ -126,12 +126,12 @@ class Seed(Own):
        Seed(content="foo:\n\t# foo", target="Makefile")
     """
 
-    def apply(self, pkg_path: str, repo_path: str, tpl_data: dict) -> None:
+    def apply(self, repo_path: str, tpl_data: dict) -> None:
         repo_file_path = os.path.join(repo_path, self.target)
         if os.path.isfile(repo_file_path):
             return
 
-        super().apply(pkg_path, repo_path, tpl_data)
+        super().apply(repo_path, tpl_data)
 
 
 class EncodingAware:
@@ -181,9 +181,9 @@ class Merge(Action, EncodingAware):
         if merge_strategy == "additive":
             self.strategy = mergedeep.Strategy.ADDITIVE
 
-    def apply(self, pkg_path: str, repo_path: str, tpl_data: dict) -> None:
+    def apply(self, repo_path: str, tpl_data: dict) -> None:
         content = read_file_or_str(self.content)
-        data = string.Template(load_file(pkg_path, content)).substitute(tpl_data)
+        data = string.Template(content).substitute(tpl_data)
         paths = util.iglob(repo_path, self.selector)
         for p in paths:
             ext = pathlib.Path(p).suffix
@@ -217,7 +217,7 @@ class DeleteKey(Action, EncodingAware):
         self.key_path = key.split(".")
         self.target = target
 
-    def apply(self, pkg_path: str, repo_path: str, tpl_data: dict) -> None:
+    def apply(self, repo_path: str, tpl_data: dict) -> None:
         repo_file_path = os.path.join(repo_path, self.target)
         ext = pathlib.Path(repo_file_path).suffix
         enc = self.encodings.get_for_extension(ext)
@@ -270,7 +270,7 @@ class Exec(GlobMixin, Action):
         self.exec_path = exec_path
         self.timeout = timeout
 
-    def process_file(self, path: str, pkg_path: str, tpl_data: dict):
+    def process_file(self, path: str, tpl_data: dict):
         result = subprocess.run(
             args=[self.exec_path, path],
             capture_output=True,
@@ -304,7 +304,7 @@ class LineInFile(GlobMixin, Action):
 
         self.line = line.strip()
 
-    def process_file(self, path: str, pkg_path: str, tpl_data: dict):
+    def process_file(self, path: str, tpl_data: dict):
         with open(path, "r") as f:
             for line in f:
                 if line.strip() == self.line:
@@ -342,7 +342,7 @@ class DeleteLineInFile(GlobMixin, Action):
 
         self.regex = re.compile(line)
 
-    def process_file(self, path: str, pkg_path: str, tpl_data: dict):
+    def process_file(self, path: str, tpl_data: dict):
         with open(path, "r") as f:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmpf:
                 tmp_file_path = tmpf.name

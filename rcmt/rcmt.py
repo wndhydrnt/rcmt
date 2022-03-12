@@ -81,7 +81,7 @@ class RepoRun:
                 run=matcher.name,
                 repo=str(repo),
             )
-            a.apply("", work_dir, tpl_mapping)
+            a.apply(work_dir, tpl_mapping)
 
         for pkg in pkgs:
             for a in pkg.actions:
@@ -91,13 +91,12 @@ class RepoRun:
                     pkg=pkg.name,
                     repo=str(repo),
                 )
-                a.apply(pkg.path, work_dir, tpl_mapping)
+                a.apply(work_dir, tpl_mapping)
 
         if self.git.has_changes(work_dir) is True:
             log.debug("Committing changes", repo=str(repo))
             self.git.commit_changes(work_dir, "Applied actions")
             has_changes = True
-
         else:
             log.info("No changes after applying actions", repo=str(repo))
 

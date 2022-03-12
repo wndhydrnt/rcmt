@@ -1,3 +1,4 @@
+from ..fs import FileProxy
 from .action import Action
 
 
@@ -19,6 +20,7 @@ class Manifest:
         self.name = name
 
         self.actions: list[Action] = []
+        self.file_proxies: list[FileProxy] = []
 
     def __enter__(self):
         return self
@@ -34,3 +36,12 @@ class Manifest:
         :param action: The Action to add.
         """
         self.actions.append(action)
+
+    def load_file(self, path: str) -> FileProxy:
+        fp = FileProxy(path)
+        self.file_proxies.append(fp)
+        return fp
+
+    def set_path(self, path):
+        for fp in self.file_proxies:
+            fp.set_path(path)
