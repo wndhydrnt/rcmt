@@ -8,6 +8,7 @@ import sys
 from typing import AnyStr, Optional
 
 from rcmt import matcher, source
+from rcmt.fs import FileProxy
 from rcmt.package import action
 
 
@@ -72,6 +73,7 @@ class Run:
         self.name = name
 
         self.actions: list[action.Action] = []
+        self.file_proxies: list[FileProxy] = []
         self.matchers: list[matcher.Base] = []
         self.packages: list[str] = []
 
@@ -111,12 +113,21 @@ class Run:
 
         return f"{prefix}{self.name}"
 
+    def load_file(self, path: str) -> FileProxy:
+        fp = FileProxy(path)
+        self.file_proxies.append(fp)
+        return fp
+
     def match(self, repo: source.Repository) -> bool:
         for m in self.matchers:
             if m.match(repo) is False:
                 return False
 
         return True
+
+    def set_path(self, path):
+        for fp in self.file_proxies:
+            fp.set_path(path)
 
 
 def read(path: str) -> Run:
@@ -135,6 +146,7 @@ def read(path: str) -> Run:
                 f"Run file {path} defines variable 'run' but is not of type Run"
             )
 
+        run.set_path(os.path.dirname(path))
         return new_module.run  # type: ignore # because the content of module is not known
     except AttributeError:
         raise RuntimeError(f"Run file {path} does not define variable 'run'")

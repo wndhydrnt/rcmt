@@ -6,10 +6,12 @@ import shutil
 import string
 import subprocess
 import tempfile
+from typing import Union
 
 import mergedeep
 
 from rcmt import encoding, util
+from rcmt.fs import FileProxy, read_file_or_str
 
 
 def load_file(pkg_path: str, file_path: str) -> str:
@@ -96,14 +98,15 @@ class Own(Action):
        Own(content="[flake8]\nmax-line-length = 88\nextend-ignore = E203", target=".flake8")
     """
 
-    def __init__(self, content: str, target: str):
+    def __init__(self, content: Union[str, FileProxy], target: str):
         self.content = content
         self.target = target
 
     def apply(self, pkg_path: str, repo_path: str, tpl_data: dict) -> None:
+        content = read_file_or_str(self.content)
         file_path = os.path.join(repo_path, self.target)
         with open(file_path, "w+") as f:
-            f.write(string.Template(self.content).substitute(tpl_data))
+            f.write(string.Template(content).substitute(tpl_data))
 
 
 class Seed(Own):
@@ -165,16 +168,22 @@ class Merge(Action, EncodingAware):
        Merge(selector="pyproject.toml", source="pyproject.toml")
     """
 
-    def __init__(self, selector: str, source: str, merge_strategy: str = "replace"):
+    def __init__(
+        self,
+        content: Union[str, FileProxy],
+        selector: str,
+        merge_strategy: str = "replace",
+    ):
         super().__init__()
+        self.content = content
         self.selector = selector
-        self.source = source
         self.strategy = mergedeep.Strategy.REPLACE
         if merge_strategy == "additive":
             self.strategy = mergedeep.Strategy.ADDITIVE
 
     def apply(self, pkg_path: str, repo_path: str, tpl_data: dict) -> None:
-        data = string.Template(load_file(pkg_path, self.source)).substitute(tpl_data)
+        content = read_file_or_str(self.content)
+        data = string.Template(load_file(pkg_path, content)).substitute(tpl_data)
         paths = util.iglob(repo_path, self.selector)
         for p in paths:
             ext = pathlib.Path(p).suffix
