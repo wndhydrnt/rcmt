@@ -14,12 +14,6 @@ from rcmt import encoding, util
 from rcmt.fs import FileProxy, read_file_or_str
 
 
-def load_file(file_path: str) -> str:
-    p = os.path.join(pkg_path, file_path)
-    with open(p, "r") as f:
-        return f.read()
-
-
 class Action:
     """
     Action is the abstract class that defines the interface each action implements.
