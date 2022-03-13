@@ -314,8 +314,7 @@ class DeleteLineInFile(GlobMixin, Action):
     """
     DeleteLineInFile deletes a line in a file if the file contains the line.
 
-    :param line: Line to search for. This is a regular expression. Input gets wrapped
-                 with ``^`` and ``$``.
+    :param line: Line to search for. This is a regular expression.
     :param selector: Glob selector to find the files to modify.
 
     **Example**
@@ -323,18 +322,16 @@ class DeleteLineInFile(GlobMixin, Action):
     .. code-block:: python
 
        DeleteLineInFile(line="The Line", selector="file.txt")
+
+    .. versionchanged:: 0.5.0
+       Does not wrap parameter ``line`` with ``^`` and ``$`` characters anymore.
+
+    .. versionchanged:: 0.5.0
+       Does not apply ``strip()`` to each line read from a file.
     """
 
     def __init__(self, line: str, selector: str):
         super().__init__(selector)
-
-        line = line.strip()
-        if line.startswith("^") is False:
-            line = f"^{line}"
-
-        if line.endswith("$") is False:
-            line = f"{line}$"
-
         self.regex = re.compile(line)
 
     def process_file(self, path: str, tpl_data: dict):
@@ -343,7 +340,7 @@ class DeleteLineInFile(GlobMixin, Action):
                 tmp_file_path = tmpf.name
                 line_deleted = False
                 for line in f:
-                    if self.regex.search(line.strip()) is None:
+                    if self.regex.search(line) is None:
                         tmpf.write(line)
                     else:
                         line_deleted = True
