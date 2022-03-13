@@ -63,8 +63,6 @@ def create_git_mock(branch_name: str, checkout_dir: str, needs_push: bool):
 
 
 class RunTest(unittest.TestCase):
-    pkg_path = "/tmp/test/pkg"
-
     def test_no_changes(self):
         cfg = config.Config()
         opts = Options(cfg)
@@ -72,7 +70,7 @@ class RunTest(unittest.TestCase):
         runner = RepoRun(git_mock, opts)
         run = Run(name="testrun")
         run.add_matcher(RepoName("local"))
-        pkg = package.Package("testpackage", self.pkg_path)
+        pkg = package.Package("testpackage")
         action_mock = unittest.mock.Mock(spec=action.Action)
         pkg.actions.append(action_mock)
         repo_mock = unittest.mock.Mock(spec=source.Repository)
@@ -83,7 +81,6 @@ class RunTest(unittest.TestCase):
         runner.execute(run, [pkg], repo_mock)
 
         action_mock.apply.assert_called_once_with(
-            self.pkg_path,
             "/unit/test",
             {"repo_name": "myrepo", "repo_project": "myproject"},
         )
@@ -98,7 +95,7 @@ class RunTest(unittest.TestCase):
         runner = RepoRun(git_mock, opts)
         run = Run(name="testrun")
         run.add_matcher(RepoName("local"))
-        pkg = package.Package("testpackage", self.pkg_path)
+        pkg = package.Package("testpackage")
         action_mock = unittest.mock.Mock(spec=action.Action)
         pkg.actions.append(action_mock)
         repo_mock = unittest.mock.Mock(spec=source.Repository)
@@ -109,16 +106,14 @@ class RunTest(unittest.TestCase):
         runner.execute(run, [pkg], repo_mock)
 
         action_mock.apply.assert_called_once_with(
-            self.pkg_path,
             "/unit/test",
             {"repo_name": "myrepo", "repo_project": "myproject"},
         )
         repo_mock.find_pull_request.assert_called_once_with("rcmt")
         git_mock.push.assert_called_once_with("/unit/test")
         expected_pr = source.PullRequest(
-            cfg.pr_title_prefix, "apply matcher testrun", cfg.pr_title_suffix
+            run.name, cfg.pr_title_prefix, "apply matcher testrun", cfg.pr_title_suffix
         )
-        expected_pr.add_package("testpackage")
         repo_mock.create_pull_request.assert_called_once_with("rcmt", expected_pr)
         repo_mock.merge_pull_request.assert_not_called()
 
@@ -133,7 +128,7 @@ class RunTest(unittest.TestCase):
             name="testmatch",
         )
         run.add_matcher(RepoName("local"))
-        pkg = package.Package("testpackage", self.pkg_path)
+        pkg = package.Package("testpackage")
         action_mock = unittest.mock.Mock(spec=action.Action)
         pkg.actions.append(action_mock)
         repo_mock = unittest.mock.Mock(spec=source.Repository)
@@ -150,7 +145,6 @@ class RunTest(unittest.TestCase):
         runner.execute(run, [pkg], repo_mock)
 
         action_mock.apply.assert_called_once_with(
-            self.pkg_path,
             "/unit/test",
             {"repo_name": "myrepo", "repo_project": "myproject"},
         )
@@ -167,7 +161,7 @@ class RunTest(unittest.TestCase):
         runner = RepoRun(git_mock, opts)
         run = Run(name="testmatch")
         run.add_matcher(RepoName("local"))
-        pkg = package.Package("testpackage", self.pkg_path)
+        pkg = package.Package("testpackage")
         action_mock = unittest.mock.Mock(spec=action.Action)
         pkg.actions.append(action_mock)
         repo_mock = unittest.mock.Mock(spec=source.Repository)
@@ -192,7 +186,7 @@ class RunTest(unittest.TestCase):
         runner = RepoRun(git_mock, opts)
         run = Run(name="testmatch", merge_once=True)
         run.add_matcher(RepoName("local"))
-        pkg = package.Package("testpackage", self.pkg_path)
+        pkg = package.Package("testpackage")
         action_mock = unittest.mock.Mock(spec=action.Action)
         pkg.actions.append(action_mock)
         repo_mock = unittest.mock.Mock(spec=source.Repository)

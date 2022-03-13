@@ -1,12 +1,15 @@
 import datetime
 import importlib.machinery
 import importlib.util
+import os.path
 import random
 import string
 import sys
-from typing import Optional
+from typing import AnyStr, Optional
 
 from rcmt import matcher, source
+from rcmt.fs import FileProxy
+from rcmt.package import action
 
 
 class Run:
@@ -69,6 +72,8 @@ class Run:
         self.merge_once = merge_once
         self.name = name
 
+        self.actions: list[action.Action] = []
+        self.file_proxies: list[FileProxy] = []
         self.matchers: list[matcher.Base] = []
         self.packages: list[str] = []
 
@@ -77,6 +82,14 @@ class Run:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
+
+    def add_action(self, a: action.Action) -> None:
+        """
+        Add an Action to apply to every matching repository.
+
+        :param a: The Action.
+        """
+        self.actions.append(a)
 
     def add_matcher(self, m: matcher.Base) -> None:
         """
@@ -100,12 +113,35 @@ class Run:
 
         return f"{prefix}{self.name}"
 
+    def load_file(self, path: str) -> FileProxy:
+        """
+        Returns a proxy that an Action can use to load a file.
+
+        :param path: Path to the file to load. Relative to the file that contains the
+                     Run.
+        """
+        fp = FileProxy(path)
+        self.file_proxies.append(fp)
+        return fp
+
     def match(self, repo: source.Repository) -> bool:
         for m in self.matchers:
             if m.match(repo) is False:
                 return False
 
         return True
+
+    def set_path(self, path):
+        """
+        Set the path to the Run.
+        Forwards this path to all ``FileProxys`` created when calling the
+        ``load_file`` function.
+        rcmt calls this function when it loads a Run file.
+
+        :param path: Path to the directory that contains the Run file.
+        """
+        for fp in self.file_proxies:
+            fp.set_path(path)
 
 
 def read(path: str) -> Run:
@@ -124,6 +160,7 @@ def read(path: str) -> Run:
                 f"Run file {path} defines variable 'run' but is not of type Run"
             )
 
+        run.set_path(os.path.dirname(path))
         return new_module.run  # type: ignore # because the content of module is not known
     except AttributeError:
         raise RuntimeError(f"Run file {path} does not define variable 'run'")

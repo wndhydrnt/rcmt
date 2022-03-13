@@ -21,9 +21,8 @@ class PackageInvalidError(RuntimeError):
 
 
 class Package:
-    def __init__(self, name: str, path: str):
+    def __init__(self, name: str):
         self.name = name
-        self.path = path
         self.actions: list[action.Action] = []
 
 
@@ -38,7 +37,8 @@ class PackageReader:
             raise PackageInvalidError("manifest.py not found")
 
         m = load_manifest(manifest_path)
-        pkg = Package(m.name, path)
+        m.set_path(os.path.basename(path))
+        pkg = Package(m.name)
         for ma in m.actions:
             if isinstance(ma, action.EncodingAware):
                 ma.encodings = self.encoding_registry

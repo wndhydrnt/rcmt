@@ -17,7 +17,7 @@ Every Package contains at least a Manifest file. The name of the Manifest file i
 Example
 ^^^^^^^
 
-Take a look at the `simple example <https://github.com/wndhydrnt/rcmt/tree/main/docs/examples/simple>`_
+Take a look at the `package example <https://github.com/wndhydrnt/rcmt/tree/main/docs/examples/package>`_
 at GitHub.
 
 Reference
