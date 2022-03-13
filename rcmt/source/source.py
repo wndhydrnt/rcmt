@@ -5,6 +5,7 @@ from typing import Any, Union
 class PullRequest:
     def __init__(
         self,
+        run_name: str,
         title_prefix: str,
         title_body: str,
         title_suffix: str,
@@ -13,6 +14,7 @@ class PullRequest:
     ):
         self.custom_body = custom_body
         self.custom_title = custom_title
+        self.run_name = run_name
         self.title_prefix = title_prefix
         self.title_body = title_body
         self.title_suffix = title_suffix
@@ -28,6 +30,9 @@ class PullRequest:
             return False
 
         if self.custom_title != getattr(other, "custom_title"):
+            return False
+
+        if self.run_name != getattr(other, "run_name"):
             return False
 
         if self.title_prefix != getattr(other, "title_prefix"):
@@ -46,7 +51,11 @@ class PullRequest:
         if self.custom_body != "":
             return self.custom_body
 
-        return f"""_This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._
+        return f"""Apply changes from Run {self.run_name}
+
+---
+
+_This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._
 """
 
     @property
