@@ -1,9 +1,20 @@
+import json
 import os
 import tempfile
 import unittest
 from unittest import mock
 
-from rcmt.package.action import Absent, DeleteKey, DeleteLineInFile, Exec, LineInFile
+from rcmt.encoding import Json, Registry
+from rcmt.package.action import (
+    Absent,
+    DeleteKey,
+    DeleteLineInFile,
+    Exec,
+    LineInFile,
+    Merge,
+    Own,
+    Seed,
+)
 
 
 class AbsentTest(unittest.TestCase):
@@ -80,6 +91,35 @@ class LineInFileTest(unittest.TestCase):
             self.assertEqual("foobar\n", lines[1])
 
 
+class DeleteKeyTest(unittest.TestCase):
+    def test_apply(self):
+        with tempfile.TemporaryDirectory() as d:
+            test_file_path = os.path.join(d, "test.json")
+            test_file = open(test_file_path, "w+")
+            data = {
+                "root": {
+                    "first_key": "first_value",
+                    "second_key": "second_value",
+                    "third_key": "third_value",
+                }
+            }
+            json.dump(data, test_file)
+            test_file.close()
+
+            enc_registry = Registry()
+            enc_registry.register(Json(), [".json"])
+            under_test = DeleteKey("root.second_key", "test.json")
+            under_test.encodings = enc_registry
+            under_test.apply(d, {})
+
+            with open(test_file_path, "r") as tf:
+                data = json.load(tf)
+                self.assertDictEqual(
+                    {"root": {"first_key": "first_value", "third_key": "third_value"}},
+                    data,
+                )
+
+
 class DeleteLineInFileTest(unittest.TestCase):
     def test_apply_delete_line(self):
         with tempfile.TemporaryDirectory() as d:
@@ -112,3 +152,95 @@ class DeleteLineInFileTest(unittest.TestCase):
                 lines = test_file.readlines()
 
             self.assertEqual(3, len(lines))
+
+
+class MergeTest(unittest.TestCase):
+    def test_apply_strategy_replace(self):
+        with tempfile.TemporaryDirectory() as d:
+            test_file_path = os.path.join(d, "test.json")
+            test_file = open(test_file_path, "w+")
+            data = {"root": {"list": ["first_value", "second_value"]}}
+            json.dump(data, test_file)
+            test_file.close()
+
+            enc_registry = Registry()
+            enc_registry.register(Json(), [".json"])
+            under_test = Merge(
+                '{"root": { "list": ["first_value", "third_value"]}}', "test.json"
+            )
+            under_test.encodings = enc_registry
+            under_test.apply(d, {})
+
+            with open(test_file_path, "r") as tf:
+                data = json.load(tf)
+                self.assertDictEqual(
+                    {"root": {"list": ["first_value", "third_value"]}},
+                    data,
+                )
+
+    def test_apply_strategy_additive(self):
+        with tempfile.TemporaryDirectory() as d:
+            test_file_path = os.path.join(d, "test.json")
+            test_file = open(test_file_path, "w+")
+            data = {"root": {"list": ["first_value", "second_value"]}}
+            json.dump(data, test_file)
+            test_file.close()
+
+            enc_registry = Registry()
+            enc_registry.register(Json(), [".json"])
+            under_test = Merge(
+                '{"root": { "list": ["third_value"]}}',
+                "test.json",
+                merge_strategy="additive",
+            )
+            under_test.encodings = enc_registry
+            under_test.apply(d, {})
+
+            with open(test_file_path, "r") as tf:
+                data = json.load(tf)
+                self.assertDictEqual(
+                    {"root": {"list": ["first_value", "second_value", "third_value"]}},
+                    data,
+                )
+
+
+class OwnTest(unittest.TestCase):
+    def test_apply(self):
+        with tempfile.TemporaryDirectory() as d:
+            test_file_path = os.path.join(d, "test.txt")
+            with open(test_file_path, "w+") as test_file:
+                test_file.write("abc\n")
+
+            under_test = Own("unit-test", "test.txt")
+            under_test.apply(d, {})
+
+            with open(test_file_path, "r") as test_file:
+                content = test_file.read()
+
+            self.assertEqual("unit-test", content)
+
+
+class SeedTest(unittest.TestCase):
+    def test_apply_seed_file(self):
+        with tempfile.TemporaryDirectory() as d:
+            under_test = Seed("unit-test", "test.txt")
+            under_test.apply(d, {})
+
+            with open(os.path.join(d, "test.txt"), "r") as test_file:
+                content = test_file.read()
+
+            self.assertEqual("unit-test", content)
+
+    def test_apply_file_exists(self):
+        with tempfile.TemporaryDirectory() as d:
+            test_file_path = os.path.join(d, "test.txt")
+            with open(test_file_path, "w+") as test_file:
+                test_file.write("abc\n")
+
+            under_test = Seed("unit-test", "test.txt")
+            under_test.apply(d, {})
+
+            with open(test_file_path, "r") as test_file:
+                content = test_file.read()
+
+            self.assertEqual("abc\n", content)
