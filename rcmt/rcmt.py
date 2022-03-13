@@ -96,7 +96,7 @@ class RepoRun:
 
         if self.git.has_changes(work_dir) is True:
             log.debug("Committing changes", repo=str(repo))
-            self.git.commit_changes(work_dir, "Applied actions")
+            self.git.commit_changes(work_dir, matcher.commit_msg)
             has_changes = True
         else:
             log.info("No changes after applying actions", repo=str(repo))

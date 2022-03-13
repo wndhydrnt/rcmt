@@ -93,7 +93,7 @@ class RunTest(unittest.TestCase):
         opts = Options(cfg)
         git_mock = create_git_mock("rcmt", "/unit/test", True)
         runner = RepoRun(git_mock, opts)
-        run = Run(name="testrun")
+        run = Run(commit_msg="Custom commit", name="testrun")
         run.add_matcher(RepoName("local"))
         pkg = package.Package("testpackage")
         action_mock = unittest.mock.Mock(spec=action.Action)
@@ -105,6 +105,7 @@ class RunTest(unittest.TestCase):
 
         runner.execute(run, [pkg], repo_mock)
 
+        git_mock.commit_changes.assert_called_once_with("/unit/test", "Custom commit")
         action_mock.apply.assert_called_once_with(
             "/unit/test",
             {"repo_name": "myrepo", "repo_project": "myproject"},

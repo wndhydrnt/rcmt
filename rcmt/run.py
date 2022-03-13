@@ -24,6 +24,7 @@ class Run:
                              Request. Requires ``auto_merge`` to be set to ``true``.
     :param branch_name: Name of the branch in git. Defaults to ``branch_prefix`` +
                         ``name``.
+    :param commit_msg: Message to use when committing changes via git.
     :param merge_once: If ``True``, rcmt does not create another pull request if it
                        created a pull request for the same branch before and that pull
                        request has been merged.
@@ -60,6 +61,7 @@ class Run:
         auto_merge: bool = False,
         auto_merge_after: Optional[datetime.timedelta] = None,
         branch_name: str = "",
+        commit_msg: str = "Applied actions",
         merge_once: bool = False,
         pr_body: str = "",
         pr_title: str = "",
@@ -67,6 +69,7 @@ class Run:
         self.auto_merge = auto_merge
         self.auto_merge_after = auto_merge_after
         self.branch_name = branch_name
+        self.commit_msg = commit_msg
         self.pr_body = pr_body
         self.pr_title = pr_title
         self.merge_once = merge_once
