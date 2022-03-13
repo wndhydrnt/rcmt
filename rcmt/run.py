@@ -114,6 +114,12 @@ class Run:
         return f"{prefix}{self.name}"
 
     def load_file(self, path: str) -> FileProxy:
+        """
+        Returns a proxy that an Action can use to load a file.
+
+        :param path: Path to the file to load. Relative to the file that contains the
+                     Run.
+        """
         fp = FileProxy(path)
         self.file_proxies.append(fp)
         return fp
@@ -126,6 +132,14 @@ class Run:
         return True
 
     def set_path(self, path):
+        """
+        Set the path to the Run.
+        Forwards this path to all ``FileProxys`` created when calling the
+        ``load_file`` function.
+        rcmt calls this function when it loads a Run file.
+
+        :param path: Path to the directory that contains the Run file.
+        """
         for fp in self.file_proxies:
             fp.set_path(path)
 

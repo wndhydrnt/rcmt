@@ -38,10 +38,24 @@ class Manifest:
         self.actions.append(action)
 
     def load_file(self, path: str) -> FileProxy:
+        """
+        Returns a proxy that an Action can use to load a file.
+
+        :param path: Path to the file to load. Relative to the file that contains the
+                     Manifest.
+        """
         fp = FileProxy(path)
         self.file_proxies.append(fp)
         return fp
 
     def set_path(self, path):
+        """
+        Set the path to the Package.
+        Forwards this path to all ``FileProxys`` created when calling the
+        ``load_file`` function.
+        rcmt calls this function when it loads a Manifest file.
+
+        :param path: Path to the directory that contains the Run file.
+        """
         for fp in self.file_proxies:
             fp.set_path(path)
