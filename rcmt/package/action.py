@@ -89,7 +89,8 @@ class Own(Action):
     .. code-block:: python
 
        # Ensure that .flake8 looks the same across all repositories.
-       Own(content="[flake8]\nmax-line-length = 88\nextend-ignore = E203", target=".flake8")
+       content = "[flake8]\\nmax-line-length = 88\\nextend-ignore = E203"
+       Own(content=content, target=".flake8")
     """
 
     def __init__(self, content: Union[str, FileProxy], target: str):
