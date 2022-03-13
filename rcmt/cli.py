@@ -9,7 +9,7 @@ import rcmt
     "--packages",
     help="Path to packages directory.",
     multiple=True,
-    required=True,
+    required=False,
     type=str,
 )
 @click.argument("matcher_file")
