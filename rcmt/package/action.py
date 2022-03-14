@@ -27,6 +27,9 @@ class Action:
         :param tpl_data: The content of the file from a package, already populated with
                          template data.
         :return: None
+
+        .. versionchanged:: 0.5.0
+           Parameter ``pkg_path`` removed.
         """
         raise NotImplementedError("class does not implement Action.apply()")
 
@@ -91,6 +94,9 @@ class Own(Action):
        # Ensure that .flake8 looks the same across all repositories.
        content = "[flake8]\\nmax-line-length = 88\\nextend-ignore = E203"
        Own(content=content, target=".flake8")
+
+    .. versionchanged:: 0.5.0
+       Parameter ``content`` added. Parameter ``source`` removed.
     """
 
     def __init__(self, content: Union[str, FileProxy], target: str):
@@ -119,6 +125,9 @@ class Seed(Own):
 
        # Ensure that the default Makefile is present.
        Seed(content="foo:\n\t# foo", target="Makefile")
+
+    .. versionchanged:: 0.5.0
+       Parameter ``content`` added. Parameter ``source`` removed.
     """
 
     def apply(self, repo_path: str, tpl_data: dict) -> None:
@@ -161,6 +170,9 @@ class Merge(Action, EncodingAware):
 
        # Ensure that pyproject.toml contains specific keys.
        Merge(selector="pyproject.toml", source="pyproject.toml")
+
+    .. versionchanged:: 0.5.0
+       Parameter ``content`` added. Parameter ``source`` removed.
     """
 
     def __init__(
