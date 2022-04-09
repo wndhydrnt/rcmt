@@ -8,7 +8,7 @@ class HelloWorld(GlobMixin, Action):
     matches the glob selector.
     """
 
-    def process_file(self, path: str, pkg_path: str, tpl_data: dict):
+    def process_file(self, path: str, tpl_data: dict):
         with open(path, "a") as f:
             f.write("Hello World")
 

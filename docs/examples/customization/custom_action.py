@@ -10,7 +10,7 @@ class HelloWorld(Action):
     It writes "Hello World" to it.
     """
 
-    def apply(self, pkg_path: str, repo_path: str, tpl_data: dict) -> None:
+    def apply(self, repo_path: str, tpl_data: dict) -> None:
         file = os.path.join(repo_path, "hello-world.txt")
         with open(file, "w+") as f:
             f.write("Hello World")
