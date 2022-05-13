@@ -43,6 +43,11 @@ Own
 
 .. autoclass:: rcmt.package.action.Own
 
+ReplaceInLine
+-------------
+
+.. autoclass:: rcmt.package.action.ReplaceInLine
+
 Seed
 ----
 

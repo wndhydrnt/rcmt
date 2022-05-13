@@ -13,6 +13,7 @@ from rcmt.package.action import (
     LineInFile,
     Merge,
     Own,
+    ReplaceInLine,
     Seed,
 )
 
@@ -244,3 +245,27 @@ class SeedTest(unittest.TestCase):
                 content = test_file.read()
 
             self.assertEqual("abc\n", content)
+
+
+class ReplaceInLineTest(unittest.TestCase):
+    def test_apply_replace(self):
+        with tempfile.TemporaryDirectory() as d:
+            test_file_path = os.path.join(d, "test.txt")
+            with open(test_file_path, "w+") as test_file:
+                test_file.write("abc\n")
+                test_file.write("foo:bar:baz\n")
+                test_file.write("def\n")
+
+            under_test = ReplaceInLine(
+                search="(.+):bar:(.+)", replace=r"\1:boom:\2", selector="test.txt"
+            )
+            under_test.apply(d, {})
+
+            with open(test_file_path, "r") as test_file:
+                content = test_file.read()
+
+            expected_content = """abc
+foo:boom:baz
+def
+"""
+            self.assertEqual(expected_content, content)

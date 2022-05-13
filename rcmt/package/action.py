@@ -359,3 +359,47 @@ class DeleteLineInFile(GlobMixin, Action):
 
         if line_deleted:
             shutil.move(tmp_file_path, path)
+
+
+class ReplaceInLine(GlobMixin, Action):
+    """
+    ReplaceInLine iterates over each line of a file and replaces a string if it matches
+    a regular expression.
+
+    It uses ``re.sub()``.
+
+    :param search: Pattern to search for. This is a regular expression.
+    :param replace: Replacement if ``search`` matches.
+    :param selector: Glob selector to find the files to modify.
+    :param flags: Additional flags passed to ``re.sub()``.
+
+    **Example**
+
+    .. code-block:: python
+
+       # Turns the line "This is a test." into "This is an example."
+       ReplaceInLine(
+           search="a test",
+           replace=r"an example",
+           selector="file.txt",
+           flags=re.IGNORECASE
+       )
+
+    .. versionadded:: 0.6.0
+    """
+
+    def __init__(self, search: str, replace: str, selector: str, flags: int = 0):
+        super(ReplaceInLine, self).__init__(selector)
+        self.search = search
+        self.replace = replace
+        self.flags = flags
+
+    def process_file(self, path: str, tpl_data: dict):
+        with open(path, "r") as f:
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmpf:
+                for line in f:
+                    tmpf.write(
+                        re.sub(self.search, self.replace, line, flags=self.flags)
+                    )
+
+        shutil.move(tmpf.name, path)
