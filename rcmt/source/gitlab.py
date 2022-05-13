@@ -110,7 +110,7 @@ class GitlabRepository(Repository):
 
     @property
     def project(self) -> str:
-        return self._project.namespace["path"]
+        return self._project.namespace["full_path"]
 
     @property
     def source(self) -> str:
