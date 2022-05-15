@@ -385,21 +385,35 @@ class ReplaceInLine(GlobMixin, Action):
            flags=re.IGNORECASE
        )
 
+    Both ``search`` and ``replace`` parameters support `Templating`_.
+
+    .. note::
+       Make sure to escape every ``$`` in a regular expression with ``$$`` to avoid
+       errors like ``Invalid placeholder in string: line 1, col 43``.
+
+       **Don't**
+
+       ``^github.com/wndhydrnt/rcmt$``
+
+       **Do**
+
+       ``^github.com/wndhydrnt/rcmt$$``
+
     .. versionadded:: 0.6.0
     """
 
     def __init__(self, search: str, replace: str, selector: str, flags: int = 0):
         super(ReplaceInLine, self).__init__(selector)
-        self.search = search
-        self.replace = replace
+        self.search = string.Template(search)
+        self.replace = string.Template(replace)
         self.flags = flags
 
     def process_file(self, path: str, tpl_data: dict):
+        search = self.search.substitute(tpl_data)
+        replace = self.replace.substitute(tpl_data)
         with open(path, "r") as f:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmpf:
                 for line in f:
-                    tmpf.write(
-                        re.sub(self.search, self.replace, line, flags=self.flags)
-                    )
+                    tmpf.write(re.sub(search, replace, line, flags=self.flags))
 
         shutil.move(tmpf.name, path)
