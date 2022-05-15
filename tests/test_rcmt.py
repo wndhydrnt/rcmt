@@ -3,10 +3,11 @@ import unittest
 import unittest.mock
 from typing import Any, Union
 
-from rcmt import config, git, package, rcmt, source
+from rcmt import config, encoding, git, package, rcmt, source
+from rcmt.config import Config
 from rcmt.matcher import RepoName
 from rcmt.package import action
-from rcmt.rcmt import Options, RepoRun
+from rcmt.rcmt import Options, RepoRun, execute_local
 from rcmt.run import Run
 
 
@@ -219,3 +220,27 @@ class RunTest(unittest.TestCase):
         git_mock.push.assert_not_called()
         repo_mock.create_pull_request.assert_not_called()
         repo_mock.merge_pull_request.assert_not_called()
+
+
+class LocalTest(unittest.TestCase):
+    @unittest.mock.patch("rcmt.run.read")
+    def test_execute_local(self, run_read_mock):
+        opts = Options(cfg=Config())
+        opts.matcher_path = "/tmp/run.py"
+        opts.encoding_registry = encoding.Registry()
+        run = Run(name="local")
+        action_mock = unittest.mock.Mock(spec=action.Action)
+        run.add_action(action_mock)
+        run_read_mock.return_value = run
+
+        execute_local("/tmp/repository", "github.com", "wndhydrnt", "rcmt", opts)
+
+        run_read_mock.assert_called_with("/tmp/run.py")
+        action_mock.apply.assert_called_once_with(
+            "/tmp/repository",
+            {
+                "repo_source": "github.com",
+                "repo_project": "wndhydrnt",
+                "repo_name": "rcmt",
+            },
+        )
