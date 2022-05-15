@@ -76,13 +76,18 @@ class RunTest(unittest.TestCase):
         repo_mock = unittest.mock.Mock(spec=source.Repository)
         repo_mock.name = "myrepo"
         repo_mock.project = "myproject"
+        repo_mock.source = "githost.com"
         repo_mock.find_pull_request.return_value = None
 
         runner.execute(run, [pkg], repo_mock)
 
         action_mock.apply.assert_called_once_with(
             "/unit/test",
-            {"repo_name": "myrepo", "repo_project": "myproject"},
+            {
+                "repo_name": "myrepo",
+                "repo_project": "myproject",
+                "repo_source": "githost.com",
+            },
         )
         repo_mock.find_pull_request.assert_called_once_with("rcmt")
         repo_mock.create_pull_request.assert_not_called()
@@ -101,6 +106,7 @@ class RunTest(unittest.TestCase):
         repo_mock = unittest.mock.Mock(spec=source.Repository)
         repo_mock.name = "myrepo"
         repo_mock.project = "myproject"
+        repo_mock.source = "githost.com"
         repo_mock.find_pull_request.return_value = None
 
         runner.execute(run, [pkg], repo_mock)
@@ -108,7 +114,11 @@ class RunTest(unittest.TestCase):
         git_mock.commit_changes.assert_called_once_with("/unit/test", "Custom commit")
         action_mock.apply.assert_called_once_with(
             "/unit/test",
-            {"repo_name": "myrepo", "repo_project": "myproject"},
+            {
+                "repo_name": "myrepo",
+                "repo_project": "myproject",
+                "repo_source": "githost.com",
+            },
         )
         repo_mock.find_pull_request.assert_called_once_with("rcmt")
         git_mock.push.assert_called_once_with("/unit/test")
@@ -135,6 +145,7 @@ class RunTest(unittest.TestCase):
         repo_mock = unittest.mock.Mock(spec=source.Repository)
         repo_mock.name = "myrepo"
         repo_mock.project = "myproject"
+        repo_mock.source = "githost.com"
         repo_mock.find_pull_request.return_value = "someid"
         repo_mock.has_successful_pr_build.return_value = True
         repo_mock.is_pr_closed.return_value = False
@@ -147,7 +158,11 @@ class RunTest(unittest.TestCase):
 
         action_mock.apply.assert_called_once_with(
             "/unit/test",
-            {"repo_name": "myrepo", "repo_project": "myproject"},
+            {
+                "repo_name": "myrepo",
+                "repo_project": "myproject",
+                "repo_source": "githost.com",
+            },
         )
         repo_mock.find_pull_request.assert_called_once_with("rcmt")
         git_mock.push.assert_not_called()

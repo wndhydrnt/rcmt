@@ -65,7 +65,11 @@ class RepoRun:
             return
 
         work_dir = self.git.prepare(repo)
-        tpl_mapping = {"repo_name": repo.name, "repo_project": repo.project}
+        tpl_mapping = {
+            "repo_name": repo.name,
+            "repo_project": repo.project,
+            "repo_source": repo.source,
+        }
         pr = source.PullRequest(
             matcher.name,
             self.opts.config.pr_title_prefix,
