@@ -5,6 +5,7 @@ from typing import Optional
 import structlog
 
 from . import config, encoding, git, package, run, source
+from .source.local import Local
 
 structlog.configure(
     wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
@@ -65,11 +66,7 @@ class RepoRun:
             return
 
         work_dir = self.git.prepare(repo)
-        tpl_mapping = {
-            "repo_name": repo.name,
-            "repo_project": repo.project,
-            "repo_source": repo.source,
-        }
+        tpl_mapping = create_template_mapping(repo)
         pr = source.PullRequest(
             matcher.name,
             self.opts.config.pr_title_prefix,
@@ -78,26 +75,8 @@ class RepoRun:
             matcher.pr_body,
             matcher.pr_title,
         )
+        apply_actions(pkgs, repo, matcher, tpl_mapping, work_dir)
         has_changes = False
-        for a in matcher.actions:
-            log.debug(
-                "Applying action from run",
-                action=a.__class__.__name__,
-                run=matcher.name,
-                repo=str(repo),
-            )
-            a.apply(work_dir, tpl_mapping)
-
-        for pkg in pkgs:
-            for a in pkg.actions:
-                log.debug(
-                    "Applying action from package",
-                    action=a.__class__.__name__,
-                    pkg=pkg.name,
-                    repo=str(repo),
-                )
-                a.apply(work_dir, tpl_mapping)
-
         if self.git.has_changes(work_dir) is True:
             log.debug("Committing changes", repo=str(repo))
             self.git.commit_changes(work_dir, matcher.commit_msg)
@@ -149,6 +128,33 @@ class RepoRun:
                 repo.merge_pull_request(pr_identifier)
 
 
+def apply_actions(
+    pkgs: list[package.Package],
+    repo: source.Repository,
+    rrun: run.Run,
+    tpl_mapping: dict,
+    work_dir: str,
+) -> None:
+    for a in rrun.actions:
+        log.debug(
+            "Applying action from run",
+            action=a.__class__.__name__,
+            run=rrun.name,
+            repo=str(repo),
+        )
+        a.apply(work_dir, tpl_mapping)
+
+    for pkg in pkgs:
+        for a in pkg.actions:
+            log.debug(
+                "Applying action from package",
+                action=a.__class__.__name__,
+                pkg=pkg.name,
+                repo=str(repo),
+            )
+            a.apply(work_dir, tpl_mapping)
+
+
 def execute(opts: Options) -> bool:
     log_level = logging.getLevelName(opts.config.log_level.upper())
     structlog.configure(
@@ -174,6 +180,7 @@ def execute(opts: Options) -> bool:
     success = True
     for repo in repositories:
         if matcher.match(repo) is False:
+            log.debug("Repository does not match", repository=str(repo))
             continue
 
         log.info("Matched repository", repository=str(repo))
@@ -187,6 +194,23 @@ def execute(opts: Options) -> bool:
         log.error("Errors during execution - check previous log messages")
 
     return success
+
+
+def execute_local(
+    directory: str, repo_source: str, repo_project: str, repo_name: str, opts: Options
+) -> None:
+    log_level = logging.getLevelName(opts.config.log_level.upper())
+    structlog.configure(
+        wrapper_class=structlog.make_filtering_bound_logger(log_level),
+    )
+
+    pkg_reader = package.PackageReader(opts.encoding_registry)
+    pkgs = pkg_reader.read_packages(opts.packages_paths)
+    matcher = run.read(opts.matcher_path)
+    pkgs_to_apply = find_packages(matcher.packages, pkgs)
+    repo = Local(repo_source, repo_project, repo_name)
+    tpl_mapping: dict[str, str] = create_template_mapping(repo)
+    apply_actions(pkgs_to_apply, repo, matcher, tpl_mapping, directory)
 
 
 def options_from_config(path: str) -> Options:
@@ -232,3 +256,11 @@ def find_packages(
         raise RuntimeError(f"unknown packages {unknown_pkg_names}")
 
     return pkgs_found
+
+
+def create_template_mapping(repo: source.Repository) -> dict[str, str]:
+    return {
+        "repo_name": repo.name,
+        "repo_project": repo.project,
+        "repo_source": repo.source,
+    }

@@ -2,7 +2,7 @@ import importlib.metadata
 
 from .matcher import FileExists as FileExistsMatcher
 from .matcher import RepoName as RepoNameMatcher
-from .rcmt import execute, options_from_config
+from .rcmt import execute, execute_local, options_from_config
 from .run import Run
 
 try:
