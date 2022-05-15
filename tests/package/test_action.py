@@ -269,3 +269,34 @@ foo:boom:baz
 def
 """
             self.assertEqual(expected_content, content)
+
+    def test_apply_templating(self):
+        with tempfile.TemporaryDirectory() as d:
+            test_file_path = os.path.join(d, "test.txt")
+            with open(test_file_path, "w+") as test_file:
+                test_file.write("abc\n")
+                test_file.write("github.com/wndhydrnt/rcmt-test-old\n")
+                test_file.write("def\n")
+
+            under_test = ReplaceInLine(
+                search="$repo_source/$repo_project/rcmt-test-old",
+                replace="$repo_source/$repo_project/$repo_name",
+                selector="test.txt",
+            )
+            under_test.apply(
+                d,
+                {
+                    "repo_source": "github.com",
+                    "repo_project": "wndhydrnt",
+                    "repo_name": "rcmt-test",
+                },
+            )
+
+            with open(test_file_path, "r") as test_file:
+                content = test_file.read()
+
+            expected_content = """abc
+github.com/wndhydrnt/rcmt-test
+def
+"""
+            self.assertEqual(expected_content, content)
