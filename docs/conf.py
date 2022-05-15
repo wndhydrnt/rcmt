@@ -19,7 +19,7 @@ import sphinx_rtd_theme
 # -- Project information -----------------------------------------------------
 
 project = "rcmt"
-copyright = "2021, Markus Meyer"
+copyright = "2022, Markus Meyer"
 author = "Markus Meyer"
 
 
