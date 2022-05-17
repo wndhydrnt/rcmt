@@ -10,41 +10,38 @@ from rcmt.source.gitlab import GitlabRepository
 
 class GitlabRepositoryTest(unittest.TestCase):
     def test_has_file__file_exists(self):
-        files = unittest.mock.Mock(spec=ProjectFileManager)
-        # Return value actually does not matter here.
-        files.get.return_value = object()
         project = unittest.mock.Mock(spec=Project)
         project.default_branch = "main"
-        project.files = files
+        project.repository_tree.return_value = [
+            {"path": "pyproject.toml", "type": "blob"}
+        ]
 
         repo = GitlabRepository(project=project, url="")
         result = repo.has_file("pyproject.toml")
 
         self.assertTrue(result)
-        files.get.assert_called_once_with(file_path="pyproject.toml", ref="main")
+        project.repository_tree.assert_called_once_with(path="")
 
     def test_has_file__file_does_not_exist(self):
-        files = unittest.mock.Mock(spec=ProjectFileManager)
-        files.get.side_effect = gitlab.exceptions.GitlabGetError(response_code=404)
         project = unittest.mock.Mock(spec=Project)
         project.default_branch = "main"
-        project.files = files
+        project.repository_tree.return_value = [{"path": "Pipenv", "type": "blob"}]
 
         repo = GitlabRepository(project=project, url="")
         result = repo.has_file("pyproject.toml")
 
         self.assertFalse(result)
-        files.get.assert_called_once_with(file_path="pyproject.toml", ref="main")
+        project.repository_tree.assert_called_once_with(path="")
 
-    def test_has_file__other_error(self):
-        files = unittest.mock.Mock(spec=ProjectFileManager)
-        files.get.side_effect = gitlab.exceptions.GitlabGetError(response_code=500)
+    def test_has_file__wildcard(self):
         project = unittest.mock.Mock(spec=Project)
         project.default_branch = "main"
-        project.files = files
+        project.repository_tree.return_value = [
+            {"path": "production.json", "type": "blob"}
+        ]
 
         repo = GitlabRepository(project=project, url="")
-        with self.assertRaises(gitlab.exceptions.GitlabGetError):
-            repo.has_file("pyproject.toml")
+        result = repo.has_file("config/*.json")
 
-        files.get.assert_called_once_with(file_path="pyproject.toml", ref="main")
+        self.assertTrue(result)
+        project.repository_tree.assert_called_once_with(path="config")
