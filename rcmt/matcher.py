@@ -26,6 +26,7 @@ class FileExists(Base):
     prevents useless checkouts of repositories and saves bandwidth.
 
     :param path: Path to the file, relative to the root of the repository.
+                 Supports a wildcard in the name of the file, e.g. ``dir/*.json``.
     """
 
     def __init__(self, path: str):

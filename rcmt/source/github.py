@@ -1,4 +1,5 @@
 import datetime
+import fnmatch
 from typing import Any, Union
 
 import github
@@ -47,15 +48,12 @@ class GithubRepository(Repository):
         return None
 
     def has_file(self, path: str) -> bool:
-        try:
-            self.repo.get_contents(path=path, ref=self.base_branch)
-        except github.UnknownObjectException as e:
-            if e.status == 404:
-                return False
-            else:
-                raise e
+        tree = self.repo.get_git_tree(self.base_branch, True)
+        for entry in tree.tree:
+            if fnmatch.fnmatch(entry.path, path):
+                return True
 
-        return True
+        return False
 
     def has_successful_pr_build(self, pr: github.PullRequest.PullRequest) -> bool:
         log.debug("Checking PR builds", repo=str(self))

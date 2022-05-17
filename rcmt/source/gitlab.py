@@ -1,4 +1,6 @@
 import datetime
+import fnmatch
+import os.path
 from typing import Any, Union
 from urllib.parse import urlparse
 
@@ -56,15 +58,17 @@ class GitlabRepository(Repository):
         )
 
     def has_file(self, path: str) -> bool:
-        try:
-            self._project.files.get(file_path=path, ref=self.base_branch)
-        except gitlab.exceptions.GitlabGetError as e:
-            if e.response_code == 404:
-                return False
-            else:
-                raise e
+        directory = os.path.dirname(path)
+        file = os.path.basename(path)
+        tree = self._project.repository_tree(path=directory)
+        for entry in tree:
+            if entry["type"] != "blob":
+                continue
 
-        return True
+            if fnmatch.fnmatch(entry["path"], file):
+                return True
+
+        return False
 
     def has_successful_pr_build(self, identifier: GitlabMergeRequest) -> bool:
         pipelines = identifier.pipelines.list()
