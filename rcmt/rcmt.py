@@ -172,6 +172,7 @@ def execute(opts: Options) -> bool:
     log.info("Repositories returned by sources", count=len(repositories))
     gitc = git.Git(
         matcher.branch(opts.config.git.branch_prefix),
+        opts.config.git.clone_options,
         opts.config.git.data_dir,
         opts.config.git.user_name,
         opts.config.git.user_email,

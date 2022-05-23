@@ -1,4 +1,5 @@
 import os.path
+from typing import Mapping
 
 import git
 import structlog
@@ -10,9 +11,15 @@ log = structlog.get_logger(package="git")
 
 class Git:
     def __init__(
-        self, branch_name: str, data_dir: str, user_name: str, user_email: str
+        self,
+        branch_name: str,
+        clone_opts: Mapping[str, str],
+        data_dir: str,
+        user_name: str,
+        user_email: str,
     ):
         self.branch_name = branch_name
+        self.clone_opts = clone_opts
         self.data_dir = data_dir
 
         if user_email == "":
@@ -49,7 +56,9 @@ class Git:
         if os.path.exists(checkout_dir) is False:
             log.debug("Cloning repository", url=repo.clone_url, repo=str(repo))
             os.makedirs(checkout_dir)
-            git_repo = git.Repo.clone_from(repo.clone_url, checkout_dir)
+            git_repo = git.Repo.clone_from(
+                repo.clone_url, checkout_dir, **self.clone_opts
+            )
         else:
             git_repo = git.Repo(path=checkout_dir)
 
