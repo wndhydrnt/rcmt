@@ -8,7 +8,8 @@ from pydantic.fields import Field
 
 
 class Git(pydantic.BaseModel):
-    branch_prefix = "rcmt/"
+    branch_prefix: str = "rcmt/"
+    clone_options: dict[str, str] = {"depth": "1"}
     data_dir: str = os.path.join(tempfile.gettempdir(), "rcmt", "data")
     user_name: str = "rcmt"
     user_email: str = ""

@@ -32,6 +32,16 @@ requests. Defaults to ``false``.
 Prefix of git branches that rcmt creates. Not used if a Matcher defines its own
 :ref:`branch_name <matcher/branch_name>`. Defaults to ``rcmt/``.
 
+``clone_options``
+"""""""""""""""""
+
+Key/value pairs to pass as additional flags to pass to ``git clone``.
+
+See the `official docs <https://www.git-scm.com/docs/git-clone>`_ on ``git clone``
+for all available flags.
+
+Defaults to ``{"depth": "1"}``. This setting enables shallow clones.
+
 ``data_dir``
 """"""""""""
 
