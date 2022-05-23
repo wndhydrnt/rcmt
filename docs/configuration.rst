@@ -35,12 +35,19 @@ Prefix of git branches that rcmt creates. Not used if a Matcher defines its own
 ``clone_options``
 """""""""""""""""
 
-Key/value pairs to pass as additional flags to pass to ``git clone``.
+Key/value pairs to pass as additional flags to ``git clone``.
 
 See the `official docs <https://www.git-scm.com/docs/git-clone>`_ on ``git clone``
 for all available flags.
 
-Defaults to ``{"depth": "1"}``. This setting enables shallow clones.
+Defaults to
+
+.. code-block:: yaml
+
+   depth: 1
+   no_single_branch: true
+
+These flags enable shallow clones.
 
 ``data_dir``
 """"""""""""

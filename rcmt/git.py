@@ -1,5 +1,5 @@
 import os.path
-from typing import Mapping
+from typing import Any, Mapping
 
 import git
 import structlog
@@ -13,7 +13,7 @@ class Git:
     def __init__(
         self,
         branch_name: str,
-        clone_opts: Mapping[str, str],
+        clone_opts: Mapping[str, Any],
         data_dir: str,
         user_name: str,
         user_email: str,

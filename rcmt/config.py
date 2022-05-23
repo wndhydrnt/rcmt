@@ -1,6 +1,6 @@
 import os.path
 import tempfile
-from typing import Optional, Pattern
+from typing import Any, Optional, Pattern
 
 import pydantic
 import yaml
@@ -9,7 +9,7 @@ from pydantic.fields import Field
 
 class Git(pydantic.BaseModel):
     branch_prefix: str = "rcmt/"
-    clone_options: dict[str, str] = {"depth": "1"}
+    clone_options: dict[str, Any] = {"depth": 1, "no_single_branch": True}
     data_dir: str = os.path.join(tempfile.gettempdir(), "rcmt", "data")
     user_name: str = "rcmt"
     user_email: str = ""
