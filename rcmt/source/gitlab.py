@@ -71,25 +71,28 @@ class GitlabRepository(Repository):
         return False
 
     def has_successful_pr_build(self, identifier: GitlabMergeRequest) -> bool:
-        pipelines = identifier.pipelines.list()
-        if len(pipelines) == 0:
-            log.debug("No pipelines", repo=str(self), id=identifier.get_id())
+        failed = False
+        for commit_status in self._project.commits.get(identifier.sha).statuses.list():
+            if commit_status.allow_failure is True:
+                continue
+
+            if commit_status.status != "success":
+                log.debug(
+                    "MR check failed",
+                    repo=str(self),
+                    id=identifier.get_id(),
+                    name=commit_status.name,
+                    status=commit_status.status,
+                )
+                failed = True
+
+        if failed is False:
+            log.debug(
+                "All MR checks successful", repo=str(self), id=identifier.get_id()
+            )
             return True
 
-        for pl in pipelines:
-            if pl.sha == identifier.sha and pl.status != "success":
-                log.warn(
-                    "Pipeline not successful",
-                    pipeline_id=pl.id,
-                    repo=str(self),
-                    status=pl.status,
-                )
-                return False
-
-        log.debug(
-            "All pipeline runs successful", repo=str(self), id=identifier.get_id()
-        )
-        return True
+        return False
 
     def is_pr_closed(self, mr: GitlabMergeRequest) -> bool:
         return mr.state == "closed" or mr.state == "locked"
