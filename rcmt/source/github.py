@@ -7,15 +7,16 @@ import github.PullRequest
 import github.Repository
 import structlog
 
-from .source import Base, PullRequest, Repository
+from ..log import SECRET_MASKER
+from .source import Base, PullRequest, Repository, add_credentials_to_url
 
 log = structlog.get_logger(source="github")
 
 
 class GithubRepository(Repository):
-    def __init__(self, repo: github.Repository.Repository):
+    def __init__(self, access_token: str, repo: github.Repository.Repository):
+        self.access_token = access_token
         self.repo = repo
-        self._clone_url = repo.clone_url
         self._name = repo.name
         self._project = repo.owner.login
 
@@ -25,7 +26,9 @@ class GithubRepository(Repository):
 
     @property
     def clone_url(self):
-        return self.repo.clone_url
+        return add_credentials_to_url(
+            url=self.repo.clone_url, password=self.access_token
+        )
 
     def create_pull_request(self, branch: str, pr: PullRequest):
         log.debug(
@@ -107,13 +110,16 @@ class GithubRepository(Repository):
 
 class Github(Base):
     def __init__(self, access_token: str, base_url: str):
+        self.access_token = access_token
         self.client = github.Github(login_or_token=access_token, base_url=base_url)
+
+        SECRET_MASKER.add_secret(access_token)
 
     def list_repositories(self) -> list[Repository]:
         log.debug("start fetching repositories")
         repos: list[Repository] = []
         for gh_repo in self.client.get_user().get_repos():
-            repos.append(GithubRepository(gh_repo))
+            repos.append(GithubRepository(self.access_token, gh_repo))
 
         log.debug("finished fetching repositories")
         return repos

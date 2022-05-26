@@ -1,13 +1,25 @@
 import datetime
 import logging
+import sys
 from typing import Optional
 
 import structlog
 
 from . import config, encoding, git, package, run, source
+from .log import SECRET_MASKER
 from .source.local import Local
 
 structlog.configure(
+    processors=[
+        structlog.processors.add_log_level,
+        SECRET_MASKER.process_event,
+        structlog.processors.StackInfoRenderer(),
+        structlog.dev.set_exc_info,
+        structlog.processors.TimeStamper(fmt="%Y-%m-%d %H:%M.%S", utc=False),
+        structlog.dev.ConsoleRenderer(
+            colors=sys.stdout is not None and sys.stdout.isatty()
+        ),
+    ],
     wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
 )
 
