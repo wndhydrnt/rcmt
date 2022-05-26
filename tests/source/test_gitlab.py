@@ -16,7 +16,7 @@ class GitlabRepositoryTest(unittest.TestCase):
             {"path": "pyproject.toml", "type": "blob"}
         ]
 
-        repo = GitlabRepository(project=project, url="")
+        repo = GitlabRepository(project=project, token="", url="")
         result = repo.has_file("pyproject.toml")
 
         self.assertTrue(result)
@@ -27,7 +27,7 @@ class GitlabRepositoryTest(unittest.TestCase):
         project.default_branch = "main"
         project.repository_tree.return_value = [{"path": "Pipenv", "type": "blob"}]
 
-        repo = GitlabRepository(project=project, url="")
+        repo = GitlabRepository(project=project, token="", url="")
         result = repo.has_file("pyproject.toml")
 
         self.assertFalse(result)
@@ -40,7 +40,7 @@ class GitlabRepositoryTest(unittest.TestCase):
             {"path": "production.json", "type": "blob"}
         ]
 
-        repo = GitlabRepository(project=project, url="")
+        repo = GitlabRepository(project=project, token="", url="")
         result = repo.has_file("config/*.json")
 
         self.assertTrue(result)

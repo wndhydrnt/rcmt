@@ -19,7 +19,7 @@ class GithubRepositoryTest(unittest.TestCase):
         tree_mock.tree = [tree_element_mock]
         gh_repo.get_git_tree.return_value = tree_mock
 
-        repo = GithubRepository(repo=gh_repo)
+        repo = GithubRepository(access_token="", repo=gh_repo)
         result = repo.has_file("pyroject.toml")
 
         self.assertTrue(result)
@@ -32,7 +32,7 @@ class GithubRepositoryTest(unittest.TestCase):
         tree_mock.tree = []
         gh_repo.get_git_tree.return_value = tree_mock
 
-        repo = GithubRepository(repo=gh_repo)
+        repo = GithubRepository(access_token="", repo=gh_repo)
         result = repo.has_file("pyroject.toml")
 
         self.assertFalse(result)
@@ -47,7 +47,7 @@ class GithubRepositoryTest(unittest.TestCase):
         tree_mock.tree = [tree_element_mock]
         gh_repo.get_git_tree.return_value = tree_mock
 
-        repo = GithubRepository(repo=gh_repo)
+        repo = GithubRepository(access_token="", repo=gh_repo)
         result = repo.has_file("*.toml")
 
         self.assertTrue(result)

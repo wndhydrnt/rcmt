@@ -1,4 +1,5 @@
 import datetime
+import urllib.parse
 from typing import Any, Union
 
 
@@ -239,3 +240,13 @@ class Base:
         raise NotImplementedError(
             "class does not implement SourceLister.list_repositories()"
         )
+
+
+def add_credentials_to_url(url: str, password: str, username: str = "") -> str:
+    parsed = urllib.parse.urlparse(url)
+    if username == "":
+        credentials = password
+    else:
+        credentials = f"{username}:{password}"
+
+    return parsed._replace(netloc=f"{credentials}@{parsed.netloc}").geturl()

@@ -10,14 +10,16 @@ from gitlab.base import RESTObjectList
 from gitlab.v4.objects import Project as GitlabProject
 from gitlab.v4.objects.merge_requests import ProjectMergeRequest as GitlabMergeRequest
 
-from .source import Base, PullRequest, Repository
+from ..log import SECRET_MASKER
+from .source import Base, PullRequest, Repository, add_credentials_to_url
 
 log = structlog.get_logger(source="gitlab")
 
 
 class GitlabRepository(Repository):
-    def __init__(self, project: GitlabProject, url: str):
+    def __init__(self, project: GitlabProject, token: str, url: str):
         self._project = project
+        self.token = token
         self.url = url
 
     @property
@@ -26,7 +28,10 @@ class GitlabRepository(Repository):
 
     @property
     def clone_url(self) -> str:
-        return self._project.http_url_to_repo
+        # Value of username does not matter to GitLab.
+        return add_credentials_to_url(
+            url=self._project.http_url_to_repo, password=self.token, username="rcmt"
+        )
 
     def create_pull_request(self, branch: str, pr: PullRequest) -> None:
         log.debug(
@@ -129,6 +134,8 @@ class Gitlab(Base):
         self.client = gitlab.Gitlab(url, private_token=private_token)
         self.url = urlparse(url).netloc
 
+        SECRET_MASKER.add_secret(private_token)
+
     def list_repositories(self) -> list[Repository]:
         log.debug("start fetching repositories")
         projects = self.client.projects.list(
@@ -136,7 +143,7 @@ class Gitlab(Base):
         )
         repositories: list[Repository] = []
         for p in projects:
-            repositories.append(GitlabRepository(project=p, url=self.url))  # type: ignore
+            repositories.append(GitlabRepository(project=p, token=self.client.private_token, url=self.url))  # type: ignore
 
         log.debug("finished fetching repositories")
         return repositories

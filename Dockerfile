@@ -11,7 +11,6 @@ COPY rcmt rcmt
 RUN poetry install --no-dev --no-interaction --no-ansi \
     && pip uninstall -y poetry \
     && useradd -ms /bin/bash rcmt
-COPY build/docker/entrypoint.sh entrypoint.sh
 USER rcmt
 WORKDIR /home/rcmt
-ENTRYPOINT ["/opt/entrypoint.sh"]
+CMD ["rcmt"]
