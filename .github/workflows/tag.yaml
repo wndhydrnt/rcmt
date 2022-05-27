@@ -25,6 +25,9 @@ jobs:
           mkdir -p "$HOME/.docker"
           echo '{"credsStore": "env"}' > "$HOME/.docker/config.json"
           echo "$GITHUB_WORKSPACE/build/docker" >> $GITHUB_PATH
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v2
       - name: Push Docker image
         env:
           DOCKER_REGISTRY: https://index.docker.io/v1/
@@ -32,5 +35,4 @@ jobs:
           DOCKER_CREDS_PSW: ${{ secrets.DOCKER_CREDS_PSW }}
           RCMT_VERSION: ${{ steps.vars.outputs.tag }}
         run: |
-          make docker_build
           make docker_push
