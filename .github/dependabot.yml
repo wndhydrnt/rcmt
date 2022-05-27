@@ -7,4 +7,8 @@ updates:
   package-ecosystem: pip
   schedule:
     interval: daily
+- directory: /
+  package-ecosystem: docker
+  schedule:
+    interval: daily
 version: 2

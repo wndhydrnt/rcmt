@@ -1,11 +1,11 @@
-FROM python:3.9 as build
+FROM python:3.9.13 as build
 WORKDIR /opt
 RUN pip install --no-cache-dir poetry
 COPY poetry.lock pyproject.toml README.md ./
 COPY ./rcmt ./rcmt
 RUN poetry build
 
-FROM python:3.9-slim
+FROM python:3.9.13-slim
 RUN apt-get update \
     && apt-get install --no-install-recommends -y git \
     && apt-get clean \
