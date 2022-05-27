@@ -16,4 +16,4 @@ RUN pip install /rcmt-*.whl \
     && useradd -ms /bin/bash rcmt
 USER rcmt
 WORKDIR /home/rcmt
-CMD ["rcmt"]
+ENTRYPOINT ["rcmt"]
