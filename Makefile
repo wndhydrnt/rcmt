@@ -26,7 +26,7 @@ docker_build:
 	docker build -t wandhydrant/rcmt:$(RCMT_VERSION) .
 
 docker_build_all_platforms:
-	docker buildx build --platform linux/amd64,linux/arm/v7,linux/arm64 -t wandhydrant/rcmt:$(RCMT_VERSION) .
+	docker buildx build --platform linux/amd64,linux/arm64 -t wandhydrant/rcmt:$(RCMT_VERSION) .
 
 docker_push:
-	docker buildx build --push --platform linux/amd64,linux/arm/v7,linux/arm64 -t wandhydrant/rcmt:$(RCMT_VERSION) .
+	docker buildx build --push --platform linux/amd64,linux/arm64 -t wandhydrant/rcmt:$(RCMT_VERSION) .
