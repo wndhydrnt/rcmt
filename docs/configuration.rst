@@ -163,6 +163,9 @@ Environment Variables
 rcmt can read settings from environment variables. A environment variable has to start
 with ``RCMT_``. ``__`` separates sub-sections.
 
+.. note::
+   Values set in the configuration file take precedence over environment variables.
+
 Examples
 ^^^^^^^^
 
