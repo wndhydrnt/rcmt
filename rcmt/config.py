@@ -16,13 +16,13 @@ class Git(pydantic.BaseModel):
 
 
 class Github(pydantic.BaseModel):
-    access_token: str = os.getenv("RCMT_GITHUB_ACCESS_TOKEN", "")
+    access_token: str = ""
     base_url: str = "https://api.github.com"
 
 
 class Gitlab(pydantic.BaseModel):
-    private_token = os.getenv("RCMT_GITLAB_PRIVATE_TOKEN", "")
-    url = "https://gitlab.com"
+    private_token: str = ""
+    url: str = "https://gitlab.com"
 
 
 class Json(pydantic.BaseModel):
@@ -39,19 +39,24 @@ class Yaml(pydantic.BaseModel):
     extensions: list[str] = [".yaml", ".yml"]
 
 
-class Config(pydantic.BaseModel):
+class Config(pydantic.BaseSettings):
     dry_run: bool = False
     git: Git = Git()
     github: Github = Github()
-    gitlab = Gitlab()
+    gitlab: Gitlab = Gitlab()
     # Add _ because json is a reserved field of pydantic
-    json_: Json = Field(alias="json", default=Json())
+    json_: Json = Field(alias="json", default=Json(), env="json")
     log_level: str = "info"
     pr_title_prefix: str = "rcmt:"
     pr_title_body: str = "apply matcher {matcher_name}"
     pr_title_suffix: str = ""
     toml: Toml = Toml()
     yaml: Yaml = Yaml()
+
+    class Config:
+        env_nested_delimiter = "__"
+        env_prefix = "rcmt_"
+        extra = pydantic.Extra.allow
 
 
 def read_config_from_file(path: str) -> Config:

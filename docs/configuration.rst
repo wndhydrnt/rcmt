@@ -6,7 +6,6 @@ Example
 
 .. code-block:: yaml
 
-   auto_merge: true
    dry_run: true
    git:
      branch_name: rcmt-updates
@@ -44,10 +43,7 @@ Defaults to
 
 .. code-block:: yaml
 
-   depth: 1
-   no_single_branch: true
-
-These flags enable shallow clones.
+   filter: "blob:none"
 
 ``data_dir``
 """"""""""""
@@ -73,8 +69,7 @@ Name of the author to set when committing changes. Defaults to ``rcmt``.
 ``access_token``
 """"""""""""""""
 
-Access to authenticate at the GitHub API. It is also possible to set the access token
-via the environment variable ``RCMT_GITHUB_ACCESS_TOKEN``.
+Access token to authenticate at the GitHub API.
 
 .. _configuration/gitlab:
 
@@ -89,8 +84,7 @@ Private token to authenticate at the GitLab API.
 ``url``
 """""""
 
-URL of the GitLab installation. Defaults to ``https://gitlab.com``. It is also possible
-to set the private token via the environment variable ``RCMT_GITLAB_PRIVATE_TOKEN``.
+URL of the GitLab installation. Defaults to ``https://gitlab.com``.
 
 ``json``
 ^^^^^^^^
@@ -162,3 +156,18 @@ Add an ``---`` at the beginning of a document. Defaults to ``false``.
 
 List of file extensions that the YAML encoding supports. Defaults to
 ``[".yaml", ".yml"]``.
+
+Environment Variables
+---------------------
+
+rcmt can read settings from environment variables. A environment variable has to start
+with ``RCMT_``. ``__`` separates sub-sections.
+
+Examples
+^^^^^^^^
+
+.. code-block:: shell
+
+   export RCMT_DRY_RUN=true
+   export RCMT_LOG_LEVEL=warn
+   export RCMT_GITHUB__ACCESS_TOKEN=token
