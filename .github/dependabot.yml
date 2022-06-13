@@ -1,5 +1,7 @@
 updates:
-- directory: /
+- commit-message:
+    prefix: "chore(deps)"
+  directory: /
   ignore:
   - dependency-name: black
   - dependency-name: isort
@@ -7,7 +9,9 @@ updates:
   package-ecosystem: pip
   schedule:
     interval: daily
-- directory: /
+- commit-message:
+    prefix: "chore(deps)"
+  directory: /
   package-ecosystem: docker
   schedule:
     interval: daily
