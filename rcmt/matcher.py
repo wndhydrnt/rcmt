@@ -36,6 +36,23 @@ class FileExists(Base):
         return repo.has_file(self.path)
 
 
+class LineInFile(Base):
+    def __init__(self, path: str, regex: str):
+        self.path = path
+        self.regex = re.compile(regex)
+
+    def match(self, repo: source.Repository) -> bool:
+        try:
+            content = repo.get_file(self.path)
+            for line in content.readlines():
+                if self.regex.search(line) is not None:
+                    return True
+
+            return False
+        except FileNotFoundError:
+            return False
+
+
 class RepoName(Base):
     """
     RepoName matches if the name of a repository matches a regular expression.

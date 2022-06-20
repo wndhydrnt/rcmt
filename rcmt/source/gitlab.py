@@ -1,11 +1,13 @@
 import datetime
 import fnmatch
+import io
 import os.path
-from typing import Any, Union
+from typing import Any, TextIO, Union
 from urllib.parse import urlparse
 
 import gitlab
 import structlog
+from gitlab import GitlabGetError
 from gitlab.base import RESTObjectList
 from gitlab.v4.objects import Project as GitlabProject
 from gitlab.v4.objects.merge_requests import ProjectMergeRequest as GitlabMergeRequest
@@ -13,7 +15,7 @@ from gitlab.v4.objects.merge_requests import ProjectMergeRequest as GitlabMergeR
 from ..log import SECRET_MASKER
 from .source import Base, PullRequest, Repository, add_credentials_to_url
 
-log = structlog.get_logger(source="gitlab")
+log: structlog.stdlib.BoundLogger = structlog.get_logger(source="gitlab")
 
 
 class GitlabRepository(Repository):
@@ -61,6 +63,19 @@ class GitlabRepository(Repository):
         raise RuntimeError(
             f"GitLab API returned an unexpected object {mrs.__class__.__name__}"
         )
+
+    def get_file(self, path: str) -> TextIO:
+        try:
+            content = self._project.files.get(
+                file_path=path, ref=self.base_branch
+            ).decode()
+            if content is None:
+                log.warning("Decoded content is None", repo=str(self), file=path)
+                raise FileNotFoundError("decoded content is None")
+
+            return io.StringIO(content.decode("utf-8"))
+        except GitlabGetError:
+            raise FileNotFoundError("File does not exist in repository")
 
     def has_file(self, path: str) -> bool:
         directory = os.path.dirname(path)
