@@ -7,6 +7,7 @@ jobs:
   test:
     name: Test and build main
     runs-on: ubuntu-latest
+    if: "!startsWith(github.event.head_commit.message, 'chore')"
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
