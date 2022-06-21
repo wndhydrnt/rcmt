@@ -1,6 +1,7 @@
 import datetime
 import fnmatch
-from typing import Any, Union
+import io
+from typing import Any, TextIO, Union
 
 import github
 import github.PullRequest
@@ -49,6 +50,20 @@ class GithubRepository(Repository):
                 return pr
 
         return None
+
+    def get_file(self, path: str) -> TextIO:
+        try:
+            file = self.repo.get_contents(path=path, ref=self.base_branch)
+        except github.UnknownObjectException:
+            raise FileNotFoundError("file does not exist in repository")
+
+        if isinstance(file, list):
+            if len(file) != 1:
+                raise FileNotFoundError("github returned more than one file")
+
+            file = file[0]
+
+        return io.StringIO(file.decoded_content.decode("utf-8"))
 
     def has_file(self, path: str) -> bool:
         tree = self.repo.get_git_tree(self.base_branch, True)

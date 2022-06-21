@@ -1,6 +1,6 @@
 import datetime
 import urllib.parse
-from typing import Any, Union
+from typing import Any, TextIO, Union
 
 
 class PullRequest:
@@ -116,6 +116,9 @@ class Repository:
         raise NotImplementedError(
             "class does not implement Repository.has_open_pull_request()"
         )
+
+    def get_file(self, path: str) -> TextIO:
+        raise NotImplementedError("class does not implement Repository.has_file()")
 
     def has_file(self, path: str) -> bool:
         """
