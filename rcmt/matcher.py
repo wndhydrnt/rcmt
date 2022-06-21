@@ -37,15 +37,26 @@ class FileExists(Base):
 
 
 class LineInFile(Base):
-    def __init__(self, path: str, regex: str):
+    """
+    LineInFile matches if a line in a file of a repository matches a regular expression.
+
+    It downloads the file from the repository without checking out the whole repository.
+
+    :param path: Path of the file to check.
+    :param search: Regular expression to test against each line in the file.
+
+    .. versionadded:: 0.8.0
+    """
+
+    def __init__(self, path: str, search: str):
         self.path = path
-        self.regex = re.compile(regex)
+        self.regex = re.compile(search)
 
     def match(self, repo: source.Repository) -> bool:
         try:
             content = repo.get_file(self.path)
             for line in content.readlines():
-                if self.regex.search(line) is not None:
+                if self.regex.match(line) is not None:
                     return True
 
             return False

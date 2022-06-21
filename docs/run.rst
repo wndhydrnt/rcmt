@@ -17,6 +17,12 @@ FileExists
 
 .. autoclass:: rcmt.matcher.FileExists
 
+
+LineInFile
+^^^^^^^^^^
+
+.. autoclass:: rcmt.matcher.LineInFile
+
 RepoName
 ^^^^^^^^
 

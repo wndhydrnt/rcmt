@@ -75,7 +75,7 @@ class GitlabRepository(Repository):
 
             return io.StringIO(content.decode("utf-8"))
         except GitlabGetError:
-            raise FileNotFoundError("File does not exist in repository")
+            raise FileNotFoundError("file does not exist in repository")
 
     def has_file(self, path: str) -> bool:
         directory = os.path.dirname(path)

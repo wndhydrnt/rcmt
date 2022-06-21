@@ -52,10 +52,14 @@ class GithubRepository(Repository):
         return None
 
     def get_file(self, path: str) -> TextIO:
-        file = self.repo.get_contents(path=path, ref=self.base_branch)
+        try:
+            file = self.repo.get_contents(path=path, ref=self.base_branch)
+        except github.UnknownObjectException:
+            raise FileNotFoundError("file does not exist in repository")
+
         if isinstance(file, list):
             if len(file) != 1:
-                raise FileNotFoundError("path returned more than one file")
+                raise FileNotFoundError("github returned more than one file")
 
             file = file[0]
 
