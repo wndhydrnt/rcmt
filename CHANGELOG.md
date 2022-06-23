@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/wndhydrnt/rcmt/compare/v0.8.0...v0.8.1) (2022-06-23)
+
+
+### Bug Fixes
+
+* Release 0.8.1 ([f8868b4](https://github.com/wndhydrnt/rcmt/commit/f8868b4d1c85bbc57465928d928e163c882cb1ea))
+
 ## [0.8.0](https://github.com/wndhydrnt/rcmt/compare/v0.7.0...v0.8.0) (2022-06-23)
 
 
