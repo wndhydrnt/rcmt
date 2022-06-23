@@ -1,5 +1,5 @@
+from rcmt.action import Action, GlobMixin
 from rcmt.package import Manifest
-from rcmt.package.action import Action, GlobMixin
 
 
 class HelloWorld(GlobMixin, Action):

@@ -1,4 +1,3 @@
-import rcmt
 import rcmt.encoding
 import rcmt.source
 

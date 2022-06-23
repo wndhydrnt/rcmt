@@ -1,5 +1,5 @@
+from ..action import Action
 from ..fs import FileProxy
-from .action import Action
 
 
 class Manifest:

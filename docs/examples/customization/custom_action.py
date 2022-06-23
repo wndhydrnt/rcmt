@@ -1,7 +1,7 @@
 import os.path
 
+from rcmt.action import Action
 from rcmt.package import Manifest
-from rcmt.package.action import Action
 
 
 class HelloWorld(Action):

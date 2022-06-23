@@ -4,8 +4,7 @@ import tempfile
 import unittest
 from unittest import mock
 
-from rcmt.encoding import Json, Registry
-from rcmt.package.action import (
+from rcmt.action import (
     Absent,
     DeleteKey,
     DeleteLineInFile,
@@ -16,6 +15,7 @@ from rcmt.package.action import (
     ReplaceInLine,
     Seed,
 )
+from rcmt.encoding import Json, Registry
 
 
 class AbsentTest(unittest.TestCase):
