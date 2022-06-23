@@ -6,52 +6,52 @@ Actions encapsulate behavior of how to change a file.
 Absent
 ------
 
-.. autoclass:: rcmt.package.action.Absent
+.. autoclass:: rcmt.action.Absent
 
 DeleteKey
 ---------
 
-.. autoclass:: rcmt.package.action.DeleteKey
+.. autoclass:: rcmt.action.DeleteKey
 
 
 DeleteLineInFile
 ----------------
 
-.. autoclass:: rcmt.package.action.DeleteLineInFile
+.. autoclass:: rcmt.action.DeleteLineInFile
 
 Exec
 ----
 
-.. autoclass:: rcmt.package.action.Exec
+.. autoclass:: rcmt.action.Exec
 
 LineInFile
 ------------
 
-.. autoclass:: rcmt.package.action.LineInFile
+.. autoclass:: rcmt.action.LineInFile
 
 .. _action/Merge:
 
 Merge
 -----
 
-.. autoclass:: rcmt.package.action.Merge
+.. autoclass:: rcmt.action.Merge
 
 .. _action/Own:
 
 Own
 ---
 
-.. autoclass:: rcmt.package.action.Own
+.. autoclass:: rcmt.action.Own
 
 ReplaceInLine
 -------------
 
-.. autoclass:: rcmt.package.action.ReplaceInLine
+.. autoclass:: rcmt.action.ReplaceInLine
 
 Seed
 ----
 
-.. autoclass:: rcmt.package.action.Seed
+.. autoclass:: rcmt.action.Seed
 
 Templating
 ----------

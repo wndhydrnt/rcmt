@@ -9,8 +9,7 @@ from typing import Any, Hashable, Optional
 
 import structlog
 
-from .. import encoding
-from . import action
+from .. import action, encoding
 from .manifest import Manifest
 
 log = structlog.get_logger()

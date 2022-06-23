@@ -1,6 +1,6 @@
 from rcmt import Run
+from rcmt.action import Own
 from rcmt.matcher import RepoName
-from rcmt.package.action import Own
 
 # rcmt uses the name when committing changes.
 with Run(name="python-defaults") as run:
