@@ -7,7 +7,8 @@ sphinx:
   configuration: docs/conf.py
 
 python:
-  version: "3.10"
+  # Use 3.9 instead of 3.10 due to errors.
+  version: "3.9"
   install:
     - requirements: docs/requirements.txt
     - method: pip
