@@ -7,6 +7,7 @@ import structlog
 
 from . import config, encoding, git, package, run, source
 from .log import SECRET_MASKER
+from .source import Repository
 from .source.local import Local
 
 structlog.configure(
@@ -30,7 +31,7 @@ class Options:
     def __init__(self, cfg: config.Config):
         self.config = cfg
         self.encoding_registry: encoding.Registry = encoding.Registry()
-        self.matcher_path: str = ""
+        self.run_paths: list[str] = []
         self.packages_paths: list[str] = []
         self.sources: dict[str, source.Base] = {}
 
@@ -175,33 +176,36 @@ def execute(opts: Options) -> bool:
 
     pkg_reader = package.PackageReader(opts.encoding_registry)
     pkgs = pkg_reader.read_packages(opts.packages_paths)
-    matcher = run.read(opts.matcher_path)
-    pkgs_to_apply = find_packages(matcher.packages, pkgs)
-    repositories = []
+    repositories: list[Repository] = []
     for s in opts.sources.values():
         repositories += s.list_repositories()
 
     log.info("Repositories returned by sources", count=len(repositories))
-    gitc = git.Git(
-        matcher.branch(opts.config.git.branch_prefix),
-        opts.config.git.clone_options,
-        opts.config.git.data_dir,
-        opts.config.git.user_name,
-        opts.config.git.user_email,
-    )
-    runner = RepoRun(gitc, opts)
     success = True
-    for repo in repositories:
-        if matcher.match(repo) is False:
-            log.debug("Repository does not match", repository=str(repo))
-            continue
+    for run_path in opts.run_paths:
+        run_ = run.read(run_path)
+        pkgs_to_apply = find_packages(run_.packages, pkgs)
+        gitc = git.Git(
+            run_.branch(opts.config.git.branch_prefix),
+            opts.config.git.clone_options,
+            opts.config.git.data_dir,
+            opts.config.git.user_name,
+            opts.config.git.user_email,
+        )
+        runner = RepoRun(gitc, opts)
+        for repo in repositories:
+            if run_.match(repo) is False:
+                log.debug(
+                    "Repository does not match", repository=str(repo), run=run_.name
+                )
+                continue
 
-        log.info("Matched repository", repository=str(repo))
-        try:
-            runner.execute(matcher, pkgs_to_apply, repo)
-        except Exception:
-            log.exception("Apply failed", repository=str(repo))
-            success = False
+            log.info("Matched repository", repository=str(repo), run=run_.name)
+            try:
+                runner.execute(run_, pkgs_to_apply, repo)
+            except Exception:
+                log.exception("Run failed", repository=str(repo), run=run_.name)
+                success = False
 
     if success is False:
         log.error("Errors during execution - check previous log messages")
@@ -216,10 +220,13 @@ def execute_local(
     structlog.configure(
         wrapper_class=structlog.make_filtering_bound_logger(log_level),
     )
+    if len(opts.run_paths) == 0:
+        log.warning("No path to a run file supplied")
+        return
 
     pkg_reader = package.PackageReader(opts.encoding_registry)
     pkgs = pkg_reader.read_packages(opts.packages_paths)
-    matcher = run.read(opts.matcher_path)
+    matcher = run.read(opts.run_paths[0])
     pkgs_to_apply = find_packages(matcher.packages, pkgs)
     repo = Local(repo_source, repo_project, repo_name)
     tpl_mapping: dict[str, str] = create_template_mapping(repo)

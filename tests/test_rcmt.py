@@ -226,7 +226,7 @@ class LocalTest(unittest.TestCase):
     @unittest.mock.patch("rcmt.run.read")
     def test_execute_local(self, run_read_mock):
         opts = Options(cfg=Config())
-        opts.matcher_path = "/tmp/run.py"
+        opts.run_paths = ["/tmp/run.py"]
         opts.encoding_registry = encoding.Registry()
         run = Run(name="local")
         action_mock = unittest.mock.Mock(spec=action.Action)
