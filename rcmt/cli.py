@@ -37,7 +37,7 @@ def local(
     directory: str,
 ):
     opts = rcmt.options_from_config(config)
-    opts.matcher_path = run_file
+    opts.run_paths = [run_file]
     opts.packages_paths = packages
     rcmt.execute_local(
         directory=directory,
@@ -57,10 +57,10 @@ def local(
     required=False,
     type=str,
 )
-@click.argument("matcher_file")
-def run(config: str, packages: list[str], matcher_file: str):
+@click.argument("run_file", nargs=-1)
+def run(config: str, packages: list[str], run_file: list[str]):
     opts = rcmt.options_from_config(config)
-    opts.matcher_path = matcher_file
+    opts.run_paths = run_file
     opts.packages_paths = packages
     result = rcmt.execute(opts)
     if result is False:
