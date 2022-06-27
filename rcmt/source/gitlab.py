@@ -50,7 +50,9 @@ class GitlabRepository(Repository):
 
     def find_pull_request(self, branch: str) -> Union[Any, None]:
         log.debug("Listing merge requests", repo=str(self))
-        mrs = self._project.mergerequests.list(state="all", source_branch=branch)
+        mrs = self._project.mergerequests.list(
+            all=False, state="all", source_branch=branch
+        )
         if len(mrs) == 0:
             return None
 
@@ -92,7 +94,9 @@ class GitlabRepository(Repository):
 
     def has_successful_pr_build(self, identifier: GitlabMergeRequest) -> bool:
         failed = False
-        for commit_status in self._project.commits.get(identifier.sha).statuses.list():
+        for commit_status in self._project.commits.get(
+            id=identifier.sha, lazy=True
+        ).statuses.list(as_list=False):
             if commit_status.allow_failure is True:
                 continue
 
