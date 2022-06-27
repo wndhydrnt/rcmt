@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.2](https://github.com/wndhydrnt/rcmt/compare/v0.8.1...v0.8.2) (2022-06-27)
+
+
+### Bug Fixes
+
+* **docs:** Fix readthedocs failing to build documentation ([#125](https://github.com/wndhydrnt/rcmt/issues/125)) ([e758f37](https://github.com/wndhydrnt/rcmt/commit/e758f37eaeae026a0253bdde872273e63b858126))
+* rcmt does not work with every poetry project due to version constraint ([#123](https://github.com/wndhydrnt/rcmt/issues/123)) ([648e66b](https://github.com/wndhydrnt/rcmt/commit/648e66b9246d39e39d238b7ae184a34133bb6df2))
+
 ## [0.8.1](https://github.com/wndhydrnt/rcmt/compare/v0.8.0...v0.8.1) (2022-06-23)
 
 
