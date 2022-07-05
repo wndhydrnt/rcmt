@@ -96,7 +96,7 @@ class GitlabRepository(Repository):
         failed = False
         for commit_status in self._project.commits.get(
             id=identifier.sha, lazy=True
-        ).statuses.list(as_list=False):
+        ).statuses.list(iterator=True):
             if commit_status.allow_failure is True:
                 continue
 
