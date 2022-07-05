@@ -1,6 +1,6 @@
 updates:
 - commit-message:
-    prefix: "chore(deps)"
+    prefix: "deps"
   directory: /
   ignore:
   - dependency-name: black
@@ -10,13 +10,13 @@ updates:
   schedule:
     interval: daily
 - commit-message:
-    prefix: "chore(deps)"
+    prefix: "deps"
   directory: /
   package-ecosystem: docker
   schedule:
     interval: daily
 - commit-message:
-    prefix: "chore(deps)"
+    prefix: "deps"
   directory: /docs
   package-ecosystem: pip
   schedule:
