@@ -7,7 +7,6 @@ import structlog
 
 from . import config, encoding, git, package, run, source
 from .log import SECRET_MASKER
-from .source import Repository
 from .source.local import Local
 
 structlog.configure(
@@ -176,7 +175,7 @@ def execute(opts: Options) -> bool:
 
     pkg_reader = package.PackageReader(opts.encoding_registry)
     pkgs = pkg_reader.read_packages(opts.packages_paths)
-    repositories: list[Repository] = []
+    repositories: list[source.Repository] = []
     for s in opts.sources.values():
         repositories += s.list_repositories()
 
@@ -184,28 +183,9 @@ def execute(opts: Options) -> bool:
     success = True
     for run_path in opts.run_paths:
         run_ = run.read(run_path)
-        pkgs_to_apply = find_packages(run_.packages, pkgs)
-        gitc = git.Git(
-            run_.branch(opts.config.git.branch_prefix),
-            opts.config.git.clone_options,
-            opts.config.git.data_dir,
-            opts.config.git.user_name,
-            opts.config.git.user_email,
-        )
-        runner = RepoRun(gitc, opts)
-        for repo in repositories:
-            if run_.match(repo) is False:
-                log.debug(
-                    "Repository does not match", repository=str(repo), run=run_.name
-                )
-                continue
-
-            log.info("Matched repository", repository=str(repo), run=run_.name)
-            try:
-                runner.execute(run_, pkgs_to_apply, repo)
-            except Exception:
-                log.exception("Run failed", repository=str(repo), run=run_.name)
-                success = False
+        run_success = execute_run(run_, pkgs, repositories, opts)
+        if run_success is False:
+            success = False
 
     if success is False:
         log.error("Errors during execution - check previous log messages")
@@ -231,6 +211,37 @@ def execute_local(
     repo = Local(repo_source, repo_project, repo_name)
     tpl_mapping: dict[str, str] = create_template_mapping(repo)
     apply_actions(pkgs_to_apply, repo, matcher, tpl_mapping, directory)
+
+
+def execute_run(
+    run_: run.Run,
+    pkgs: list[package.Package],
+    repos: list[source.Repository],
+    opts: Options,
+) -> bool:
+    pkgs_to_apply = find_packages(run_.packages, pkgs)
+    gitc = git.Git(
+        run_.branch(opts.config.git.branch_prefix),
+        opts.config.git.clone_options,
+        opts.config.git.data_dir,
+        opts.config.git.user_name,
+        opts.config.git.user_email,
+    )
+    runner = RepoRun(gitc, opts)
+    success = True
+    for repo in repos:
+        if run_.match(repo) is False:
+            log.debug("Repository does not match", repository=str(repo), run=run_.name)
+            continue
+
+        log.info("Matched repository", repository=str(repo), run=run_.name)
+        try:
+            runner.execute(run_, pkgs_to_apply, repo)
+        except Exception:
+            log.exception("Run failed", repository=str(repo), run=run_.name)
+            success = False
+
+    return success
 
 
 def options_from_config(path: str) -> Options:
