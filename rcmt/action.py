@@ -74,8 +74,12 @@ class Absent(Action):
 
     def apply(self, repo_path: str, tpl_data: dict) -> None:
         repo_file_path = os.path.join(repo_path, self.target)
-        if os.path.exists(repo_file_path):
+        if os.path.isfile(repo_file_path):
             os.remove(repo_file_path)
+            return
+
+        if os.path.isdir(repo_file_path):
+            shutil.rmtree(repo_file_path)
 
 
 class Own(Action):

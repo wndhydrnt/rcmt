@@ -19,7 +19,7 @@ from rcmt.encoding import Json, Registry
 
 
 class AbsentTest(unittest.TestCase):
-    def test_apply(self):
+    def test_apply__delete_file(self):
         with tempfile.TemporaryDirectory() as d:
             to_delete_path = os.path.join(d, "to_delete")
             with open(to_delete_path, "w+") as to_delete:
@@ -29,6 +29,16 @@ class AbsentTest(unittest.TestCase):
             under_test.apply(d, {})
 
             self.assertFalse(os.path.exists(to_delete_path))
+
+    def test_apply__delete_directory(self):
+        with tempfile.TemporaryDirectory() as d:
+            to_delete_path = os.path.join(d, "to_delete")
+            os.mkdir(to_delete_path)
+
+            under_test = Absent("to_delete")
+            under_test.apply(d, {})
+
+            self.assertFalse(os.path.isdir(to_delete_path))
 
 
 class ExecTest(unittest.TestCase):
