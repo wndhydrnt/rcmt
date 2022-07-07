@@ -79,3 +79,26 @@ class RepoName(Base):
             return False
 
         return True
+
+
+class Or(Base):
+    """
+    Or wraps multiple other matchers. It matches if one of those matchers matches.
+
+    :param args: One or more other matchers.
+
+    .. versionadded:: 0.9.0
+    """
+
+    def __init__(self, *args: Base):
+        if len(args) < 1:
+            raise RuntimeError("Matcher Or expects at least one argument")
+
+        self.matchers: tuple[Base, ...] = args
+
+    def match(self, repo: source.Repository) -> bool:
+        for m in self.matchers:
+            if m.match(repo) is True:
+                return True
+
+        return False
