@@ -94,7 +94,7 @@ class Or(Base):
         if len(args) < 1:
             raise RuntimeError("Matcher Or expects at least one argument")
 
-        self.matchers: tuple[Base] = args
+        self.matchers: tuple[Base, ...] = args
 
     def match(self, repo: source.Repository) -> bool:
         for m in self.matchers:
