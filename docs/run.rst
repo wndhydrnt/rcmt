@@ -23,6 +23,11 @@ LineInFile
 
 .. autoclass:: rcmt.matcher.LineInFile
 
+Or
+^^
+
+.. autoclass:: rcmt.matcher.Or
+
 RepoName
 ^^^^^^^^
 

@@ -2,7 +2,7 @@ import io
 import unittest
 from unittest import mock
 
-from rcmt.matcher import LineInFile
+from rcmt.matcher import Base, LineInFile, Or
 from rcmt.source import Repository
 
 
@@ -40,3 +40,34 @@ third line
         result = under_test.match(repo=repo)
         self.assertFalse(result)
         repo.get_file.assert_called_once_with("test.txt")
+
+
+class OrTest(unittest.TestCase):
+    class ActionMock(Base):
+        def __init__(self, matches: bool):
+            self.matches: bool = matches
+
+        def match(self, repo: Repository) -> bool:
+            return self.matches
+
+    def test_match__does_match(self):
+        mock1 = self.ActionMock(matches=False)
+        mock2 = self.ActionMock(matches=True)
+
+        under_test = Or(mock1, mock2)
+        result = under_test.match(repo=mock.Mock(spec=Repository))
+
+        self.assertTrue(result)
+
+    def test_match__does_not_match(self):
+        mock1 = self.ActionMock(matches=False)
+        mock2 = self.ActionMock(matches=False)
+
+        under_test = Or(mock1, mock2)
+        result = under_test.match(repo=mock.Mock(spec=Repository))
+
+        self.assertFalse(result)
+
+    def test_init__no_args(self):
+        with self.assertRaises(RuntimeError):
+            Or()
