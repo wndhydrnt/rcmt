@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.9.0](https://github.com/wndhydrnt/rcmt/compare/v0.8.2...v0.9.0) (2022-07-07)
+
+
+### Features
+
+* Add matcher "Or" ([#133](https://github.com/wndhydrnt/rcmt/issues/133)) ([0cbf59e](https://github.com/wndhydrnt/rcmt/commit/0cbf59e6927923d15cebf0bb28de0cf73d8acdc9))
+* Supply more than one run file to the "run" command ([#128](https://github.com/wndhydrnt/rcmt/issues/128)) ([c3f01dc](https://github.com/wndhydrnt/rcmt/commit/c3f01dc301cfd50cff9c6100a6b87b378b6d07dd))
+
+
+### Bug Fixes
+
+* Action "Absent" does not delete directories ([#134](https://github.com/wndhydrnt/rcmt/issues/134)) ([d7ea762](https://github.com/wndhydrnt/rcmt/commit/d7ea762eb13c692996dd8ef8a0492141aa04371b))
+
 ## [0.8.2](https://github.com/wndhydrnt/rcmt/compare/v0.8.1...v0.8.2) (2022-06-27)
 
 
