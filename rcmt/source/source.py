@@ -92,6 +92,19 @@ class Repository:
         """
         raise NotImplementedError("class does not implement Repository.clone_url()")
 
+    def close_pull_request(self, message: str, pr: Any) -> None:
+        """
+        Closes a pull request and adds a comment that explains why the pull request has
+        been closed.
+
+        :param message: Message to post as a comment.
+        :param pr: The pull request.
+        :rtype: None
+        """
+        raise NotImplementedError(
+            "class does not implement Repository.close_pull_request()"
+        )
+
     def create_pull_request(self, branch: str, pr: PullRequest) -> None:
         """
         Creates a pull request for the given branch.

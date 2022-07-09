@@ -54,10 +54,13 @@ class RepositoryMock(source.Repository):
         return self._source
 
 
-def create_git_mock(branch_name: str, checkout_dir: str, needs_push: bool):
+def create_git_mock(
+    branch_name: str, checkout_dir: str, needs_push: bool, has_changes_base: bool = True
+):
     m = unittest.mock.Mock(spec=git.Git)
     m.branch_name = branch_name
     m.has_changes.return_value = needs_push
+    m.has_changes_base.return_value = has_changes_base
     m.needs_push.return_value = needs_push
     m.prepare.return_value = checkout_dir
     return m
@@ -218,6 +221,27 @@ class RunTest(unittest.TestCase):
         repo_mock.find_pull_request.assert_called_once_with("rcmt")
         repo_mock.is_pr_merged.assert_called_once_with("someid")
         git_mock.push.assert_not_called()
+        repo_mock.create_pull_request.assert_not_called()
+        repo_mock.merge_pull_request.assert_not_called()
+
+    def test_close_pr(self):
+        cfg = config.Config()
+        opts = Options(cfg)
+        git_mock = create_git_mock("rcmt", "/unit/test", False, False)
+        run = Run(name="testmatch")
+        repo_mock = unittest.mock.Mock(spec=source.Repository)
+        repo_mock.name = "myrepo"
+        repo_mock.project = "myproject"
+        repo_mock.find_pull_request.return_value = "someid"
+        repo_mock.is_pr_merged.return_value = False
+        repo_mock.is_pr_open.return_value = True
+
+        runner = RepoRun(git_mock, opts)
+        runner.execute(run, [], repo_mock)
+
+        repo_mock.close_pull_request.assert_called_once_with(
+            "Everything up-to-date. Closing.", "someid"
+        )
         repo_mock.create_pull_request.assert_not_called()
         repo_mock.merge_pull_request.assert_not_called()
 

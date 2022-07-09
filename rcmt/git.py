@@ -44,6 +44,10 @@ class Git:
         git_repo = git.Repo(path=repo_dir)
         return len(git_repo.index.diff(None)) > 0 or len(git_repo.untracked_files) > 0
 
+    def has_changes_base(self, base_branch: str, repo_dir: str) -> bool:
+        git_repo = git.Repo(path=repo_dir)
+        return len(git_repo.index.diff(f"origin/{base_branch}")) > 0
+
     def needs_push(self, repo_dir: str) -> bool:
         git_repo = git.Repo(path=repo_dir)
         try:
