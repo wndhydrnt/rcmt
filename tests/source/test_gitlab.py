@@ -2,7 +2,11 @@ import unittest
 import unittest.mock
 
 import gitlab.exceptions
-from gitlab.v4.objects import Project
+from gitlab.v4.objects import (
+    Project,
+    ProjectMergeRequest,
+    ProjectMergeRequestNoteManager,
+)
 from gitlab.v4.objects.files import ProjectFile, ProjectFileManager
 
 from rcmt.source.gitlab import GitlabRepository
@@ -89,3 +93,18 @@ class GitlabRepositoryTest(unittest.TestCase):
 
         self.assertTrue(result)
         project.repository_tree.assert_called_once_with(path="config")
+
+    def test_close_pull_request(self):
+        pr_mock = unittest.mock.Mock(spec=ProjectMergeRequest)
+        notes_mock = unittest.mock.Mock(spec=ProjectMergeRequestNoteManager)
+        pr_mock.notes = notes_mock
+
+        message = "Unit Test"
+        repo = GitlabRepository(
+            project=unittest.mock.Mock(spec=Project), token="", url=""
+        )
+        repo.close_pull_request(message, pr_mock)
+
+        notes_mock.create.assert_called_once_with({"body": message})
+        self.assertEqual("close", pr_mock.state_event)
+        pr_mock.save.assert_called_once_with()

@@ -96,6 +96,26 @@ class RepoRun:
         else:
             log.info("No changes after applying actions", repo=str(repo))
 
+        if (
+            self.git.has_changes_base(base_branch=repo.base_branch, repo_dir=work_dir)
+            is False
+            and repo.is_pr_open(pr_identifier) is True
+        ):
+            if self.opts.config.dry_run:
+                log.warn(
+                    "DRY RUN: Closing pull request because base branch contains all changes"
+                )
+            else:
+                log.info(
+                    "Closing pull request because base branch contains all changes",
+                    repo=str(repo),
+                )
+                repo.close_pull_request(
+                    "Everything up-to-date. Closing.", pr_identifier
+                )
+
+            return
+
         # Combining self.git.needs_push and has_changes avoids an unnecessary push of the
         # branch if the remote branch does not exist.
         needs_push = self.git.needs_push(work_dir) and has_changes

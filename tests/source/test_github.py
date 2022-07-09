@@ -2,6 +2,7 @@ import unittest
 import unittest.mock
 
 import github
+import github.PullRequest
 import github.Repository
 from github.ContentFile import ContentFile
 from github.GitTree import GitTree
@@ -92,3 +93,15 @@ class GithubRepositoryTest(unittest.TestCase):
 
         self.assertTrue(result)
         gh_repo.get_git_tree.assert_called_once_with("main", True)
+
+    def test_close_pull_request(self):
+        pr_mock = unittest.mock.Mock(spec=github.PullRequest.PullRequest)
+
+        message = "Unit Test"
+        repo = GithubRepository(
+            access_token="", repo=unittest.mock.Mock(spec=github.Repository.Repository)
+        )
+        repo.close_pull_request(message, pr_mock)
+
+        pr_mock.create_issue_comment.assert_called_once_with(body=message)
+        pr_mock.edit.assert_called_once_with(state="closed")

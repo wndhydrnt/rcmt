@@ -31,6 +31,12 @@ class GithubRepository(Repository):
             url=self.repo.clone_url, password=self.access_token
         )
 
+    def close_pull_request(
+        self, message: str, pr: github.PullRequest.PullRequest
+    ) -> None:
+        pr.create_issue_comment(body=message)
+        pr.edit(state="closed")
+
     def create_pull_request(self, branch: str, pr: PullRequest):
         log.debug(
             "Creating pull request", base=self.base_branch, head=branch, repo=str(self)

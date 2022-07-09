@@ -35,6 +35,11 @@ class GitlabRepository(Repository):
             url=self._project.http_url_to_repo, password=self.token, username="rcmt"
         )
 
+    def close_pull_request(self, message: str, pr: GitlabMergeRequest) -> None:
+        pr.notes.create({"body": message})
+        pr.state_event = "close"
+        pr.save()
+
     def create_pull_request(self, branch: str, pr: PullRequest) -> None:
         log.debug(
             "Creating merge request", base=self.base_branch, head=branch, repo=str(self)
