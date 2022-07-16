@@ -128,6 +128,7 @@ class RunTest(unittest.TestCase):
         git_mock.push.assert_called_once_with("/unit/test")
         expected_pr = source.PullRequest(
             run.auto_merge,
+            run.merge_once,
             run.name,
             cfg.pr_title_prefix,
             "apply matcher testrun",

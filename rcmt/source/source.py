@@ -9,18 +9,20 @@ class PullRequest:
     def __init__(
         self,
         auto_merge: bool,
+        merge_once: bool,
         run_name: str,
         title_prefix: str,
         title_body: str,
         title_suffix: str,
-        custom_body="",
-        custom_title="",
+        custom_body: str = "",
+        custom_title: str = "",
         auto_merge_after: Optional[datetime.timedelta] = None,
     ):
         self.auto_merge = auto_merge
         self.auto_merge_after = auto_merge_after
         self.custom_body = custom_body
         self.custom_title = custom_title
+        self.merge_once = merge_once
         self.run_name = run_name
         self.title_prefix = title_prefix
         self.title_body = title_body
@@ -45,6 +47,9 @@ class PullRequest:
         if self.custom_title != getattr(other, "custom_title"):
             return False
 
+        if self.merge_once != getattr(other, "merge_once"):
+            return False
+
         if self.run_name != getattr(other, "run_name"):
             return False
 
@@ -62,30 +67,33 @@ class PullRequest:
     @property
     def body(self) -> str:
         if self.custom_body == "":
-            body = f"Apply changes from Run {self.run_name}"
+            body = f"Apply changes from Run {self.run_name}\n"
         else:
             body = self.custom_body
+            body += "\n"
 
+        body += "\n---\n\n"
+
+        body += "**Automerge:** "
         if self.auto_merge is True:
             if self.auto_merge_after is None:
-                auto_merge_msg = "Enabled. rcmt merges this automatically on its next run and if all checks have passed."
+                body += "Enabled. rcmt merges this automatically on its next run and if all checks have passed.\n"
             else:
                 after = humanize.naturaldelta(self.auto_merge_after)
-                auto_merge_msg = f"Enabled. rcmt automatically merges this in {after} and if all checks have passed."
+                body += f"Enabled. rcmt automatically merges this in {after} and if all checks have passed.\n"
         else:
-            auto_merge_msg = "Disabled. Merge this manually."
+            body += "Disabled. Merge this manually.\n"
 
-        return f"""{body}
+        if self.merge_once is True:
+            body += "**Ignore:** Close this PR and it will not be recreated again.\n"
 
----
-
-**Automerge:** {auto_merge_msg}
-**Ignore:** Close this PR and it will not be recreated again.
-
+        body += """
 ---
 
 _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._
 """
+
+        return body
 
     @property
     def title(self) -> str:

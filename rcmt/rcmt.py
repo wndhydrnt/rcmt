@@ -81,6 +81,7 @@ class RepoRun:
         tpl_mapping = create_template_mapping(repo)
         pr = source.PullRequest(
             matcher.auto_merge,
+            matcher.merge_once,
             matcher.name,
             self.opts.config.pr_title_prefix,
             self.opts.config.pr_title_body.format(matcher_name=matcher.name),
