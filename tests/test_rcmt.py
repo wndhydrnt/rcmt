@@ -127,7 +127,11 @@ class RunTest(unittest.TestCase):
         repo_mock.find_pull_request.assert_called_once_with("rcmt")
         git_mock.push.assert_called_once_with("/unit/test")
         expected_pr = source.PullRequest(
-            run.name, cfg.pr_title_prefix, "apply matcher testrun", cfg.pr_title_suffix
+            run.auto_merge,
+            run.name,
+            cfg.pr_title_prefix,
+            "apply matcher testrun",
+            cfg.pr_title_suffix,
         )
         repo_mock.create_pull_request.assert_called_once_with("rcmt", expected_pr)
         repo_mock.merge_pull_request.assert_not_called()

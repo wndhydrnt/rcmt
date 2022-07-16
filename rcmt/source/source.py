@@ -1,18 +1,24 @@
 import datetime
 import urllib.parse
-from typing import Any, TextIO, Union
+from typing import Any, Optional, TextIO, Union
+
+import humanize
 
 
 class PullRequest:
     def __init__(
         self,
+        auto_merge: bool,
         run_name: str,
         title_prefix: str,
         title_body: str,
         title_suffix: str,
         custom_body="",
         custom_title="",
+        auto_merge_after: Optional[datetime.timedelta] = None,
     ):
+        self.auto_merge = auto_merge
+        self.auto_merge_after = auto_merge_after
         self.custom_body = custom_body
         self.custom_title = custom_title
         self.run_name = run_name
@@ -27,6 +33,12 @@ class PullRequest:
         :param other: Other PullRequest
         :return: bool
         """
+        if self.auto_merge != getattr(other, "auto_merge"):
+            return False
+
+        if self.auto_merge_after != getattr(other, "auto_merge_after"):
+            return False
+
         if self.custom_body != getattr(other, "custom_body"):
             return False
 
@@ -49,10 +61,26 @@ class PullRequest:
 
     @property
     def body(self) -> str:
-        if self.custom_body != "":
-            return self.custom_body
+        if self.custom_body == "":
+            body = f"Apply changes from Run {self.run_name}"
+        else:
+            body = self.custom_body
 
-        return f"""Apply changes from Run {self.run_name}
+        if self.auto_merge is True:
+            if self.auto_merge_after is None:
+                auto_merge_msg = "Enabled. rcmt merges this automatically on its next run and if all checks have passed."
+            else:
+                after = humanize.naturaldelta(self.auto_merge_after)
+                auto_merge_msg = f"Enabled. rcmt automatically merges this in {after} and if all checks have passed."
+        else:
+            auto_merge_msg = "Disabled. Merge this manually."
+
+        return f"""{body}
+
+---
+
+**Automerge:** {auto_merge_msg}
+**Ignore:** Close this PR and it will not be recreated again.
 
 ---
 
