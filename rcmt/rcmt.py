@@ -80,12 +80,14 @@ class RepoRun:
         work_dir = self.git.prepare(repo)
         tpl_mapping = create_template_mapping(repo)
         pr = source.PullRequest(
+            matcher.auto_merge,
             matcher.name,
             self.opts.config.pr_title_prefix,
             self.opts.config.pr_title_body.format(matcher_name=matcher.name),
             self.opts.config.pr_title_suffix,
             matcher.pr_body,
             matcher.pr_title,
+            auto_merge_after=matcher.auto_merge_after,
         )
         apply_actions(pkgs, repo, matcher, tpl_mapping, work_dir)
         has_changes = False
