@@ -90,8 +90,7 @@ class PullRequest:
         body += """
 ---
 
-_This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._
-"""
+_This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
 
         return body
 
@@ -100,7 +99,7 @@ _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._
         if self.custom_title != "":
             return self.custom_title
 
-        return f"{self.title_prefix} {self.title_body} {self.title_suffix}"
+        return f"{self.title_prefix} {self.title_body} {self.title_suffix}".strip()
 
 
 class Repository:
@@ -276,6 +275,21 @@ class Repository:
         :rtype: str
         """
         raise NotImplementedError("class does not implement Repository.source()")
+
+    def update_pull_request(self, pr: Any, pr_data: PullRequest) -> None:
+        """
+        Updates the title and body of a pull request.
+
+        To reduce calls to the API, the implementation of this function should check if
+        title or body have changed and only update the pull request if necessary.
+
+        :param pr: Data to identify the pull request as returned by find_pull_request.
+        :param pr_data: Data of the pull request that rcmt wants to create/update.
+        :rtype: None
+        """
+        raise NotImplementedError(
+            "class does not implement Repository.update_pull_request()"
+        )
 
 
 class Base:
