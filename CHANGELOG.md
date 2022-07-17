@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.10.0](https://github.com/wndhydrnt/rcmt/compare/v0.9.0...v0.10.0) (2022-07-17)
+
+
+### Features
+
+* Add message about ignoring PRs only if merge_once is set ([#140](https://github.com/wndhydrnt/rcmt/issues/140)) ([66cda39](https://github.com/wndhydrnt/rcmt/commit/66cda390e3d8306fc81edd015fb016e64a4db47e))
+* Close pull request if changes are already present in base branch ([#135](https://github.com/wndhydrnt/rcmt/issues/135)) ([e6b5eb8](https://github.com/wndhydrnt/rcmt/commit/e6b5eb86281c4c7e12f51ef5cf2d8eb7d0c234d6))
+* Detail configuration of Run in body of PR ([#139](https://github.com/wndhydrnt/rcmt/issues/139)) ([98c5e3a](https://github.com/wndhydrnt/rcmt/commit/98c5e3a64b9dc27a6f6e3f46b7a975f9cc74d336))
+* Update title or body of PR if they change ([#141](https://github.com/wndhydrnt/rcmt/issues/141)) ([61ca43b](https://github.com/wndhydrnt/rcmt/commit/61ca43b1bc696e17ca96b9534e7e2bf269631643))
+
 ## [0.9.0](https://github.com/wndhydrnt/rcmt/compare/v0.8.2...v0.9.0) (2022-07-07)
 
 
