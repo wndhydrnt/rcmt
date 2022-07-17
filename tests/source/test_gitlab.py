@@ -9,6 +9,7 @@ from gitlab.v4.objects import (
 )
 from gitlab.v4.objects.files import ProjectFile, ProjectFileManager
 
+from rcmt.source import source
 from rcmt.source.gitlab import GitlabRepository
 
 
@@ -108,3 +109,32 @@ class GitlabRepositoryTest(unittest.TestCase):
         notes_mock.create.assert_called_once_with({"body": message})
         self.assertEqual("close", pr_mock.state_event)
         pr_mock.save.assert_called_once_with()
+
+    def test_update_pull_request__no_change(self):
+        pr_data = source.PullRequest(False, False, "unit-test", "", "", "")
+        pr_mock = unittest.mock.Mock(spec=ProjectMergeRequest)
+        pr_mock.title = pr_data.title
+        pr_mock.description = pr_data.body
+
+        repo = GitlabRepository(
+            project=unittest.mock.Mock(spec=Project), token="", url=""
+        )
+        repo.update_pull_request(pr_mock, pr_data)
+
+        pr_mock.save.assert_not_called()
+
+    def test_update_pull_request__has_changes(self):
+        pr_data = source.PullRequest(False, False, "unit-test", "", "", "")
+        pr_mock = unittest.mock.Mock(spec=ProjectMergeRequest)
+        pr_mock.title = "Old Title"
+        pr_mock.description = "Old Body"
+        project_mock = unittest.mock.Mock(spec=Project)
+        project_mock.namespace = {"full_path": "wandhydrant/test"}
+        project_mock.path = "test"
+
+        repo = GitlabRepository(project=project_mock, token="", url="")
+        repo.update_pull_request(pr_mock, pr_data)
+
+        self.assertEqual(pr_data.title, pr_mock.title)
+        self.assertEqual(pr_data.body, pr_mock.description)
+        pr_mock.save.assert_called_once()

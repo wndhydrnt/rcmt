@@ -138,6 +138,8 @@ class RepoRun:
                 log.info("Create pull request", repo=str(repo))
                 repo.create_pull_request(self.git.branch_name, pr)
 
+            return
+
         if (
             matcher.auto_merge is True
             and needs_push is False
@@ -161,6 +163,11 @@ class RepoRun:
             else:
                 log.info("Merge pull request", repo=str(repo))
                 repo.merge_pull_request(pr_identifier)
+
+            return
+
+        if pr_identifier is not None and repo.is_pr_open(pr_identifier) is True:
+            repo.update_pull_request(pr_identifier, pr)
 
 
 def apply_actions(

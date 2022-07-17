@@ -152,6 +152,20 @@ class GitlabRepository(Repository):
     def source(self) -> str:
         return self.url
 
+    def update_pull_request(self, pr: GitlabMergeRequest, pr_data: PullRequest) -> None:
+        needs_update = False
+        if pr.title != pr_data.title:
+            pr.title = pr_data.title
+            needs_update = True
+
+        if pr.description != pr_data.body:
+            pr.description = pr_data.body
+            needs_update = True
+
+        if needs_update is True:
+            log.debug("Updating MR data", id=pr.get_id(), repo=str(self))
+            pr.save()
+
 
 class Gitlab(Base):
     def __init__(self, url: str, private_token: str):

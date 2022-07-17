@@ -8,6 +8,7 @@ from github.ContentFile import ContentFile
 from github.GitTree import GitTree
 from github.GitTreeElement import GitTreeElement
 
+from rcmt.source import source
 from rcmt.source.github import GithubRepository
 
 
@@ -105,3 +106,29 @@ class GithubRepositoryTest(unittest.TestCase):
 
         pr_mock.create_issue_comment.assert_called_once_with(body=message)
         pr_mock.edit.assert_called_once_with(state="closed")
+
+    def test_update_pull_request__no_change(self):
+        pr_data = source.PullRequest(False, False, "unit-test", "", "", "")
+        pr_mock = unittest.mock.Mock(spec=github.PullRequest.PullRequest)
+        pr_mock.title = pr_data.title
+        pr_mock.body = pr_data.body
+
+        repo = GithubRepository(
+            access_token="", repo=unittest.mock.Mock(spec=github.Repository.Repository)
+        )
+        repo.update_pull_request(pr_mock, pr_data)
+
+        pr_mock.edit.assert_not_called()
+
+    def test_update_pull_request__has_changes(self):
+        pr_data = source.PullRequest(False, False, "unit-test", "", "", "")
+        pr_mock = unittest.mock.Mock(spec=github.PullRequest.PullRequest)
+        pr_mock.title = "Old Title"
+        pr_mock.body = "Old Body"
+
+        repo = GithubRepository(
+            access_token="", repo=unittest.mock.Mock(spec=github.Repository.Repository)
+        )
+        repo.update_pull_request(pr_mock, pr_data)
+
+        pr_mock.edit.assert_called_once_with(title=pr_data.title, body=pr_data.body)

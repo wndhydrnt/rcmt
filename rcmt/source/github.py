@@ -128,6 +128,20 @@ class GithubRepository(Repository):
     def source(self) -> str:
         return "github.com"
 
+    def update_pull_request(
+        self, pr: github.PullRequest.PullRequest, pr_data: PullRequest
+    ) -> None:
+        needs_update = False
+        if pr.title != pr_data.title:
+            needs_update = True
+
+        if pr.body != pr_data.body:
+            needs_update = True
+
+        if needs_update is True:
+            log.debug("Updating PR data", pr_id=pr.id, repo=str(self))
+            pr.edit(title=pr_data.title, body=pr_data.body)
+
 
 class Github(Base):
     def __init__(self, access_token: str, base_url: str):
