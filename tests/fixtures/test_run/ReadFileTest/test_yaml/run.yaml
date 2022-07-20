@@ -1,0 +1,38 @@
+---
+name: test-yaml
+matchers:
+  repo_name:
+    - search: github.com/wndhydrnt/rcmt
+  line_in_file:
+    - path: test.txt
+      search: Line to match
+  file_exists:
+    - path: test.txt
+actions:
+  absent:
+    - target: test.sh
+  delete_key:
+    - key: foo.bar
+      target: test.json
+  delete_line_in_file:
+    - line: Line to delete
+      selector: test.txt
+  exec:
+    - exec_path: "/bin/test"
+      selector: "*.txt"
+  line_in_file:
+    - line: This is a test
+      selector: test.txt
+  merge:
+    - content: '{"test":1}'
+      selector: test.json
+  own:
+    - content: Owned Content
+      target: owned.txt
+  replace_in_line:
+    - search: "^Line to replace$"
+      replace: Line replaced
+      selector: file.txt
+  seed:
+    - content: Seeded Content
+      target: seed.txt

@@ -1,14 +1,31 @@
 import datetime
 import importlib.machinery
 import importlib.util
+import json
 import os.path
 import random
 import string
 import sys
-from typing import AnyStr, Optional
+from typing import Optional
 
-from rcmt import matcher, source
+import yaml
+
+from rcmt import matcher, schema, source
+from rcmt.action import (
+    Absent,
+    DeleteKey,
+    DeleteLineInFile,
+    Exec,
+    LineInFile,
+    Merge,
+    Own,
+    ReplaceInLine,
+    Seed,
+)
 from rcmt.fs import FileProxy
+from rcmt.matcher import FileExists
+from rcmt.matcher import LineInFile as LineInFileMatcher
+from rcmt.matcher import RepoName
 from rcmt.package import action
 
 
@@ -167,3 +184,63 @@ def read(path: str) -> Run:
         return new_module.run  # type: ignore # because the content of module is not known
     except AttributeError:
         raise RuntimeError(f"Run file {path} does not define variable 'run'")
+
+
+def read_file(path: str) -> Run:
+    _, ext = os.path.splitext(path)
+    if ext == ".json":
+        with open(path) as f:
+            data: dict = json.load(f)
+
+        return read_schema(schema.Schema(**data))
+    elif ext in [".yml", ".yaml"]:
+        with open(path) as f:
+            data: dict = yaml.load(f, yaml.SafeLoader)
+
+        return read_schema(schema.Schema(**data))
+    elif ext == ".py":
+        return read(path)
+    else:
+        raise RuntimeError(f"Unsupported run file {path}")
+
+
+def read_schema(data: schema.Schema) -> Run:
+    runs_args = data.dict(exclude={"actions", "matchers"})
+    run = Run(**runs_args)
+    for item in data.actions.absent:
+        run.add_action(Absent(**item.dict()))
+
+    for item in data.actions.delete_key:
+        run.add_action(DeleteKey(**item.dict()))
+
+    for item in data.actions.delete_line_in_file:
+        run.add_action(DeleteLineInFile(**item.dict()))
+
+    for item in data.actions.exec:
+        run.add_action(Exec(**item.dict()))
+
+    for item in data.actions.line_in_file:
+        run.add_action(LineInFile(**item.dict()))
+
+    for item in data.actions.merge:
+        run.add_action(Merge(**item.dict()))
+
+    for item in data.actions.own:
+        run.add_action(Own(**item.dict()))
+
+    for item in data.actions.replace_in_line:
+        run.add_action(ReplaceInLine(**item.dict()))
+
+    for item in data.actions.seed:
+        run.add_action(Seed(**item.dict()))
+
+    for item in data.matchers.repo_name:
+        run.add_matcher(RepoName(**item.dict()))
+
+    for item in data.matchers.file_exists:
+        run.add_matcher(FileExists(**item.dict()))
+
+    for item in data.matchers.line_in_file:
+        run.add_matcher(LineInFileMatcher(**item.dict()))
+
+    return run

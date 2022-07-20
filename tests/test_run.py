@@ -1,9 +1,9 @@
 import unittest
 
-from rcmt.run import read
+from rcmt.run import read, read_file
 
 
-class ReadRunTest(unittest.TestCase):
+class ReadTest(unittest.TestCase):
     def test_read(self):
         r = read("tests/fixtures/test_run/ReadRunTest/test_read/run.py")
         for fp in r.file_proxies:
@@ -28,3 +28,24 @@ class ReadRunTest(unittest.TestCase):
             "Run file tests/fixtures/test_run/ReadRunTest/test_read_run_var_not_exists/run.py does not define variable 'run'",
             str(e.exception),
         )
+
+
+class ReadFileTest(unittest.TestCase):
+    def test_json(self):
+        r = read_file("tests/fixtures/test_run/ReadFileTest/test_json/run.json")
+
+        self.assertEqual("test-json", r.name)
+
+    def test_yaml(self):
+        r = read_file("tests/fixtures/test_run/ReadFileTest/test_yaml/run.yaml")
+
+        self.assertEqual("test-yaml", r.name)
+
+    def test_py(self):
+        r = read_file("tests/fixtures/test_run/ReadRunTest/test_read/run.py")
+
+        self.assertEqual("unit-test", r.name)
+
+    def test_unsupported(self):
+        with self.assertRaises(RuntimeError):
+            read_file("tests/fixtures/test_run/ReadFileTest/test_unsupported/run.txt")

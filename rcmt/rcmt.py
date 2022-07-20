@@ -212,7 +212,7 @@ def execute(opts: Options) -> bool:
     log.info("Repositories returned by sources", count=len(repositories))
     success = True
     for run_path in opts.run_paths:
-        run_ = run.read(run_path)
+        run_ = run.read_file(run_path)
         run_success = execute_run(run_, pkgs, repositories, opts)
         if run_success is False:
             success = False
@@ -236,7 +236,7 @@ def execute_local(
 
     pkg_reader = package.PackageReader(opts.encoding_registry)
     pkgs = pkg_reader.read_packages(opts.packages_paths)
-    matcher = run.read(opts.run_paths[0])
+    matcher = run.read_file(opts.run_paths[0])
     pkgs_to_apply = find_packages(matcher.packages, pkgs)
     repo = Local(repo_source, repo_project, repo_name)
     tpl_mapping: dict[str, str] = create_template_mapping(repo)
