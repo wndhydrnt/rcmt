@@ -2,8 +2,34 @@ import io
 import unittest
 from unittest import mock
 
-from rcmt.matcher import Base, LineInFile, Or
+from rcmt.matcher import Base, LineInFile, Or, FileExists, FileNotExists, LineNotInFile
 from rcmt.source import Repository
+
+
+class FileExistsTest(unittest.TestCase):
+    def test_match(self):
+        repo = mock.Mock(spec=Repository)
+        repo.has_file.return_value = True
+        path = "test.json"
+
+        under_test = FileExists(path=path)
+        result: bool = under_test.match(repo=repo)
+
+        self.assertTrue(result)
+        repo.has_file.assert_called_once_with(path)
+
+
+class FileNotExistsTest(unittest.TestCase):
+    def test_match(self):
+        repo = mock.Mock(spec=Repository)
+        repo.has_file.return_value = True
+        path = "test.json"
+
+        under_test = FileNotExists(path=path)
+        result: bool = under_test.match(repo=repo)
+
+        self.assertFalse(result)
+        repo.has_file.assert_called_once_with(path)
 
 
 class LineInFileTest(unittest.TestCase):
@@ -39,6 +65,34 @@ third line
         under_test = LineInFile("test.txt", "other line")
         result = under_test.match(repo=repo)
         self.assertFalse(result)
+        repo.get_file.assert_called_once_with("test.txt")
+
+
+class LineNotInFileTest(unittest.TestCase):
+    def test_match__line_in_file_exists(self):
+        repo = mock.Mock(spec=Repository)
+        repo.get_file.return_value = io.StringIO(
+            """first line
+second line
+third line
+"""
+        )
+        under_test = LineNotInFile("test.txt", "second line")
+        result = under_test.match(repo=repo)
+        self.assertFalse(result)
+        repo.get_file.assert_called_once_with("test.txt")
+
+    def test_match__line_in_file_does_not_exists(self):
+        repo = mock.Mock(spec=Repository)
+        repo.get_file.return_value = io.StringIO(
+            """first line
+second line
+third line
+"""
+        )
+        under_test = LineNotInFile("test.txt", "fourth line")
+        result = under_test.match(repo=repo)
+        self.assertTrue(result)
         repo.get_file.assert_called_once_with("test.txt")
 
 
