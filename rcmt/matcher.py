@@ -36,6 +36,24 @@ class FileExists(Base):
         return repo.has_file(self.path)
 
 
+class FileNotExists(FileExists):
+    """
+    FileNotExists matches if the file does not exist in a repository.
+
+    The code checks for the existence of a file by calling the API of the Source. This
+    prevents useless checkouts of repositories and saves bandwidth.
+
+    :param path: Path to the file, relative to the root of the repository.
+                 Supports a wildcard in the name of the file, e.g. ``dir/*.json``.
+
+    .. versionadded:: 0.11.0
+    """
+
+    def match(self, repo: source.Repository) -> bool:
+        result: bool = super().match(repo)
+        return not result
+
+
 class LineInFile(Base):
     """
     LineInFile matches if a line in a file of a repository matches a regular expression.
@@ -62,6 +80,23 @@ class LineInFile(Base):
             return False
         except FileNotFoundError:
             return False
+
+
+class LineNotInFile(LineInFile):
+    """
+    LineNotInFile matches if no line in a file of a repository matches a regular expression.
+
+    It downloads the file from the repository without checking out the whole repository.
+
+    :param path: Path of the file to check.
+    :param search: Regular expression to test against each line in the file.
+
+    .. versionadded:: 0.11.0
+    """
+
+    def match(self, repo: source.Repository) -> bool:
+        result: bool = super().match(repo)
+        return not result
 
 
 class RepoName(Base):

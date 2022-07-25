@@ -77,7 +77,7 @@ class Run:
 
         self.actions: list[action.Action] = []
         self.file_proxies: list[FileProxy] = []
-        self.matchers: list[matcher.Base] = []
+        self.matchers: list[tuple[matcher.Base, bool]] = []
         self.packages: list[str] = []
 
     def __enter__(self):
@@ -94,13 +94,13 @@ class Run:
         """
         self.actions.append(a)
 
-    def add_matcher(self, m: matcher.Base) -> None:
+    def add_matcher(self, m: matcher.Base, negate: bool = False) -> None:
         """
         Add a Matcher that matches repositories.
 
         :param m: The matcher to add.
         """
-        self.matchers.append(m)
+        self.matchers.append((m, negate))
 
     def add_package(self, name: str) -> None:
         """
@@ -129,7 +129,11 @@ class Run:
 
     def match(self, repo: source.Repository) -> bool:
         for m in self.matchers:
-            if m.match(repo) is False:
+            result: bool = m[0].match(repo)
+            if m[1] is True:
+                result = not result
+
+            if result is False:
                 return False
 
         return True
