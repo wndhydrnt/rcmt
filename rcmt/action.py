@@ -24,7 +24,7 @@ class Action:
         apply modifies a file in a repository.
 
         :param repo_path: The absolute path to the file in a repository to modify.
-        :param tpl_data: The content of the file from a package, already populated with
+        :param tpl_data: The content of the file from an Action, already populated with
                          template data.
         :return: None
 
@@ -86,7 +86,7 @@ class Own(Action):
     """
     Own ensures that a file in a repository stays the same.
 
-    It always overwrites the data in the file with the data from a package.
+    It always overwrites the data in the file with the data from this Action.
 
     :param content: Content of the file to write.
     :param target: Path to the file in a repository to own.
@@ -121,7 +121,7 @@ class Seed(Own):
     It does not modify the file again if the file is present in a repository.
 
     :param target: Path to the file in a repository to seed.
-    :param source: Path to the file in the package that contains the source data.
+    :param source: A string or path to a file that contain the content to seed.
 
     **Example**
 
@@ -157,8 +157,8 @@ class EncodingAware:
 
 class Merge(Action, EncodingAware):
     """
-    Merge merges the content of a file in a repository with the content of a file from a
-    package.
+    Merge merges the content of a file in a repository with the content set in this
+    Action.
 
     It supports merging of various file formats through :doc:`encoding`.
 

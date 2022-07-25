@@ -7,15 +7,14 @@ import string
 import sys
 from typing import AnyStr, Optional
 
-from rcmt import matcher, source
+from rcmt import action, matcher, source
 from rcmt.fs import FileProxy
-from rcmt.package import action
 
 
 class Run:
     """
-    A Run connects packages with repositories. rcmt reads the Run, finds repositories
-    and packages and then applies these packages to each repository.
+    A Run connects Actions with repositories. rcmt reads the Run, finds matching
+    repositories and then applies its Actions to each repository.
 
     :param name: The name of the Run. rcmt uses the name to identify a run.
     :param auto_merge: rcmt automatically merges a pull request on its next run. The
@@ -48,8 +47,6 @@ class Run:
            run.add_matcher(FileExists("pyproject.toml"))
            run.add_matcher(RepoName("^github.com/wndhydrnt/rcmt$"))
 
-           run.add_package("flake8")
-
            run.pr_title = "A custom PR title"
            run.pr_body = '''A custom PR title.
            It supports multiline strings.'''
@@ -78,7 +75,6 @@ class Run:
         self.actions: list[action.Action] = []
         self.file_proxies: list[FileProxy] = []
         self.matchers: list[tuple[matcher.Base, bool]] = []
-        self.packages: list[str] = []
 
     def __enter__(self):
         return self
@@ -101,14 +97,6 @@ class Run:
         :param m: The matcher to add.
         """
         self.matchers.append((m, negate))
-
-    def add_package(self, name: str) -> None:
-        """
-        Add a Package to apply to every matching repository.
-
-        :param name: The name of the Package.
-        """
-        self.packages.append(name)
 
     def branch(self, prefix: str) -> str:
         if self.branch_name != "":

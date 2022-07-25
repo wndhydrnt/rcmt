@@ -3,10 +3,9 @@ import unittest
 import unittest.mock
 from typing import Any, Union
 
-from rcmt import config, encoding, git, package, rcmt, source
+from rcmt import action, config, encoding, git, rcmt, source
 from rcmt.config import Config
 from rcmt.matcher import RepoName
-from rcmt.package import action
 from rcmt.rcmt import Options, RepoRun, execute_local
 from rcmt.run import Run
 
@@ -74,16 +73,15 @@ class RunTest(unittest.TestCase):
         runner = RepoRun(git_mock, opts)
         run = Run(name="testrun")
         run.add_matcher(RepoName("local"))
-        pkg = package.Package("testpackage")
         action_mock = unittest.mock.Mock(spec=action.Action)
-        pkg.actions.append(action_mock)
+        run.add_action(action_mock)
         repo_mock = unittest.mock.Mock(spec=source.Repository)
         repo_mock.name = "myrepo"
         repo_mock.project = "myproject"
         repo_mock.source = "githost.com"
         repo_mock.find_pull_request.return_value = None
 
-        runner.execute(run, [pkg], repo_mock)
+        runner.execute(run, repo_mock)
 
         action_mock.apply.assert_called_once_with(
             "/unit/test",
@@ -104,16 +102,15 @@ class RunTest(unittest.TestCase):
         runner = RepoRun(git_mock, opts)
         run = Run(commit_msg="Custom commit", name="testrun")
         run.add_matcher(RepoName("local"))
-        pkg = package.Package("testpackage")
         action_mock = unittest.mock.Mock(spec=action.Action)
-        pkg.actions.append(action_mock)
+        run.add_action(action_mock)
         repo_mock = unittest.mock.Mock(spec=source.Repository)
         repo_mock.name = "myrepo"
         repo_mock.project = "myproject"
         repo_mock.source = "githost.com"
         repo_mock.find_pull_request.return_value = None
 
-        runner.execute(run, [pkg], repo_mock)
+        runner.execute(run, repo_mock)
 
         git_mock.commit_changes.assert_called_once_with("/unit/test", "Custom commit")
         action_mock.apply.assert_called_once_with(
@@ -148,9 +145,8 @@ class RunTest(unittest.TestCase):
             name="testmatch",
         )
         run.add_matcher(RepoName("local"))
-        pkg = package.Package("testpackage")
         action_mock = unittest.mock.Mock(spec=action.Action)
-        pkg.actions.append(action_mock)
+        run.add_action(action_mock)
         repo_mock = unittest.mock.Mock(spec=source.Repository)
         repo_mock.name = "myrepo"
         repo_mock.project = "myproject"
@@ -163,7 +159,7 @@ class RunTest(unittest.TestCase):
             datetime.datetime.now() - datetime.timedelta(days=1)
         )
 
-        runner.execute(run, [pkg], repo_mock)
+        runner.execute(run, repo_mock)
 
         action_mock.apply.assert_called_once_with(
             "/unit/test",
@@ -186,16 +182,15 @@ class RunTest(unittest.TestCase):
         runner = RepoRun(git_mock, opts)
         run = Run(name="testmatch")
         run.add_matcher(RepoName("local"))
-        pkg = package.Package("testpackage")
         action_mock = unittest.mock.Mock(spec=action.Action)
-        pkg.actions.append(action_mock)
+        run.add_action(action_mock)
         repo_mock = unittest.mock.Mock(spec=source.Repository)
         repo_mock.name = "myrepo"
         repo_mock.project = "myproject"
         repo_mock.find_pull_request.return_value = "someid"
         repo_mock.is_pr_closed.return_value = True
 
-        runner.execute(run, [pkg], repo_mock)
+        runner.execute(run, repo_mock)
 
         action_mock.apply.assert_not_called()
         repo_mock.find_pull_request.assert_called_once_with("rcmt")
@@ -211,16 +206,15 @@ class RunTest(unittest.TestCase):
         runner = RepoRun(git_mock, opts)
         run = Run(name="testmatch", merge_once=True)
         run.add_matcher(RepoName("local"))
-        pkg = package.Package("testpackage")
         action_mock = unittest.mock.Mock(spec=action.Action)
-        pkg.actions.append(action_mock)
+        run.add_action(action_mock)
         repo_mock = unittest.mock.Mock(spec=source.Repository)
         repo_mock.name = "myrepo"
         repo_mock.project = "myproject"
         repo_mock.find_pull_request.return_value = "someid"
         repo_mock.is_pr_merged.return_value = True
 
-        runner.execute(run, [pkg], repo_mock)
+        runner.execute(run, repo_mock)
 
         action_mock.apply.assert_not_called()
         repo_mock.find_pull_request.assert_called_once_with("rcmt")
@@ -242,7 +236,7 @@ class RunTest(unittest.TestCase):
         repo_mock.is_pr_open.return_value = True
 
         runner = RepoRun(git_mock, opts)
-        runner.execute(run, [], repo_mock)
+        runner.execute(run, repo_mock)
 
         repo_mock.close_pull_request.assert_called_once_with(
             "Everything up-to-date. Closing.", "someid"
@@ -263,7 +257,7 @@ class RunTest(unittest.TestCase):
         repo_mock.is_pr_open.return_value = True
 
         runner = RepoRun(git_mock, opts)
-        runner.execute(run, [], repo_mock)
+        runner.execute(run, repo_mock)
 
         repo_mock.close_pull_request.assert_not_called()
         repo_mock.create_pull_request.assert_not_called()

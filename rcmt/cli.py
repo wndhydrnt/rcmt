@@ -15,13 +15,6 @@ rcmt local --config <config file> <Run file> <checkout of repository>
 
 @click.command(help=local_help, short_help="Apply a Run to a local directory.")
 @click.option("--config", help="Path to configuration file.", default="", type=str)
-@click.option(
-    "--packages",
-    help="Path to packages directory.",
-    multiple=True,
-    required=False,
-    type=str,
-)
 @click.option("--repo-source", default="github.com", show_default=True, type=str)
 @click.option("--repo-project", default="wndhydrnt", show_default=True, type=str)
 @click.option("--repo-name", default="rcmt", show_default=True, type=str)
@@ -29,7 +22,6 @@ rcmt local --config <config file> <Run file> <checkout of repository>
 @click.argument("directory")
 def local(
     config: str,
-    packages: list[str],
     repo_source: str,
     repo_project: str,
     repo_name: str,
@@ -38,7 +30,6 @@ def local(
 ):
     opts = rcmt.options_from_config(config)
     opts.run_paths = [run_file]
-    opts.packages_paths = packages
     rcmt.execute_local(
         directory=directory,
         repo_source=repo_source,
@@ -50,18 +41,10 @@ def local(
 
 @click.command()
 @click.option("--config", help="Path to configuration file.", default="", type=str)
-@click.option(
-    "--packages",
-    help="Path to packages directory.",
-    multiple=True,
-    required=False,
-    type=str,
-)
 @click.argument("run_file", nargs=-1)
-def run(config: str, packages: list[str], run_file: list[str]):
+def run(config: str, run_file: list[str]):
     opts = rcmt.options_from_config(config)
     opts.run_paths = run_file
-    opts.packages_paths = packages
     result = rcmt.execute(opts)
     if result is False:
         exit(1)

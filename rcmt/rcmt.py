@@ -5,7 +5,7 @@ from typing import Optional
 
 import structlog
 
-from . import config, encoding, git, package, run, source
+from . import config, encoding, git, run, source
 from .log import SECRET_MASKER
 from .source.local import Local
 
@@ -31,7 +31,6 @@ class Options:
         self.config = cfg
         self.encoding_registry: encoding.Registry = encoding.Registry()
         self.run_paths: list[str] = []
-        self.packages_paths: list[str] = []
         self.sources: dict[str, source.Base] = {}
 
 
@@ -50,12 +49,7 @@ class RepoRun:
         self.git = g
         self.opts = opts
 
-    def execute(
-        self,
-        matcher: run.Run,
-        pkgs: list[package.Package],
-        repo: source.Repository,
-    ):
+    def execute(self, matcher: run.Run, repo: source.Repository):
         pr_identifier = repo.find_pull_request(self.git.branch_name)
         if pr_identifier is not None and repo.is_pr_closed(pr_identifier) is True:
             log.info(
@@ -90,7 +84,7 @@ class RepoRun:
             matcher.pr_title,
             auto_merge_after=matcher.auto_merge_after,
         )
-        apply_actions(pkgs, repo, matcher, tpl_mapping, work_dir)
+        apply_actions(repo, matcher, tpl_mapping, work_dir)
         has_changes = False
         if self.git.has_changes(work_dir) is True:
             log.debug("Committing changes", repo=str(repo))
@@ -171,7 +165,6 @@ class RepoRun:
 
 
 def apply_actions(
-    pkgs: list[package.Package],
     repo: source.Repository,
     rrun: run.Run,
     tpl_mapping: dict,
@@ -186,25 +179,12 @@ def apply_actions(
         )
         a.apply(work_dir, tpl_mapping)
 
-    for pkg in pkgs:
-        for a in pkg.actions:
-            log.debug(
-                "Applying action from package",
-                action=a.__class__.__name__,
-                pkg=pkg.name,
-                repo=str(repo),
-            )
-            a.apply(work_dir, tpl_mapping)
-
 
 def execute(opts: Options) -> bool:
     log_level = logging.getLevelName(opts.config.log_level.upper())
     structlog.configure(
         wrapper_class=structlog.make_filtering_bound_logger(log_level),
     )
-
-    pkg_reader = package.PackageReader(opts.encoding_registry)
-    pkgs = pkg_reader.read_packages(opts.packages_paths)
     repositories: list[source.Repository] = []
     for s in opts.sources.values():
         repositories += s.list_repositories()
@@ -213,7 +193,7 @@ def execute(opts: Options) -> bool:
     success = True
     for run_path in opts.run_paths:
         run_ = run.read(run_path)
-        run_success = execute_run(run_, pkgs, repositories, opts)
+        run_success = execute_run(run_, repositories, opts)
         if run_success is False:
             success = False
 
@@ -233,23 +213,17 @@ def execute_local(
     if len(opts.run_paths) == 0:
         log.warning("No path to a run file supplied")
         return
-
-    pkg_reader = package.PackageReader(opts.encoding_registry)
-    pkgs = pkg_reader.read_packages(opts.packages_paths)
     matcher = run.read(opts.run_paths[0])
-    pkgs_to_apply = find_packages(matcher.packages, pkgs)
     repo = Local(repo_source, repo_project, repo_name)
     tpl_mapping: dict[str, str] = create_template_mapping(repo)
-    apply_actions(pkgs_to_apply, repo, matcher, tpl_mapping, directory)
+    apply_actions(repo, matcher, tpl_mapping, directory)
 
 
 def execute_run(
     run_: run.Run,
-    pkgs: list[package.Package],
     repos: list[source.Repository],
     opts: Options,
 ) -> bool:
-    pkgs_to_apply = find_packages(run_.packages, pkgs)
     gitc = git.Git(
         run_.branch(opts.config.git.branch_prefix),
         opts.config.git.clone_options,
@@ -266,7 +240,7 @@ def execute_run(
 
         log.info("Matched repository", repository=str(repo), run=run_.name)
         try:
-            runner.execute(run_, pkgs_to_apply, repo)
+            runner.execute(run_, repo)
         except Exception:
             log.exception("Run failed", repository=str(repo), run=run_.name)
             success = False
@@ -300,23 +274,6 @@ def config_to_options(cfg: config.Config) -> Options:
         opts.sources["gitlab"] = source_gitlab
 
     return opts
-
-
-def find_packages(
-    pkg_names: list[str], pkgs: list[package.Package]
-) -> list[package.Package]:
-    pkgs_found = []
-    pkg_names_found = []
-    for pkg in pkgs:
-        if pkg.name in pkg_names:
-            pkg_names_found.append(pkg.name)
-            pkgs_found.append(pkg)
-
-    unknown_pkg_names = list(set(pkg_names).difference(pkg_names_found))
-    if len(unknown_pkg_names) > 0:
-        raise RuntimeError(f"unknown packages {unknown_pkg_names}")
-
-    return pkgs_found
 
 
 def create_template_mapping(repo: source.Repository) -> dict[str, str]:
