@@ -37,7 +37,7 @@ Everything is ready. Run rcmt:
 
    rcmt run ./run.py
 
-rcmt will find all matching repositories, check them out locally, apply the action and
+rcmt will find all matching repositories, check them out locally, apply the Action and
 create a Pull Request for each repository.
 
 .. toctree::
