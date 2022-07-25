@@ -2,7 +2,7 @@ import io
 import unittest
 from unittest import mock
 
-from rcmt.matcher import Base, LineInFile, Or, FileExists, FileNotExists, LineNotInFile
+from rcmt.matcher import Base, FileExists, FileNotExists, LineInFile, LineNotInFile, Or
 from rcmt.source import Repository
 
 

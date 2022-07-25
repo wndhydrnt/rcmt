@@ -48,6 +48,7 @@ class FileNotExists(FileExists):
 
     .. versionadded:: 0.11.0
     """
+
     def match(self, repo: source.Repository) -> bool:
         result: bool = super().match(repo)
         return not result
@@ -92,6 +93,7 @@ class LineNotInFile(LineInFile):
 
     .. versionadded:: 0.11.0
     """
+
     def match(self, repo: source.Repository) -> bool:
         result: bool = super().match(repo)
         return not result
