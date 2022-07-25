@@ -222,7 +222,7 @@ class Repository:
         """
         Checks if a pull request is open.
         rcmt will attempt to merge the pull request if this method returns true and
-        there are no new changes from packages.
+        there are no new changes from Actions.
 
         :param identifier: Data to identify the pull request as returned by find_pull_request.
         :return: Indicates that a pull request is open.

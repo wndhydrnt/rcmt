@@ -1,8 +1,8 @@
 Run
 ===
 
-A Run connects packages with repositories. rcmt reads the Run, finds
-repositories and then applies packages to each repository.
+A Run connects Actions with repositories. rcmt reads the Run, finds
+repositories and then applies Actions to each repository.
 
 .. autoclass:: rcmt.run.Run
    :members:
@@ -10,7 +10,7 @@ repositories and then applies packages to each repository.
 Matchers
 --------
 
-A Run uses Matchers to find the repositories to which it applies Packages.
+A Run uses Matchers to find the repositories to which it applies Actions.
 
 FileExists
 ^^^^^^^^^^

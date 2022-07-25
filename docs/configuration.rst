@@ -17,7 +17,7 @@ Reference
 ``dry_run``
 ^^^^^^^^^^^
 
-Matches repositories, checks them out and applies packages but does not create pull
+Matches repositories, checks them out and applies actions but does not create pull
 requests. Defaults to ``false``.
 
 ``git``

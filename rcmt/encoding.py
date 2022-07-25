@@ -35,10 +35,10 @@ class Encoding:
 
     def merge(self, repo_data: Any, pkg_data: Any, strategy: mergedeep.Strategy) -> Any:
         """
-        merge merges the data from a repository with the data from a package.
+        merge merges the data from a repository with the data from an Action.
 
         :param repo_data: Data read from a file in a repository.
-        :param pkg_data: Data read from a file in a package.
+        :param pkg_data: Data read from a file from an Action.
         :param strategy: The strategy to use when merging dicts. Not every encoding
                          needs to support this option.
         :return: Any

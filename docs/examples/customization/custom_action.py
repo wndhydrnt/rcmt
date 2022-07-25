@@ -1,7 +1,7 @@
 import os.path
 
 from rcmt.action import Action
-from rcmt.package import Manifest
+from rcmt.run import Run
 
 
 class HelloWorld(Action):
@@ -17,5 +17,5 @@ class HelloWorld(Action):
             f.write("\n")
 
 
-with Manifest(name="custom-action") as manifest:
-    manifest.add_action(HelloWorld())
+with Run(name="custom-action") as run:
+    run.add_action(HelloWorld())
