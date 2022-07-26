@@ -3,10 +3,10 @@ import unittest
 import unittest.mock
 from typing import Any, Union
 
-from rcmt import action, config, encoding, git, rcmt, source
+from rcmt import action, config, encoding, git, source
 from rcmt.config import Config
 from rcmt.matcher import RepoName
-from rcmt.rcmt import Options, RepoRun, execute_local
+from rcmt.rcmt import Options, RepoRun, execute_local, execute_run
 from rcmt.run import Run
 
 
@@ -295,3 +295,64 @@ class LocalTest(unittest.TestCase):
                 "repo_name": "rcmt",
             },
         )
+
+
+class ExecuteRunTest(unittest.TestCase):
+    @unittest.mock.patch("rcmt.rcmt.RepoRun")
+    def test_execute_run__successful(self, repo_run_class):
+        repo_run = unittest.mock.Mock(spec=RepoRun)
+        repo_run_class.return_value = repo_run
+        run = unittest.mock.Mock(spec=Run)
+        run.match.return_value = True
+        run.name = "test"
+        repository = unittest.mock.Mock(spec=source.Repository)
+        opts = Options(cfg=Config())
+
+        result = execute_run(run_=run, repos=[repository], opts=opts)
+
+        self.assertTrue(result)
+        repo_run.execute.assert_called_once_with(run, repository)
+
+    @unittest.mock.patch("rcmt.rcmt.RepoRun")
+    def test_execute_run__does_not_match(self, repo_run_class):
+        repo_run = unittest.mock.Mock(spec=RepoRun)
+        repo_run_class.return_value = repo_run
+        run = unittest.mock.Mock(spec=Run)
+        run.match.return_value = False
+        run.name = "test"
+        repository = unittest.mock.Mock(spec=source.Repository)
+        opts = Options(cfg=Config())
+
+        result = execute_run(run_=run, repos=[repository], opts=opts)
+
+        self.assertTrue(result)
+        repo_run.execute.not_called()
+
+    @unittest.mock.patch("rcmt.rcmt.RepoRun")
+    def test_execute_run__execute_exception(self, repo_run_class):
+        repo_run = unittest.mock.Mock(spec=RepoRun)
+        repo_run.execute.side_effect = RuntimeError
+        repo_run_class.return_value = repo_run
+        run = unittest.mock.Mock(spec=Run)
+        run.match.return_value = True
+        run.name = "test"
+        repository = unittest.mock.Mock(spec=source.Repository)
+        opts = Options(cfg=Config())
+
+        result = execute_run(run_=run, repos=[repository], opts=opts)
+
+        self.assertFalse(result)
+
+    @unittest.mock.patch("rcmt.rcmt.RepoRun")
+    def test_execute_run__match_exception(self, repo_run_class):
+        repo_run = unittest.mock.Mock(spec=RepoRun)
+        repo_run_class.return_value = repo_run
+        run = unittest.mock.Mock(spec=Run)
+        run.match.side_effect = RuntimeError
+        run.name = "test"
+        repository = unittest.mock.Mock(spec=source.Repository)
+        opts = Options(cfg=Config())
+
+        result = execute_run(run_=run, repos=[repository], opts=opts)
+
+        self.assertFalse(result)
