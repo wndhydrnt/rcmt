@@ -234,12 +234,14 @@ def execute_run(
     runner = RepoRun(gitc, opts)
     success = True
     for repo in repos:
-        if run_.match(repo) is False:
-            log.debug("Repository does not match", repository=str(repo), run=run_.name)
-            continue
-
-        log.info("Matched repository", repository=str(repo), run=run_.name)
         try:
+            if run_.match(repo) is False:
+                log.debug(
+                    "Repository does not match", repository=str(repo), run=run_.name
+                )
+                continue
+
+            log.info("Matched repository", repository=str(repo), run=run_.name)
             runner.execute(run_, repo)
         except Exception:
             log.exception("Run failed", repository=str(repo), run=run_.name)
