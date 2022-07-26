@@ -1,22 +1,18 @@
 updates:
 - commit-message:
-    prefix: "deps"
+    prefix: "chore"
   directory: /
-  ignore:
-  - dependency-name: black
-  - dependency-name: isort
-  - dependency-name: mypy
   package-ecosystem: pip
   schedule:
     interval: daily
 - commit-message:
-    prefix: "deps"
+    prefix: "chore"
   directory: /
   package-ecosystem: docker
   schedule:
     interval: daily
 - commit-message:
-    prefix: "deps"
+    prefix: "chore"
   directory: /docs
   package-ecosystem: pip
   schedule:
