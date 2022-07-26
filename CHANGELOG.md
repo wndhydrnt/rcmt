@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.11.0](https://github.com/wndhydrnt/rcmt/compare/v0.10.0...v0.11.0) (2022-07-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* Remove "rcmt.package" module (#145)
+
+### Features
+
+* Add matchers FileNotExists and LineNotInFile ([#143](https://github.com/wndhydrnt/rcmt/issues/143)) ([6624c46](https://github.com/wndhydrnt/rcmt/commit/6624c46966f6d5a8a6200ec39f44e0b463f542db))
+* Remove "rcmt.package" module ([#145](https://github.com/wndhydrnt/rcmt/issues/145)) ([9c190a3](https://github.com/wndhydrnt/rcmt/commit/9c190a3ac8eaaa641bcaf75cf4649ff34664b32c))
+
+
+### Bug Fixes
+
+* Exception thrown by a Matcher breaks a Run ([#149](https://github.com/wndhydrnt/rcmt/issues/149)) ([14ef32a](https://github.com/wndhydrnt/rcmt/commit/14ef32ae358cb876f0f9f4d19a35a01a14eeb417))
+* Run throws exception if branch has no changes and no PR is open ([#153](https://github.com/wndhydrnt/rcmt/issues/153)) ([0f0503d](https://github.com/wndhydrnt/rcmt/commit/0f0503d08b41aa01d94fb4c0ecff5a55bc790411))
+
 ## [0.10.0](https://github.com/wndhydrnt/rcmt/compare/v0.9.0...v0.10.0) (2022-07-17)
 
 
