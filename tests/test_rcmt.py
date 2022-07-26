@@ -244,6 +244,24 @@ class RunTest(unittest.TestCase):
         repo_mock.create_pull_request.assert_not_called()
         repo_mock.merge_pull_request.assert_not_called()
 
+    def test_no_changes_no_pr(self):
+        cfg = config.Config()
+        opts = Options(cfg)
+        git_mock = create_git_mock("rcmt", "/unit/test", False, False)
+        run = Run(name="testmatch")
+        repo_mock = unittest.mock.Mock(spec=source.Repository)
+        repo_mock.name = "myrepo"
+        repo_mock.project = "myproject"
+        repo_mock.find_pull_request.return_value = None
+
+        runner = RepoRun(git_mock, opts)
+        runner.execute(run, repo_mock)
+
+        repo_mock.is_pr_open.assert_not_called()
+        repo_mock.close_pull_request.assert_not_called()
+        repo_mock.create_pull_request.assert_not_called()
+        repo_mock.merge_pull_request.assert_not_called()
+
     def test_update_pull_request(self):
         cfg = config.Config()
         opts = Options(cfg)

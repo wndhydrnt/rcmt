@@ -96,6 +96,7 @@ class RepoRun:
         if (
             self.git.has_changes_base(base_branch=repo.base_branch, repo_dir=work_dir)
             is False
+            and pr_identifier is not None
             and repo.is_pr_open(pr_identifier) is True
         ):
             if self.opts.config.dry_run:
