@@ -95,6 +95,29 @@ class GithubRepositoryTest(unittest.TestCase):
         self.assertTrue(result)
         gh_repo.get_git_tree.assert_called_once_with("main", True)
 
+    def test_has_file__empty_repository(self):
+        gh_repo = unittest.mock.Mock(spec=github.Repository.Repository)
+        gh_repo.default_branch = "main"
+        gh_repo.get_git_tree.side_effect = github.GithubException(
+            status=409, data=None, headers={}
+        )
+
+        repo = GithubRepository(access_token="", repo=gh_repo)
+        result = repo.has_file("pyroject.toml")
+
+        self.assertFalse(result)
+
+    def test_has_file__other_error(self):
+        gh_repo = unittest.mock.Mock(spec=github.Repository.Repository)
+        gh_repo.default_branch = "main"
+        gh_repo.get_git_tree.side_effect = github.GithubException(
+            status=500, data=None, headers={}
+        )
+
+        repo = GithubRepository(access_token="", repo=gh_repo)
+        with self.assertRaises(github.GithubException):
+            repo.has_file("pyroject.toml")
+
     def test_close_pull_request(self):
         pr_mock = unittest.mock.Mock(spec=github.PullRequest.PullRequest)
 
