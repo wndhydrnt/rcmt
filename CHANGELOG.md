@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.2](https://github.com/wndhydrnt/rcmt/compare/v0.11.1...v0.11.2) (2022-07-27)
+
+
+### Bug Fixes
+
+* Remove invalid parameter of Run.add_matcher() ([12d3c31](https://github.com/wndhydrnt/rcmt/commit/12d3c31cb0aa6d45833095663fc17f876b68f92b))
+
 ## [0.11.1](https://github.com/wndhydrnt/rcmt/compare/v0.11.0...v0.11.1) (2022-07-27)
 
 
