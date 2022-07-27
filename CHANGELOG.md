@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/wndhydrnt/rcmt/compare/v0.11.0...v0.11.1) (2022-07-27)
+
+
+### Bug Fixes
+
+* Run fails if a repository is empty ([#155](https://github.com/wndhydrnt/rcmt/issues/155)) ([351e10d](https://github.com/wndhydrnt/rcmt/commit/351e10d2849c2be1835efd4ed6b99e5ae19d327f))
+
 ## [0.11.0](https://github.com/wndhydrnt/rcmt/compare/v0.10.0...v0.11.0) (2022-07-26)
 
 
