@@ -72,10 +72,17 @@ class GithubRepository(Repository):
         return io.StringIO(file.decoded_content.decode("utf-8"))
 
     def has_file(self, path: str) -> bool:
-        tree = self.repo.get_git_tree(self.base_branch, True)
-        for entry in tree.tree:
-            if fnmatch.fnmatch(entry.path, path):
-                return True
+        try:
+            tree = self.repo.get_git_tree(self.base_branch, True)
+            for entry in tree.tree:
+                if fnmatch.fnmatch(entry.path, path):
+                    return True
+        except github.GithubException as e:
+            if e.status == 409:
+                log.warning("Tree not found - empty repository?", repo=str(self))
+                return False
+            else:
+                raise e
 
         return False
 

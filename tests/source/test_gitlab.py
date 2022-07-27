@@ -95,6 +95,27 @@ class GitlabRepositoryTest(unittest.TestCase):
         self.assertTrue(result)
         project.repository_tree.assert_called_once_with(path="config", iterator=True)
 
+    def test_has_file__empty_repository(self):
+        project = unittest.mock.Mock(spec=Project)
+        project.default_branch = "main"
+        project.namespace = {"full_path": "wandhydrant/test"}
+        project.path = "test"
+        project.repository_tree.side_effect = gitlab.GitlabGetError(response_code=404)
+
+        repo = GitlabRepository(project=project, token="", url="")
+        result = repo.has_file("config/*.json")
+
+        self.assertFalse(result)
+
+    def test_has_file__other_gitlab_error(self):
+        project = unittest.mock.Mock(spec=Project)
+        project.default_branch = "main"
+        project.repository_tree.side_effect = gitlab.GitlabGetError(response_code=500)
+
+        repo = GitlabRepository(project=project, token="", url="")
+        with self.assertRaises(gitlab.GitlabGetError):
+            repo.has_file("config/*.json")
+
     def test_close_pull_request(self):
         pr_mock = unittest.mock.Mock(spec=ProjectMergeRequest)
         notes_mock = unittest.mock.Mock(spec=ProjectMergeRequestNoteManager)
