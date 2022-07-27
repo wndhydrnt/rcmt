@@ -87,7 +87,7 @@ class GitlabRepository(Repository):
     def has_file(self, path: str) -> bool:
         directory = os.path.dirname(path)
         file = os.path.basename(path)
-        tree = self._project.repository_tree(path=directory)
+        tree = self._project.repository_tree(path=directory, iterator=True)
         for entry in tree:
             if entry["type"] != "blob":
                 continue
