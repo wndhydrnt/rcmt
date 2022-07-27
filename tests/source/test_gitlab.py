@@ -69,7 +69,7 @@ class GitlabRepositoryTest(unittest.TestCase):
         result = repo.has_file("pyproject.toml")
 
         self.assertTrue(result)
-        project.repository_tree.assert_called_once_with(path="")
+        project.repository_tree.assert_called_once_with(path="", iterator=True)
 
     def test_has_file__file_does_not_exist(self):
         project = unittest.mock.Mock(spec=Project)
@@ -80,7 +80,7 @@ class GitlabRepositoryTest(unittest.TestCase):
         result = repo.has_file("pyproject.toml")
 
         self.assertFalse(result)
-        project.repository_tree.assert_called_once_with(path="")
+        project.repository_tree.assert_called_once_with(path="", iterator=True)
 
     def test_has_file__wildcard(self):
         project = unittest.mock.Mock(spec=Project)
@@ -93,7 +93,7 @@ class GitlabRepositoryTest(unittest.TestCase):
         result = repo.has_file("config/*.json")
 
         self.assertTrue(result)
-        project.repository_tree.assert_called_once_with(path="config")
+        project.repository_tree.assert_called_once_with(path="config", iterator=True)
 
     def test_close_pull_request(self):
         pr_mock = unittest.mock.Mock(spec=ProjectMergeRequest)
