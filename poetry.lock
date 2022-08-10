@@ -482,7 +482,7 @@ testing = ["argcomplete", "hypothesis (>=3.56)", "mock", "nose", "pygments (>=2.
 
 [[package]]
 name = "python-gitlab"
-version = "3.8.0"
+version = "3.8.1"
 description = "Interact with GitLab API"
 category = "main"
 optional = false
@@ -695,8 +695,8 @@ optional = false
 python-versions = ">=3.5"
 
 [package.extras]
-lint = ["flake8", "mypy", "docutils-stubs"]
 test = ["pytest"]
+lint = ["docutils-stubs", "mypy", "flake8"]
 
 [[package]]
 name = "structlog"
@@ -1218,8 +1218,8 @@ pytest = [
     {file = "pytest-7.1.2.tar.gz", hash = "sha256:a06a0425453864a270bc45e71f783330a7428defb4230fb5e6a731fde06ecd45"},
 ]
 python-gitlab = [
-    {file = "python-gitlab-3.8.0.tar.gz", hash = "sha256:08ccb2d2db6882bca76e370b0b7fee724e978b1e0de2970f1a704fa451bbcfa0"},
-    {file = "python_gitlab-3.8.0-py3-none-any.whl", hash = "sha256:a6c26e5fa9f211d711b15b7e151d8667d8dd9a6194038c3ae81160d2c2f0b25c"},
+    {file = "python-gitlab-3.8.1.tar.gz", hash = "sha256:e1db25076520e118c7c26becb0d074a7a68127439870d43b8636342206b1e091"},
+    {file = "python_gitlab-3.8.1-py3-none-any.whl", hash = "sha256:6d10de90f4fcb95ea92e301528d2442ac5094da9b7137fa1294614369679e791"},
 ]
 pytz = [
     {file = "pytz-2021.1-py2.py3-none-any.whl", hash = "sha256:eb10ce3e7736052ed3623d49975ce333bcd712c7bb19a58b9e2089d4057d0798"},
