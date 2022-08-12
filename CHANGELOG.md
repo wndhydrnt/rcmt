@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.12.0](https://github.com/wndhydrnt/rcmt/compare/v0.11.2...v0.12.0) (2022-08-12)
+
+
+### Features
+
+* Check approvals before merging GitLab MR ([#176](https://github.com/wndhydrnt/rcmt/issues/176)) ([b15be8f](https://github.com/wndhydrnt/rcmt/commit/b15be8f801888cb599a66b5fb0d2a1548cfb8849))
+
+
+### Bug Fixes
+
+* auto_merge_after fails on GitLab ([#178](https://github.com/wndhydrnt/rcmt/issues/178)) ([9e03e39](https://github.com/wndhydrnt/rcmt/commit/9e03e393d6311772e77f2f0da38b1e08649d19a3))
+
 ## [0.11.2](https://github.com/wndhydrnt/rcmt/compare/v0.11.1...v0.11.2) (2022-07-27)
 
 
