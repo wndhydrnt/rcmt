@@ -5,6 +5,8 @@ import gitlab.exceptions
 from gitlab.v4.objects import (
     Project,
     ProjectMergeRequest,
+    ProjectMergeRequestApproval,
+    ProjectMergeRequestApprovalManager,
     ProjectMergeRequestNoteManager,
 )
 from gitlab.v4.objects.files import ProjectFile, ProjectFileManager
@@ -159,3 +161,21 @@ class GitlabRepositoryTest(unittest.TestCase):
         self.assertEqual(pr_data.title, pr_mock.title)
         self.assertEqual(pr_data.body, pr_mock.description)
         pr_mock.save.assert_called_once()
+
+    def test_has_successful_pr_build__missing_approvals(self):
+        pr_mock = unittest.mock.Mock(spec=ProjectMergeRequest)
+        approval_manager_mock = unittest.mock.Mock(
+            spec=ProjectMergeRequestApprovalManager
+        )
+        pr_mock.approvals = approval_manager_mock
+        mr_approval_mock = unittest.mock.Mock(spec=ProjectMergeRequestApproval)
+        mr_approval_mock.attributes.return_value = {"merge_status": "cannot_be_merged"}
+        approval_manager_mock.get.return_value = mr_approval_mock
+        project_mock = unittest.mock.Mock(spec=Project)
+        project_mock.namespace = {"full_path": "wandhydrant/test"}
+        project_mock.path = "test"
+
+        repo = GitlabRepository(project=project_mock, token="", url="")
+        result = repo.has_successful_pr_build(identifier=pr_mock)
+
+        self.assertFalse(result)
