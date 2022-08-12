@@ -1,3 +1,4 @@
+import datetime
 import unittest
 import unittest.mock
 
@@ -179,3 +180,26 @@ class GitlabRepositoryTest(unittest.TestCase):
         result = repo.has_successful_pr_build(identifier=pr_mock)
 
         self.assertFalse(result)
+
+    def test_pr_created_at__parses_timestamp(self):
+        mr_mock = unittest.mock.Mock(spec=ProjectMergeRequest)
+        mr_mock.created_at = "2022-08-02T16:07:26.697Z"
+
+        repo = GitlabRepository(
+            project=unittest.mock.Mock(spec=ProjectMergeRequest), token="", url=""
+        )
+        result = repo.pr_created_at(mr_mock)
+
+        self.assertEqual(
+            result,
+            datetime.datetime(
+                year=2022,
+                month=8,
+                day=2,
+                hour=16,
+                minute=7,
+                second=26,
+                microsecond=697000,
+                tzinfo=None,
+            ),
+        )

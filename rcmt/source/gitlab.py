@@ -155,7 +155,7 @@ class GitlabRepository(Repository):
         return self._project.path
 
     def pr_created_at(self, pr: GitlabMergeRequest) -> datetime.datetime:
-        corrected = pr.created_at.replace("Z", "+00:00")
+        corrected: str = pr.created_at.replace("Z", "")
         return datetime.datetime.fromisoformat(corrected)
 
     @property
