@@ -143,9 +143,12 @@ class GitlabRepository(Repository):
     def is_pr_open(self, mr: GitlabMergeRequest) -> bool:
         return mr.state == "opened"
 
-    def merge_pull_request(self, identifier: GitlabMergeRequest) -> None:
+    def merge_pull_request(self, identifier: GitlabMergeRequest, delete: bool) -> None:
         log.debug("Merging merge request", repo=str(self), id=identifier.get_id())
         identifier.merge()
+        if identifier.should_remove_source_branch is not True and delete is True:
+            log.info("Deleting source branch", repo=str(self), id=identifier.get_id())
+            self._project.branches.delete(id=identifier.source_branch)
 
     @property
     def name(self) -> str:

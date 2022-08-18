@@ -225,12 +225,13 @@ class Repository:
         there are no new changes from Actions.
 
         :param identifier: Data to identify the pull request as returned by find_pull_request.
+        :param delete: Indicates if the source branch should be deleted.
         :return: Indicates that a pull request is open.
         :rtype: bool
         """
         raise NotImplementedError("class does not implement Repository.is_pr_open()")
 
-    def merge_pull_request(self, identifier: Any) -> None:
+    def merge_pull_request(self, identifier: Any, delete: bool) -> None:
         """
         Merges a pull request.
 

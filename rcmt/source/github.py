@@ -109,10 +109,12 @@ class GithubRepository(Repository):
     def is_pr_open(self, pr: github.PullRequest.PullRequest) -> bool:
         return pr.state == "open"
 
-    def merge_pull_request(self, pr: github.PullRequest.PullRequest):
+    def merge_pull_request(self, pr: github.PullRequest.PullRequest, delete: bool):
         if pr.mergeable:
             log.debug("Merging pull request", repo=str(self))
             pr.merge(commit_title="Auto-merge by rcmt")
+            if self.repo.delete_branch_on_merge is False and delete is True:
+                pass
         else:
             log.warn(
                 "GitHub indicates that the PR is not mergeable",
