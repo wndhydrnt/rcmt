@@ -170,7 +170,7 @@ class GitlabRepositoryTest(unittest.TestCase):
         )
         pr_mock.approvals = approval_manager_mock
         mr_approval_mock = unittest.mock.Mock(spec=ProjectMergeRequestApproval)
-        mr_approval_mock.attributes.return_value = {"merge_status": "cannot_be_merged"}
+        mr_approval_mock.approved = False
         approval_manager_mock.get.return_value = mr_approval_mock
         project_mock = unittest.mock.Mock(spec=Project)
         project_mock.namespace = {"full_path": "wandhydrant/test"}

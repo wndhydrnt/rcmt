@@ -105,10 +105,7 @@ class GitlabRepository(Repository):
         return False
 
     def has_successful_pr_build(self, identifier: GitlabMergeRequest) -> bool:
-        if (
-            identifier.approvals.get().attributes.get("merge_status", "")
-            != "can_be_merged"
-        ):
+        if identifier.approvals.get().approved is False:
             log.debug("Approvals missing", repo=str(self), id=identifier.get_id())
             return False
 
