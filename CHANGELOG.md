@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.1](https://github.com/wndhydrnt/rcmt/compare/v0.12.0...v0.12.1) (2022-08-18)
+
+
+### Bug Fixes
+
+* GitLab MR gets merged even though it has not been approved ([#179](https://github.com/wndhydrnt/rcmt/issues/179)) ([83c715f](https://github.com/wndhydrnt/rcmt/commit/83c715f91bc97da3825b6eeccc2ae3b0d5c0ca42))
+
 ## [0.12.0](https://github.com/wndhydrnt/rcmt/compare/v0.11.2...v0.12.0) (2022-08-12)
 
 
