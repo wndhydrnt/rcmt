@@ -59,6 +59,7 @@ class Run:
         auto_merge_after: Optional[datetime.timedelta] = None,
         branch_name: str = "",
         commit_msg: str = "Applied actions",
+        delete_branch_after_merge: bool = True,
         merge_once: bool = False,
         pr_body: str = "",
         pr_title: str = "",
@@ -67,6 +68,7 @@ class Run:
         self.auto_merge_after = auto_merge_after
         self.branch_name = branch_name
         self.commit_msg = commit_msg
+        self.delete_branch_after_merge = delete_branch_after_merge
         self.pr_body = pr_body
         self.pr_title = pr_title
         self.merge_once = merge_once

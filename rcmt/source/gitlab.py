@@ -53,6 +53,10 @@ class GitlabRepository(Repository):
             }
         )
 
+    def delete_branch(self, identifier: GitlabMergeRequest) -> None:
+        if identifier.should_remove_source_branch is not True:
+            self._project.branches.get(id=identifier.source_branch, lazy=True).delete()
+
     def find_pull_request(self, branch: str) -> Union[Any, None]:
         log.debug("Listing merge requests", repo=str(self))
         mrs = self._project.mergerequests.list(
@@ -143,12 +147,10 @@ class GitlabRepository(Repository):
     def is_pr_open(self, mr: GitlabMergeRequest) -> bool:
         return mr.state == "opened"
 
-    def merge_pull_request(self, identifier: GitlabMergeRequest, delete: bool) -> None:
+    def merge_pull_request(self, identifier: GitlabMergeRequest) -> bool:
         log.debug("Merging merge request", repo=str(self), id=identifier.get_id())
         identifier.merge()
-        if identifier.should_remove_source_branch is not True and delete is True:
-            log.info("Deleting source branch", repo=str(self), id=identifier.get_id())
-            self._project.branches.delete(id=identifier.source_branch)
+        return True
 
     @property
     def name(self) -> str:

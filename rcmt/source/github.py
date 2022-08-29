@@ -49,6 +49,10 @@ class GithubRepository(Repository):
             maintainer_can_modify=True,
         )
 
+    def delete_branch(self, identifier: github.PullRequest.PullRequest) -> None:
+        if self.repo.delete_branch_on_merge is False:
+            self.repo.get_git_ref(ref=f"heads/{identifier.head.ref}").delete()
+
     def find_pull_request(self, branch: str) -> Union[Any, None]:
         log.debug("Listing pull requests", repo=str(self))
         for pr in self.repo.get_pulls(state="all"):
@@ -109,18 +113,18 @@ class GithubRepository(Repository):
     def is_pr_open(self, pr: github.PullRequest.PullRequest) -> bool:
         return pr.state == "open"
 
-    def merge_pull_request(self, pr: github.PullRequest.PullRequest, delete: bool):
+    def merge_pull_request(self, pr: github.PullRequest.PullRequest) -> bool:
         if pr.mergeable:
             log.debug("Merging pull request", repo=str(self))
             pr.merge(commit_title="Auto-merge by rcmt")
-            if self.repo.delete_branch_on_merge is False and delete is True:
-                pass
+            return True
         else:
             log.warn(
                 "GitHub indicates that the PR is not mergeable",
                 pr_id=pr.id,
                 repo=str(self),
             )
+            return False
 
     @property
     def name(self) -> str:

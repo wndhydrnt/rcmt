@@ -157,7 +157,10 @@ class RepoRun:
                 log.warn("DRY RUN: Not merging pull request", repo=str(repo))
             else:
                 log.info("Merge pull request", repo=str(repo))
-                repo.merge_pull_request(pr_identifier)
+                merged = repo.merge_pull_request(pr_identifier)
+                if merged and matcher.delete_branch_after_merge:
+                    log.info("Deleting source branch", repo=str(self))
+                    repo.delete_branch(pr_identifier)
 
             return
 
