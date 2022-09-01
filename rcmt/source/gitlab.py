@@ -28,6 +28,9 @@ class GitlabRepository(Repository):
     def base_branch(self) -> str:
         return self._project.default_branch
 
+    def can_merge_pull_request(self, identifier: GitlabMergeRequest) -> bool:
+        return True
+
     @property
     def clone_url(self) -> str:
         # Value of username does not matter to GitLab.
@@ -147,10 +150,9 @@ class GitlabRepository(Repository):
     def is_pr_open(self, mr: GitlabMergeRequest) -> bool:
         return mr.state == "opened"
 
-    def merge_pull_request(self, identifier: GitlabMergeRequest) -> bool:
+    def merge_pull_request(self, identifier: GitlabMergeRequest):
         log.debug("Merging merge request", repo=str(self), id=identifier.get_id())
         identifier.merge()
-        return True
 
     @property
     def name(self) -> str:

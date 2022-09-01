@@ -153,12 +153,16 @@ class RepoRun:
                 log.info("Too early to merge pull request", repo=str(repo))
                 return
 
+            if not repo.can_merge_pull_request(pr_identifier):
+                log.warn("Cannot merge pull request", repo=str(repo))
+                return
+
             if self.opts.config.dry_run:
                 log.warn("DRY RUN: Not merging pull request", repo=str(repo))
             else:
                 log.info("Merge pull request", repo=str(repo))
-                merged = repo.merge_pull_request(pr_identifier)
-                if merged and matcher.delete_branch_after_merge:
+                repo.merge_pull_request(pr_identifier)
+                if matcher.delete_branch_after_merge:
                     log.info("Deleting source branch", repo=str(self))
                     repo.delete_branch(pr_identifier)
 

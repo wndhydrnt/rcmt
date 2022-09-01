@@ -119,6 +119,21 @@ class Repository:
         """
         raise NotImplementedError("class does not implement Repository.base_branch()")
 
+    def can_merge_pull_request(self, identifier: Any) -> bool:
+        """
+        Checks if a pull request can be merged.
+
+        Use this function to check if a Source, e.g. GitHub, indicates that merge
+        conflicts exist.
+
+        :param identifier: Data to identify the pull request as returned by find_pull_request.
+        :return: Indicates if the pull request can be merged.
+        :rtype: bool
+        """
+        raise NotImplementedError(
+            "class does not implement Repository.can_merge_pull_request()"
+        )
+
     @property
     def clone_url(self) -> str:
         """
@@ -235,13 +250,11 @@ class Repository:
         """
         raise NotImplementedError("class does not implement Repository.is_pr_open()")
 
-    def merge_pull_request(self, identifier: Any) -> bool:
+    def merge_pull_request(self, identifier: Any) -> None:
         """
         Merges a pull request.
 
         :param identifier: Data to identify the pull request as returned by find_pull_request.
-        :return: Indicates if the pull request has been merged.
-        :rtype: bool
         """
         raise NotImplementedError(
             "class does not implement Repository.merge_pull_request()"

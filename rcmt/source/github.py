@@ -25,6 +25,11 @@ class GithubRepository(Repository):
     def base_branch(self) -> str:
         return self.repo.default_branch
 
+    def can_merge_pull_request(
+        self, identifier: github.PullRequest.PullRequest
+    ) -> bool:
+        return identifier.mergeable
+
     @property
     def clone_url(self):
         return add_credentials_to_url(
@@ -113,18 +118,9 @@ class GithubRepository(Repository):
     def is_pr_open(self, pr: github.PullRequest.PullRequest) -> bool:
         return pr.state == "open"
 
-    def merge_pull_request(self, pr: github.PullRequest.PullRequest) -> bool:
-        if pr.mergeable:
-            log.debug("Merging pull request", repo=str(self))
-            pr.merge(commit_title="Auto-merge by rcmt")
-            return True
-        else:
-            log.warn(
-                "GitHub indicates that the PR is not mergeable",
-                pr_id=pr.id,
-                repo=str(self),
-            )
-            return False
+    def merge_pull_request(self, pr: github.PullRequest.PullRequest) -> None:
+        log.debug("Merging pull request", repo=str(self))
+        pr.merge(commit_title="Auto-merge by rcmt")
 
     @property
     def name(self) -> str:
