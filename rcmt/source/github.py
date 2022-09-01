@@ -28,6 +28,9 @@ class GithubRepository(Repository):
     def can_merge_pull_request(
         self, identifier: github.PullRequest.PullRequest
     ) -> bool:
+        if identifier.mergeable is None:
+            return True
+
         return identifier.mergeable
 
     @property
