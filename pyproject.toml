@@ -37,7 +37,7 @@ python-gitlab = ">=2.10,<4.0"
 humanize = "^4.2.3"
 
 [tool.poetry.dev-dependencies]
-black = "22.6.0"
+black = "22.8.0"
 isort = "5.10.1"
 pytest = "^7.1.2"
 mypy = "0.971"
