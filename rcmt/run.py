@@ -24,6 +24,8 @@ class Run:
     :param branch_name: Name of the branch in git. Defaults to ``branch_prefix`` +
                         ``name``.
     :param commit_msg: Message to use when committing changes via git.
+    :delete_branch_after_merge: If ``True``, rcmt will delete the branch after it has
+                                been merged.
     :param merge_once: If ``True``, rcmt does not create another pull request if it
                        created a pull request for the same branch before and that pull
                        request has been merged.
