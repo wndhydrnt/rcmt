@@ -31,6 +31,13 @@ class GithubRepository(Repository):
         if identifier.mergeable is None:
             return True
 
+        if identifier.mergeable is False:
+            log.warn(
+                "GitHub indicates that the PR is not mergeable",
+                pr_id=identifier.id,
+                repo=str(self),
+            )
+
         return identifier.mergeable
 
     @property
