@@ -5,6 +5,8 @@ import unittest.mock
 import gitlab.exceptions
 from gitlab.v4.objects import (
     Project,
+    ProjectBranch,
+    ProjectBranchManager,
     ProjectMergeRequest,
     ProjectMergeRequestApproval,
     ProjectMergeRequestApprovalManager,
@@ -186,7 +188,7 @@ class GitlabRepositoryTest(unittest.TestCase):
         mr_mock.created_at = "2022-08-02T16:07:26.697Z"
 
         repo = GitlabRepository(
-            project=unittest.mock.Mock(spec=ProjectMergeRequest), token="", url=""
+            project=unittest.mock.Mock(spec=Project), token="", url=""
         )
         result = repo.pr_created_at(mr_mock)
 
@@ -203,3 +205,39 @@ class GitlabRepositoryTest(unittest.TestCase):
                 tzinfo=None,
             ),
         )
+
+    def test_can_merge_pull_request(self):
+        repo = GitlabRepository(
+            project=unittest.mock.Mock(spec=Project), token="", url=""
+        )
+        self.assertTrue(
+            repo.can_merge_pull_request(unittest.mock.Mock(spec=ProjectMergeRequest))
+        )
+
+    def test_delete_branch__remove_branch_configured(self):
+        branches_mock = unittest.mock.Mock(spec=ProjectBranchManager)
+        project_mock = unittest.mock.Mock(spec=Project)
+        project_mock.branches = branches_mock
+        mr_mock = unittest.mock.Mock(spec=ProjectMergeRequest)
+        mr_mock.should_remove_source_branch = True
+
+        repo = GitlabRepository(project=project_mock, token="", url="")
+        repo.delete_branch(identifier=mr_mock)
+
+        branches_mock.get.assert_not_called()
+
+    def test_delete_branch__delete(self):
+        branch_mock = unittest.mock.Mock(spec=ProjectBranch)
+        branches_mock = unittest.mock.Mock(spec=ProjectBranchManager)
+        branches_mock.get.return_value = branch_mock
+        project_mock = unittest.mock.Mock(spec=Project)
+        project_mock.branches = branches_mock
+        mr_mock = unittest.mock.Mock(spec=ProjectMergeRequest)
+        mr_mock.should_remove_source_branch = False
+        mr_mock.source_branch = "rcmt/unittest"
+
+        repo = GitlabRepository(project=project_mock, token="", url="")
+        repo.delete_branch(identifier=mr_mock)
+
+        branches_mock.get.assert_called_once_with(id="rcmt/unittest", lazy=True)
+        branch_mock.delete.assert_called_once_with()

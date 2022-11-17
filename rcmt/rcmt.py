@@ -114,8 +114,8 @@ class RepoRun:
 
             return
 
-        # Combining self.git.needs_push and has_changes avoids an unnecessary push of the
-        # branch if the remote branch does not exist.
+        # Combining self.git.needs_push and has_changes avoids an unnecessary push of
+        # the branch if the remote branch does not exist.
         needs_push = self.git.needs_push(work_dir) and has_changes
         if needs_push:
             if self.opts.config.dry_run:
