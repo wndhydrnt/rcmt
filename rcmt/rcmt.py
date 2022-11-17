@@ -114,8 +114,8 @@ class RepoRun:
 
             return
 
-        # Combining self.git.needs_push and has_changes avoids an unnecessary push of the
-        # branch if the remote branch does not exist.
+        # Combining self.git.needs_push and has_changes avoids an unnecessary push of
+        # the branch if the remote branch does not exist.
         needs_push = self.git.needs_push(work_dir) and has_changes
         if needs_push:
             if self.opts.config.dry_run:
@@ -153,11 +153,18 @@ class RepoRun:
                 log.info("Too early to merge pull request", repo=str(repo))
                 return
 
+            if not repo.can_merge_pull_request(pr_identifier):
+                log.warn("Cannot merge pull request", repo=str(repo))
+                return
+
             if self.opts.config.dry_run:
                 log.warn("DRY RUN: Not merging pull request", repo=str(repo))
             else:
                 log.info("Merge pull request", repo=str(repo))
                 repo.merge_pull_request(pr_identifier)
+                if matcher.delete_branch_after_merge:
+                    log.info("Deleting source branch", repo=str(self))
+                    repo.delete_branch(pr_identifier)
 
             return
 

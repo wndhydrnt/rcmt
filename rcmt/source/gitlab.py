@@ -28,6 +28,9 @@ class GitlabRepository(Repository):
     def base_branch(self) -> str:
         return self._project.default_branch
 
+    def can_merge_pull_request(self, identifier: GitlabMergeRequest) -> bool:
+        return True
+
     @property
     def clone_url(self) -> str:
         # Value of username does not matter to GitLab.
@@ -52,6 +55,10 @@ class GitlabRepository(Repository):
                 "title": pr.title,
             }
         )
+
+    def delete_branch(self, identifier: GitlabMergeRequest) -> None:
+        if identifier.should_remove_source_branch is not True:
+            self._project.branches.get(id=identifier.source_branch, lazy=True).delete()
 
     def find_pull_request(self, branch: str) -> Union[Any, None]:
         log.debug("Listing merge requests", repo=str(self))
@@ -143,7 +150,7 @@ class GitlabRepository(Repository):
     def is_pr_open(self, mr: GitlabMergeRequest) -> bool:
         return mr.state == "opened"
 
-    def merge_pull_request(self, identifier: GitlabMergeRequest) -> None:
+    def merge_pull_request(self, identifier: GitlabMergeRequest):
         log.debug("Merging merge request", repo=str(self), id=identifier.get_id())
         identifier.merge()
 

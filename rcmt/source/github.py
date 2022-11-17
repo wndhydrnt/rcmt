@@ -25,6 +25,21 @@ class GithubRepository(Repository):
     def base_branch(self) -> str:
         return self.repo.default_branch
 
+    def can_merge_pull_request(
+        self, identifier: github.PullRequest.PullRequest
+    ) -> bool:
+        if identifier.mergeable is None:
+            return True
+
+        if identifier.mergeable is False:
+            log.warn(
+                "GitHub indicates that the PR is not mergeable",
+                pr_id=identifier.id,
+                repo=str(self),
+            )
+
+        return identifier.mergeable
+
     @property
     def clone_url(self):
         return add_credentials_to_url(
@@ -48,6 +63,10 @@ class GithubRepository(Repository):
             head=branch,
             maintainer_can_modify=True,
         )
+
+    def delete_branch(self, identifier: github.PullRequest.PullRequest) -> None:
+        if self.repo.delete_branch_on_merge is False:
+            self.repo.get_git_ref(ref=f"heads/{identifier.head.ref}").delete()
 
     def find_pull_request(self, branch: str) -> Union[Any, None]:
         log.debug("Listing pull requests", repo=str(self))
@@ -109,16 +128,9 @@ class GithubRepository(Repository):
     def is_pr_open(self, pr: github.PullRequest.PullRequest) -> bool:
         return pr.state == "open"
 
-    def merge_pull_request(self, pr: github.PullRequest.PullRequest):
-        if pr.mergeable:
-            log.debug("Merging pull request", repo=str(self))
-            pr.merge(commit_title="Auto-merge by rcmt")
-        else:
-            log.warn(
-                "GitHub indicates that the PR is not mergeable",
-                pr_id=pr.id,
-                repo=str(self),
-            )
+    def merge_pull_request(self, pr: github.PullRequest.PullRequest) -> None:
+        log.debug("Merging pull request", repo=str(self))
+        pr.merge(commit_title="Auto-merge by rcmt")
 
     @property
     def name(self) -> str:

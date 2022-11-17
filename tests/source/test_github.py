@@ -5,8 +5,10 @@ import github
 import github.PullRequest
 import github.Repository
 from github.ContentFile import ContentFile
+from github.GitRef import GitRef
 from github.GitTree import GitTree
 from github.GitTreeElement import GitTreeElement
+from github.PullRequestPart import PullRequestPart
 
 from rcmt.source import source
 from rcmt.source.github import GithubRepository
@@ -155,3 +157,52 @@ class GithubRepositoryTest(unittest.TestCase):
         repo.update_pull_request(pr_mock, pr_data)
 
         pr_mock.edit.assert_called_once_with(title=pr_data.title, body=pr_data.body)
+
+    def test_can_merge_pull_request__pr_mergeable(self):
+        pr_mock = unittest.mock.Mock(spec=github.PullRequest.PullRequest)
+        pr_mock.mergeable = None
+
+        repo = GithubRepository(
+            access_token="", repo=unittest.mock.Mock(spec=github.Repository.Repository)
+        )
+        result = repo.can_merge_pull_request(identifier=pr_mock)
+
+        self.assertTrue(result)
+
+    def test_can_merge_pull_request__pr_not_mergeable(self):
+        pr_mock = unittest.mock.Mock(spec=github.PullRequest.PullRequest)
+        pr_mock.mergeable = False
+
+        repo = GithubRepository(
+            access_token="", repo=unittest.mock.Mock(spec=github.Repository.Repository)
+        )
+        result = repo.can_merge_pull_request(identifier=pr_mock)
+
+        self.assertFalse(result)
+
+    def test_delete_branch__repo_configures_deletion(self):
+        gh_repo_mock = unittest.mock.Mock(spec=github.Repository.Repository)
+        gh_repo_mock.delete_branch_on_merge = True
+
+        repo = GithubRepository(access_token="", repo=gh_repo_mock)
+        repo.delete_branch(
+            identifier=unittest.mock.Mock(spec=github.PullRequest.PullRequest)
+        )
+
+        gh_repo_mock.get_git_ref.assert_not_called()
+
+    def test_delete_branch__delete(self):
+        git_ref_mock = unittest.mock.Mock(spec=GitRef)
+        gh_repo_mock = unittest.mock.Mock(spec=github.Repository.Repository)
+        gh_repo_mock.delete_branch_on_merge = False
+        gh_repo_mock.get_git_ref.return_value = git_ref_mock
+        pr_mock = unittest.mock.Mock(spec=github.PullRequest.PullRequest)
+        head_mock = unittest.mock.Mock(spec=PullRequestPart)
+        head_mock.ref = "rcmt/unittest"
+        pr_mock.head = head_mock
+
+        repo = GithubRepository(access_token="", repo=gh_repo_mock)
+        repo.delete_branch(identifier=pr_mock)
+
+        gh_repo_mock.get_git_ref.assert_called_once_with(ref="heads/rcmt/unittest")
+        git_ref_mock.delete.assert_called_once_with()
