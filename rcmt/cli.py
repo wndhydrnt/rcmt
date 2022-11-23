@@ -40,7 +40,23 @@ def local(
     rcmt.execute_local(directory=directory, repository=repository, opts=opts)
 
 
-@click.command()
+run_help = """Apply a Run to all matching repositories of a remote Git host.
+
+rcmt will find all matching repositories, clone them, apply each Action from
+the Run file and create a pull request if files have changed.
+
+Examples:
+
+\b
+# Apply Run "run.py"
+rcmt run --config ./config.yaml ./run.py
+"""
+
+
+@click.command(
+    help=run_help,
+    short_help="Apply a Run to all matching repositories of a remote Git host.",
+)
 @click.option("--config", help="Path to configuration file.", default="", type=str)
 @click.argument("run_file", nargs=-1)
 def run(config: str, run_file: list[str]):
