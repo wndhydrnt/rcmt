@@ -347,7 +347,7 @@ class LocalTest(unittest.TestCase):
         run.add_action(action_mock)
         run_read_mock.return_value = run
 
-        execute_local("/tmp/repository", "github.com", "wndhydrnt", "rcmt", opts)
+        execute_local("/tmp/repository", "github.com/wndhydrnt/rcmt", opts)
 
         run_read_mock.assert_called_with("/tmp/run.py")
         action_mock.apply.assert_called_once_with(
