@@ -5,38 +5,39 @@ import rcmt
 local_help = """Apply a Run to a local directory.
 
 This command allows testing of a Run and its Actions quickly. It does not clone a
-repository or pushes changes to a remote.
+repository or pushes changes to a remote Git host.
 
-Example Usage:
+Examples:
 
-rcmt local --config <config file> <Run file> <checkout of repository>
+\b
+# Apply Run "run.py" to a local checkout at "~/checkouts/example-repository"
+rcmt local --config ./config.yaml ./run.py ~/checkouts/example-repository
+
+\b
+# Apply Run "run.py" and set a repository for templating
+rcmt local --config ./config.yaml --repository github.com/wndhydrnt/rcmt ./run.py ~/checkouts/example-repository
 """
 
 
 @click.command(help=local_help, short_help="Apply a Run to a local directory.")
 @click.option("--config", help="Path to configuration file.", default="", type=str)
-@click.option("--repo-source", default="github.com", show_default=True, type=str)
-@click.option("--repo-project", default="wndhydrnt", show_default=True, type=str)
-@click.option("--repo-name", default="rcmt", show_default=True, type=str)
+@click.option(
+    "--repository",
+    help="Name of the repository, e.g. github.com/wndhydrnt/rcmt. Used for templating.",
+    default="",
+    type=str,
+)
 @click.argument("run_file")
 @click.argument("directory")
 def local(
     config: str,
-    repo_source: str,
-    repo_project: str,
-    repo_name: str,
+    repository: str,
     run_file: str,
     directory: str,
 ):
     opts = rcmt.options_from_config(config)
     opts.run_paths = [run_file]
-    rcmt.execute_local(
-        directory=directory,
-        repo_source=repo_source,
-        repo_project=repo_project,
-        repo_name=repo_name,
-        opts=opts,
-    )
+    rcmt.execute_local(directory=directory, repository=repository, opts=opts)
 
 
 @click.command()

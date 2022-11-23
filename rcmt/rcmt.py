@@ -211,9 +211,7 @@ def execute(opts: Options) -> bool:
     return success
 
 
-def execute_local(
-    directory: str, repo_source: str, repo_project: str, repo_name: str, opts: Options
-) -> None:
+def execute_local(directory: str, repository: str, opts: Options) -> None:
     log_level = logging.getLevelName(opts.config.log_level.upper())
     structlog.configure(
         wrapper_class=structlog.make_filtering_bound_logger(log_level),
@@ -221,8 +219,17 @@ def execute_local(
     if len(opts.run_paths) == 0:
         log.warning("No path to a run file supplied")
         return
+    repo_host = ""
+    repo_project = ""
+    repo_name = ""
+    if repository != "":
+        parts = repository.split("/")
+        repo_host = parts[0]
+        repo_project = "/".join(parts[1:-1])
+        repo_name = parts[-1]
+
     matcher = run.read(opts.run_paths[0])
-    repo = Local(repo_source, repo_project, repo_name)
+    repo = Local(repo_host, repo_project, repo_name)
     tpl_mapping: dict[str, str] = create_template_mapping(repo)
     apply_actions(repo, matcher, tpl_mapping, directory)
 
