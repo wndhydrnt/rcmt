@@ -15,5 +15,7 @@ jobs:
           python-version: ${{ matrix.version }}
       - uses: Gr1N/setup-poetry@v5
       - run: poetry install
-      - run: make lint
-      - run: make test
+      - run: poetry env info
+      - run: poetry show --tree
+#      - run: make lint
+#      - run: make test
