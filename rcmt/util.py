@@ -1,6 +1,6 @@
 import glob
 import os.path
-from typing import Any, Generator, Union
+from typing import Any, Generator
 
 
 def iglob(root: str, selector: str) -> Generator[str, Any, None]:
