@@ -5,7 +5,7 @@ import os.path
 import random
 import string
 import sys
-from typing import AnyStr, Optional
+from typing import Optional
 
 from rcmt import action, matcher, source
 from rcmt.fs import FileProxy
