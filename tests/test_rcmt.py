@@ -2,6 +2,7 @@ import datetime
 import unittest
 import unittest.mock
 from typing import Any, Union
+from unittest.mock import call
 
 from rcmt import action, config, encoding, git, source
 from rcmt.config import Config
@@ -180,7 +181,7 @@ class RunTest(unittest.TestCase):
         opts = Options(cfg)
         git_mock = create_git_mock("rcmt", "/unit/test", True)
         runner = RepoRun(git_mock, opts)
-        run = Run(name="testmatch")
+        run = Run(name="testmatch", merge_once=True)
         run.add_matcher(RepoName("local"))
         action_mock = unittest.mock.Mock(spec=action.Action)
         run.add_action(action_mock)
@@ -335,6 +336,47 @@ class RunTest(unittest.TestCase):
         repo_mock.update_pull_request.assert_not_called()
         repo_mock.can_merge_pull_request.assert_called_once()
         repo_mock.delete_branch.assert_not_called()
+
+    def test_recreate_pr_if_closed(self):
+        cfg = config.Config()
+        opts = Options(cfg)
+        git_mock = create_git_mock("rcmt", "/unit/test", True)
+        runner = RepoRun(git_mock, opts)
+        run = Run(commit_msg="Custom commit", name="testrun")
+        run.add_matcher(RepoName("local"))
+        action_mock = unittest.mock.Mock(spec=action.Action)
+        run.add_action(action_mock)
+        repo_mock = unittest.mock.Mock(spec=source.Repository)
+        repo_mock.name = "myrepo"
+        repo_mock.project = "myproject"
+        repo_mock.source = "githost.com"
+        repo_mock.find_pull_request.return_value = "someid"
+        repo_mock.is_pr_closed.return_value = True
+
+        runner.execute(run, repo_mock)
+
+        git_mock.commit_changes.assert_called_once_with("/unit/test", "Custom commit")
+        action_mock.apply.assert_called_once_with(
+            "/unit/test",
+            {
+                "repo_name": "myrepo",
+                "repo_project": "myproject",
+                "repo_source": "githost.com",
+            },
+        )
+        repo_mock.find_pull_request.assert_called_once_with("rcmt")
+        git_mock.push.assert_called_once_with("/unit/test")
+        repo_mock.is_pr_closed.assert_has_calls([call("someid"), call("someid")])
+        expected_pr = source.PullRequest(
+            run.auto_merge,
+            run.merge_once,
+            run.name,
+            cfg.pr_title_prefix,
+            "apply matcher testrun",
+            cfg.pr_title_suffix,
+        )
+        repo_mock.create_pull_request.assert_called_once_with("rcmt", expected_pr)
+        repo_mock.merge_pull_request.assert_not_called()
 
 
 class LocalTest(unittest.TestCase):

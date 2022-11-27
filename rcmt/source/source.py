@@ -86,6 +86,8 @@ class PullRequest:
 
         if self.merge_once is True:
             body += "**Ignore:** Close this PR and it will not be recreated again.\n"
+        else:
+            body += "**Ignore:** This PR will be recreated if closed.\n"
 
         body += """
 ---
