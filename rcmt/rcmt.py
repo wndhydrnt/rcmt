@@ -51,7 +51,11 @@ class RepoRun:
 
     def execute(self, matcher: run.Run, repo: source.Repository):
         pr_identifier = repo.find_pull_request(self.git.branch_name)
-        if pr_identifier is not None and repo.is_pr_closed(pr_identifier) is True:
+        if (
+            pr_identifier is not None
+            and repo.is_pr_closed(pr_identifier) is True
+            and matcher.merge_once is True
+        ):
             log.info(
                 "Existing PR has been closed",
                 branch=self.git.branch_name,
@@ -131,7 +135,9 @@ class RepoRun:
                 self.git.push(work_dir)
 
         if needs_push is True and (
-            pr_identifier is None or repo.is_pr_merged(pr_identifier) is True
+            pr_identifier is None
+            or repo.is_pr_merged(pr_identifier) is True
+            or repo.is_pr_closed(pr_identifier) is True
         ):
             if self.opts.config.dry_run:
                 log.warn("DRY RUN: Not creating pull request")
