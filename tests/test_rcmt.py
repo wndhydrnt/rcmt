@@ -241,6 +241,7 @@ class RunTest(unittest.TestCase):
         repo_mock.close_pull_request.assert_called_once_with(
             "Everything up-to-date. Closing.", "someid"
         )
+        repo_mock.delete_branch.assert_called_once_with("someid")
         repo_mock.create_pull_request.assert_not_called()
         repo_mock.merge_pull_request.assert_not_called()
 

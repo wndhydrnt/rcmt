@@ -111,6 +111,12 @@ class RepoRun:
                 repo.close_pull_request(
                     "Everything up-to-date. Closing.", pr_identifier
                 )
+                log.info(
+                    "Deleting source branch because base branch contains all changes",
+                    branch=self.git.branch_name,
+                    repo=str(repo),
+                )
+                repo.delete_branch(pr_identifier)
 
             return
 
@@ -163,7 +169,11 @@ class RepoRun:
                 log.info("Merge pull request", repo=str(repo))
                 repo.merge_pull_request(pr_identifier)
                 if matcher.delete_branch_after_merge:
-                    log.info("Deleting source branch", repo=str(self))
+                    log.info(
+                        "Deleting source branch",
+                        branch=self.git.branch_name,
+                        repo=str(self),
+                    )
                     repo.delete_branch(pr_identifier)
 
             return
