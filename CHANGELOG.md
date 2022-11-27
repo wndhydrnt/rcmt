@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.13.0](https://github.com/wndhydrnt/rcmt/compare/v0.12.1...v0.13.0) (2022-11-27)
+
+
+### Features
+
+* Always delete base branch when closing a PR ([#219](https://github.com/wndhydrnt/rcmt/issues/219)) ([5e855ec](https://github.com/wndhydrnt/rcmt/commit/5e855ec5041e6d652d63033a914d142fc87a7ee2))
+* Delete branch automatically after merge ([#184](https://github.com/wndhydrnt/rcmt/issues/184)) ([5bf0694](https://github.com/wndhydrnt/rcmt/commit/5bf0694a1c762d1a6dfa41b37bd3ad1e6e6f6aef))
+* Improve help texts of command "local" and "run" ([#204](https://github.com/wndhydrnt/rcmt/issues/204)) ([f37f09d](https://github.com/wndhydrnt/rcmt/commit/f37f09d457fa0a51d6d9dcf369df949d07de62d7))
+* Recreate a closed PR if `Run.merge_once` is `False` ([#220](https://github.com/wndhydrnt/rcmt/issues/220)) ([b64724e](https://github.com/wndhydrnt/rcmt/commit/b64724edca50f71bd15875fe55f523cd22c905d6))
+
 ## [0.12.1](https://github.com/wndhydrnt/rcmt/compare/v0.12.0...v0.12.1) (2022-08-18)
 
 
