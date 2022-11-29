@@ -22,20 +22,10 @@ FileExists
 
 .. autoclass:: rcmt.matcher.FileExists
 
-FileNotExists
-^^^^^^^^^^^^^
-
-.. autoclass:: rcmt.matcher.FileNotExists
-
 LineInFile
 ^^^^^^^^^^
 
 .. autoclass:: rcmt.matcher.LineInFile
-
-LineNotInFile
-^^^^^^^^^^^^^
-
-.. autoclass:: rcmt.matcher.LineNotInFile
 
 Not
 ^^^
