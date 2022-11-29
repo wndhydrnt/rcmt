@@ -12,6 +12,11 @@ Matchers
 
 A Run uses Matchers to find the repositories to which it applies Actions.
 
+And
+^^^
+
+.. autoclass:: rcmt.matcher.And
+
 FileExists
 ^^^^^^^^^^
 
@@ -31,6 +36,11 @@ LineNotInFile
 ^^^^^^^^^^^^^
 
 .. autoclass:: rcmt.matcher.LineNotInFile
+
+Not
+^^^
+
+.. autoclass:: rcmt.matcher.Not
 
 Or
 ^^

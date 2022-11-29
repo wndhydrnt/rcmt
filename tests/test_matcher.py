@@ -2,7 +2,16 @@ import io
 import unittest
 from unittest import mock
 
-from rcmt.matcher import Base, FileExists, FileNotExists, LineInFile, LineNotInFile, Or
+from rcmt.matcher import (
+    And,
+    Base,
+    FileExists,
+    FileNotExists,
+    LineInFile,
+    LineNotInFile,
+    Not,
+    Or,
+)
 from rcmt.source import Repository
 
 
@@ -96,17 +105,18 @@ third line
         repo.get_file.assert_called_once_with("test.txt")
 
 
+class MatcherMock(Base):
+    def __init__(self, matches: bool):
+        self.matches: bool = matches
+
+    def match(self, repo: Repository) -> bool:
+        return self.matches
+
+
 class OrTest(unittest.TestCase):
-    class ActionMock(Base):
-        def __init__(self, matches: bool):
-            self.matches: bool = matches
-
-        def match(self, repo: Repository) -> bool:
-            return self.matches
-
     def test_match__does_match(self):
-        mock1 = self.ActionMock(matches=False)
-        mock2 = self.ActionMock(matches=True)
+        mock1 = MatcherMock(matches=False)
+        mock2 = MatcherMock(matches=True)
 
         under_test = Or(mock1, mock2)
         result = under_test.match(repo=mock.Mock(spec=Repository))
@@ -114,8 +124,8 @@ class OrTest(unittest.TestCase):
         self.assertTrue(result)
 
     def test_match__does_not_match(self):
-        mock1 = self.ActionMock(matches=False)
-        mock2 = self.ActionMock(matches=False)
+        mock1 = MatcherMock(matches=False)
+        mock2 = MatcherMock(matches=False)
 
         under_test = Or(mock1, mock2)
         result = under_test.match(repo=mock.Mock(spec=Repository))
@@ -125,3 +135,37 @@ class OrTest(unittest.TestCase):
     def test_init__no_args(self):
         with self.assertRaises(RuntimeError):
             Or()
+
+
+class AndTest(unittest.TestCase):
+    def test_match__does_match(self):
+        mock1 = MatcherMock(matches=True)
+        mock2 = MatcherMock(matches=True)
+
+        under_test = And(mock1, mock2)
+        result = under_test.match(repo=mock.Mock(spec=Repository))
+
+        self.assertTrue(result)
+
+    def test_match__does_not_match(self):
+        mock1 = MatcherMock(matches=True)
+        mock2 = MatcherMock(matches=False)
+
+        under_test = And(mock1, mock2)
+        result = under_test.match(repo=mock.Mock(spec=Repository))
+
+        self.assertFalse(result)
+
+    def test_init(self):
+        with self.assertRaises(RuntimeError):
+            And()
+
+
+class NotTest(unittest.TestCase):
+    def test_match(self):
+        mmock = MatcherMock(matches=True)
+
+        under_test = Not(mmock)
+        result = under_test.match(repo=mock.Mock(spec=Repository))
+
+        self.assertFalse(result)
