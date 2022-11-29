@@ -137,3 +137,42 @@ class Or(Base):
                 return True
 
         return False
+
+
+class And(Base):
+    """
+    And wraps multiple other matchers. It matches if all of those matchers match.
+
+    :param args: One or more matchers.
+
+    .. versionadded:: 0.14.0
+    """
+
+    def __init__(self, *args: Base):
+        if len(args) < 1:
+            raise RuntimeError("Matcher And expects at least one argument")
+
+        self.matchers: tuple[Base, ...] = args
+
+    def match(self, repo: source.Repository) -> bool:
+        for m in self.matchers:
+            if m.match(repo) is False:
+                return False
+
+        return True
+
+
+class Not(Base):
+    """
+    Not wraps a matcher and negates its match result.
+
+    :param matcher: The matcher to wrap.
+
+    .. versionadded:: 0.14.0
+    """
+
+    def __init__(self, matcher: Base):
+        self.matcher: Base = matcher
+
+    def match(self, repo: source.Repository) -> bool:
+        return not self.matcher.match(repo)
