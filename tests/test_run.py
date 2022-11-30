@@ -1,6 +1,6 @@
 import unittest
 
-from rcmt.run import read
+from rcmt.run import Run, read
 
 
 class ReadRunTest(unittest.TestCase):
@@ -28,3 +28,15 @@ class ReadRunTest(unittest.TestCase):
             "Run file tests/fixtures/test_run/ReadRunTest/test_read_run_var_not_exists/run.py does not define variable 'run'",
             str(e.exception),
         )
+
+
+class RunTest(unittest.TestCase):
+    def test_branch__slugify_custom_name(self):
+        r = Run(name="This is a test", branch_name="Branch Name")
+        result = r.branch("rcmt/")
+        self.assertEqual("branch-name", result)
+
+    def test_branch__slugify_default(self):
+        r = Run(name="This is a test")
+        result = r.branch("rcmt/")
+        self.assertEqual("rcmt/this-is-a-test", result)

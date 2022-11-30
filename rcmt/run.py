@@ -7,6 +7,8 @@ import string
 import sys
 from typing import Optional
 
+from slugify import slugify
+
 from rcmt import action, matcher, source
 from rcmt.fs import FileProxy
 
@@ -104,9 +106,9 @@ class Run:
 
     def branch(self, prefix: str) -> str:
         if self.branch_name != "":
-            return self.branch_name
+            return slugify(self.branch_name)
 
-        return f"{prefix}{self.name}"
+        return f"{prefix}{slugify(self.name)}"
 
     def load_file(self, path: str) -> FileProxy:
         """
