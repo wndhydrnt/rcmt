@@ -21,6 +21,9 @@ classifiers = [
 [tool.poetry.urls]
 Changelog = "https://github.com/wndhydrnt/rcmt/blob/main/CHANGELOG.md"
 
+[tool.poetry.group.dev.dependencies]
+types-python-slugify = "^7.0.0.1"
+
 [tool.black]
 line-length = 88
 
