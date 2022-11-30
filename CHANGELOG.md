@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.14.0](https://github.com/wndhydrnt/rcmt/compare/v0.13.0...v0.14.0) (2022-11-30)
+
+
+### ⚠ BREAKING CHANGES
+
+* Remove matchers `LineNotInFile` and `FileNotExists` ([#224](https://github.com/wndhydrnt/rcmt/issues/224))
+
+### Features
+
+* Add matchers `And` and `Not` ([#222](https://github.com/wndhydrnt/rcmt/issues/222)) ([0e09f24](https://github.com/wndhydrnt/rcmt/commit/0e09f2445a3f757ea660e69be0e3e8f8e3617e38))
+* Remove matchers `LineNotInFile` and `FileNotExists` ([#224](https://github.com/wndhydrnt/rcmt/issues/224)) ([10448e9](https://github.com/wndhydrnt/rcmt/commit/10448e901843e470d9793730d6f4224b5768e577))
+* Slugify branch names to ensure a branch gets created ([#225](https://github.com/wndhydrnt/rcmt/issues/225)) ([e4e2631](https://github.com/wndhydrnt/rcmt/commit/e4e26313d5a8384bf9a49a7a932477b40562f788))
+
 ## [0.13.0](https://github.com/wndhydrnt/rcmt/compare/v0.12.1...v0.13.0) (2022-11-27)
 
 
