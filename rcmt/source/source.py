@@ -319,8 +319,10 @@ class Base:
 
     """
 
-    def list_repositories(self) -> list[Repository]:
+    def list_repositories(self, since: datetime.datetime) -> list[Repository]:
         """
+        :param since: TTT
+
         :return: List of all known repositories.
         :rtype: list[rcmt.source.Repository]
         """

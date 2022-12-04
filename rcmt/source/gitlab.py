@@ -192,10 +192,10 @@ class Gitlab(Base):
 
         SECRET_MASKER.add_secret(private_token)
 
-    def list_repositories(self) -> list[Repository]:
+    def list_repositories(self, since: datetime.datetime) -> list[Repository]:
         log.debug("start fetching repositories")
         projects = self.client.projects.list(
-            all=True, archived=False, min_access_level=30
+            all=True, archived=False, min_access_level=30, last_activity_after=since
         )
         repositories: list[Repository] = []
         for p in projects:

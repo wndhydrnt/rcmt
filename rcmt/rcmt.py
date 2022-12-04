@@ -210,8 +210,7 @@ def execute(opts: Options) -> bool:
         wrapper_class=structlog.make_filtering_bound_logger(log_level),
     )
     db = database.new_database(opts.config.database)
-    execution = db.get_execution_today()
-    execution.counter = execution.counter + 1
+    # execution = db.get_last_execution()
     repositories: list[source.Repository] = []
     for s in opts.sources.values():
         repositories += s.list_repositories()
@@ -227,7 +226,9 @@ def execute(opts: Options) -> bool:
     if success is False:
         log.error("Errors during execution - check previous log messages")
 
-    db.save_execution(execution)
+    ex = database.Execution()
+    ex.executed_at = datetime.datetime.now()
+    db.save_execution(ex)
     return success
 
 
