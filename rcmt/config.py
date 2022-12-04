@@ -9,6 +9,7 @@ from pydantic.fields import Field
 
 class Database(pydantic.BaseModel):
     connection: str = "sqlite:///:memory:"
+    migrate: bool = True
 
 
 class Git(pydantic.BaseModel):

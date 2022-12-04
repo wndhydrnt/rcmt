@@ -1,9 +1,11 @@
 from datetime import date
 
+import alembic.command
+from alembic.config import Config as AlembicConfig
 from sqlalchemy import Column, Date, Integer, create_engine, select
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-from .config import Database as DatabaseConfig
+from ..config import Database as DatabaseConfig
 
 Base = declarative_base()
 
@@ -38,4 +40,13 @@ class Database:
 
 def new_database(cfg: DatabaseConfig) -> Database:
     engine = create_engine(cfg.connection)
+    if cfg.migrate is True:
+        with engine.begin() as connection:
+            alembic_config = AlembicConfig()
+            alembic_config.set_main_option(
+                "script_location", "rcmt:database:migrations"
+            )
+            alembic_config.attributes["connection"] = connection
+            alembic.command.upgrade(config=alembic_config, revision="head")
+
     return Database(engine)
