@@ -5,7 +5,7 @@ from typing import Optional
 
 import structlog
 
-from . import config, encoding, git, run, source
+from . import config, database, encoding, git, run, source
 from .log import SECRET_MASKER
 from .source.local import Local
 
@@ -209,6 +209,9 @@ def execute(opts: Options) -> bool:
     structlog.configure(
         wrapper_class=structlog.make_filtering_bound_logger(log_level),
     )
+    db = database.new_database(opts.config.database)
+    execution = db.get_execution_today()
+    execution.counter = execution.counter + 1
     repositories: list[source.Repository] = []
     for s in opts.sources.values():
         repositories += s.list_repositories()
@@ -224,6 +227,7 @@ def execute(opts: Options) -> bool:
     if success is False:
         log.error("Errors during execution - check previous log messages")
 
+    db.save_execution(execution)
     return success
 
 
