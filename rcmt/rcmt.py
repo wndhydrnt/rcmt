@@ -210,10 +210,11 @@ def execute(opts: Options) -> bool:
         wrapper_class=structlog.make_filtering_bound_logger(log_level),
     )
     db = database.new_database(opts.config.database)
-    # execution = db.get_last_execution()
+    execution = db.get_last_execution()
+    log.debug(f"Searching for updated repositories since {execution.executed_at}")
     repositories: list[source.Repository] = []
     for s in opts.sources.values():
-        repositories += s.list_repositories()
+        repositories += s.list_repositories(since=execution.executed_at)
 
     log.info("Repositories returned by sources", count=len(repositories))
     success = True
