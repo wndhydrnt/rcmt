@@ -1,11 +1,12 @@
 import datetime
 import logging
 import sys
-from typing import Optional
+from typing import Optional, Union
 
 import structlog
 
 from . import config, database, encoding, git, run, source
+from .database import PullRequestStatus
 from .log import SECRET_MASKER
 from .source.local import Local
 
@@ -49,7 +50,9 @@ class RepoRun:
         self.git = g
         self.opts = opts
 
-    def execute(self, matcher: run.Run, repo: source.Repository):
+    def execute(
+        self, matcher: run.Run, repo: source.Repository
+    ) -> Union[PullRequestStatus | None]:
         pr_identifier = repo.find_pull_request(self.git.branch_name)
         if (
             pr_identifier is not None
@@ -61,7 +64,7 @@ class RepoRun:
                 branch=self.git.branch_name,
                 repo=str(repo),
             )
-            return
+            return PullRequestStatus.closed
 
         if (
             pr_identifier is not None
@@ -73,7 +76,7 @@ class RepoRun:
                 branch=self.git.branch_name,
                 repo=str(repo),
             )
-            return
+            return PullRequestStatus.merged
 
         work_dir = self.git.prepare(repo)
         tpl_mapping = create_template_mapping(repo)
@@ -122,7 +125,7 @@ class RepoRun:
                 )
                 repo.delete_branch(pr_identifier)
 
-            return
+            return PullRequestStatus.closed
 
         # Combining self.git.needs_push and has_changes avoids an unnecessary push of
         # the branch if the remote branch does not exist.
@@ -145,7 +148,7 @@ class RepoRun:
                 log.info("Create pull request", repo=str(repo))
                 repo.create_pull_request(self.git.branch_name, pr)
 
-            return
+            return PullRequestStatus.open
 
         if (
             matcher.auto_merge is True
@@ -157,17 +160,17 @@ class RepoRun:
                 log.warn(
                     "Cannot merge because build of pull request failed", repo=str(repo)
                 )
-                return
+                return PullRequestStatus.open
 
             if not can_merge_after(
                 repo.pr_created_at(pr_identifier), matcher.auto_merge_after
             ):
                 log.info("Too early to merge pull request", repo=str(repo))
-                return
+                return PullRequestStatus.open
 
             if not repo.can_merge_pull_request(pr_identifier):
                 log.warn("Cannot merge pull request", repo=str(repo))
-                return
+                return PullRequestStatus.open
 
             if self.opts.config.dry_run:
                 log.warn("DRY RUN: Not merging pull request", repo=str(repo))
@@ -182,10 +185,13 @@ class RepoRun:
                     )
                     repo.delete_branch(pr_identifier)
 
-            return
+            return PullRequestStatus.merged
 
         if pr_identifier is not None and repo.is_pr_open(pr_identifier) is True:
             repo.update_pull_request(pr_identifier, pr)
+            return PullRequestStatus.open
+
+        return None
 
 
 def apply_actions(
