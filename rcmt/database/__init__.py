@@ -27,28 +27,29 @@ class Execution(Base):
     executed_at = Column(DateTime, nullable=False)
 
 
-# class Run(Base):
-#     __tablename__ = "runs"
-#
-#     id = Column(Integer, primary_key=True)
-#     name = Column(String(length=255))
-#     pull_requests = relationship("PullRequest")
-#
-#
-# class PullRequestStatus(enum.Enum):
-#     open = 1
-#     closed = 2
-#     merged = 3
-#
-#
-# class PullRequest(Base):
-#     __tablename__ = "pull_requests"
-#
-#     id = Column(Integer, primary_key=True)
-#     repository = Column(String(length=255))
-#     status = Column(Enum(PullRequestStatus))
-#     run_id = Column(Integer, ForeignKey("runs.id"))
-#     run = relationship("Run", back_populates="pull_requests")
+class Run(Base):
+    __tablename__ = "runs"
+
+    id = Column(Integer, primary_key=True)
+    hash = Column(Integer, nullable=False)
+    name = Column(String(length=255), nullable=False)
+    pull_requests = relationship("PullRequest")
+
+
+class PullRequestStatus(enum.Enum):
+    open = 1
+    closed = 2
+    merged = 3
+
+
+class PullRequest(Base):
+    __tablename__ = "pull_requests"
+
+    id = Column(Integer, primary_key=True)
+    repository = Column(String(length=255), nullable=False)
+    status = Column(Enum(PullRequestStatus), nullable=False)
+    run_id = Column(Integer, ForeignKey("runs.id"))
+    run = relationship("Run", back_populates="pull_requests")
 
 
 class Database:
