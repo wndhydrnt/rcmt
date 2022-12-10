@@ -6,7 +6,6 @@ from unittest.mock import call
 
 from rcmt import action, config, encoding, git, source
 from rcmt.config import Config
-from rcmt.database import PullRequestStatus
 from rcmt.matcher import RepoName
 from rcmt.rcmt import Options, RepoRun, execute_local, execute_run
 from rcmt.run import Run
@@ -83,9 +82,8 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.source = "githost.com"
         repo_mock.find_pull_request.return_value = None
 
-        status = runner.execute(run, repo_mock)
+        runner.execute(run, repo_mock)
 
-        self.assertIsNone(status)
         action_mock.apply.assert_called_once_with(
             "/unit/test",
             {
@@ -113,9 +111,8 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.source = "githost.com"
         repo_mock.find_pull_request.return_value = None
 
-        status = runner.execute(run, repo_mock)
+        runner.execute(run, repo_mock)
 
-        self.assertEqual(PullRequestStatus.open, status)
         git_mock.commit_changes.assert_called_once_with("/unit/test", "Custom commit")
         action_mock.apply.assert_called_once_with(
             "/unit/test",
@@ -163,9 +160,8 @@ class RepoRunTest(unittest.TestCase):
             datetime.datetime.now() - datetime.timedelta(days=1)
         )
 
-        status = runner.execute(run, repo_mock)
+        runner.execute(run, repo_mock)
 
-        self.assertEqual(PullRequestStatus.merged, status)
         action_mock.apply.assert_called_once_with(
             "/unit/test",
             {
@@ -195,9 +191,8 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.find_pull_request.return_value = "someid"
         repo_mock.is_pr_closed.return_value = True
 
-        status = runner.execute(run, repo_mock)
+        runner.execute(run, repo_mock)
 
-        self.assertEqual(PullRequestStatus.closed, status)
         action_mock.apply.assert_not_called()
         repo_mock.find_pull_request.assert_called_once_with("rcmt")
         repo_mock.is_pr_closed.assert_called_once_with("someid")
@@ -220,9 +215,8 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.find_pull_request.return_value = "someid"
         repo_mock.is_pr_merged.return_value = True
 
-        status = runner.execute(run, repo_mock)
+        runner.execute(run, repo_mock)
 
-        self.assertEqual(PullRequestStatus.merged, status)
         action_mock.apply.assert_not_called()
         repo_mock.find_pull_request.assert_called_once_with("rcmt")
         repo_mock.is_pr_merged.assert_called_once_with("someid")
@@ -243,9 +237,8 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.is_pr_open.return_value = True
 
         runner = RepoRun(git_mock, opts)
-        status = runner.execute(run, repo_mock)
+        runner.execute(run, repo_mock)
 
-        self.assertEqual(PullRequestStatus.closed, status)
         repo_mock.close_pull_request.assert_called_once_with(
             "Everything up-to-date. Closing.", "someid"
         )
@@ -264,9 +257,8 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.find_pull_request.return_value = None
 
         runner = RepoRun(git_mock, opts)
-        status = runner.execute(run, repo_mock)
+        runner.execute(run, repo_mock)
 
-        self.assertIsNone(status)
         repo_mock.is_pr_open.assert_not_called()
         repo_mock.close_pull_request.assert_not_called()
         repo_mock.create_pull_request.assert_not_called()
@@ -285,9 +277,8 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.is_pr_open.return_value = True
 
         runner = RepoRun(git_mock, opts)
-        status = runner.execute(run, repo_mock)
+        runner.execute(run, repo_mock)
 
-        self.assertEqual(PullRequestStatus.open, status)
         repo_mock.close_pull_request.assert_not_called()
         repo_mock.create_pull_request.assert_not_called()
         repo_mock.merge_pull_request.assert_not_called()
@@ -315,9 +306,8 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.can_merge_pull_request.return_value = False
 
         runner = RepoRun(git_mock, opts)
-        status = runner.execute(run, repo_mock)
+        runner.execute(run, repo_mock)
 
-        self.assertEqual(PullRequestStatus.open, status)
         repo_mock.close_pull_request.assert_not_called()
         repo_mock.create_pull_request.assert_not_called()
         repo_mock.merge_pull_request.assert_not_called()
@@ -338,9 +328,8 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.can_merge_pull_request.return_value = True
 
         runner = RepoRun(git_mock, opts)
-        status = runner.execute(run, repo_mock)
+        runner.execute(run, repo_mock)
 
-        self.assertEqual(PullRequestStatus.merged, status)
         repo_mock.close_pull_request.assert_not_called()
         repo_mock.create_pull_request.assert_not_called()
         repo_mock.merge_pull_request.assert_called_once()
@@ -364,9 +353,8 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.find_pull_request.return_value = "someid"
         repo_mock.is_pr_closed.return_value = True
 
-        status = runner.execute(run, repo_mock)
+        runner.execute(run, repo_mock)
 
-        self.assertEqual(PullRequestStatus.open, status)
         git_mock.commit_changes.assert_called_once_with("/unit/test", "Custom commit")
         action_mock.apply.assert_called_once_with(
             "/unit/test",

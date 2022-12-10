@@ -1,7 +1,7 @@
 """Add model "Extension"
 
 Revision ID: b3117b16eb76
-Revises: 
+Revises:
 Create Date: 2022-12-05 20:37:00.859534
 
 """

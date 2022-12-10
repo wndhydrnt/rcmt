@@ -1,7 +1,7 @@
 import datetime
 import fnmatch
 import io
-from typing import Any, TextIO, Union
+from typing import Any, Generator, TextIO, Union
 
 import github
 import github.PullRequest
@@ -168,6 +168,15 @@ class Github(Base):
         self.client = github.Github(login_or_token=access_token, base_url=base_url)
 
         SECRET_MASKER.add_secret(access_token)
+
+    def list_repositories_with_open_pull_requests(
+        self,
+    ) -> Generator[Repository, None, None]:
+        user = self.client.get_user()
+        for issue in self.client.search_issues(
+            f"is:open is:pr author:{user.login} archived:false"
+        ):
+            yield GithubRepository(self.access_token, issue.repository)
 
     def list_repositories(self, since: datetime.datetime) -> list[Repository]:
         log.debug("start fetching repositories")
