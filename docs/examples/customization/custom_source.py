@@ -23,7 +23,7 @@ class MyCustomSource(rcmt.source.Base):
     def list_repositories_with_open_pull_requests(
         self,
     ) -> Generator[Repository, None, None]:
-        return
+        yield from []
 
 
 class MyCustomEncoding(rcmt.encoding.Encoding):
