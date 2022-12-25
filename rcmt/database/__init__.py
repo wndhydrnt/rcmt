@@ -21,7 +21,7 @@ class Run(Base):
     __tablename__ = "runs"
 
     id = Column(Integer, primary_key=True)
-    hash = Column(Integer, nullable=False)
+    checksum = Column(String(length=32), nullable=False)
     name = Column(String(length=255), nullable=False)
 
 
@@ -40,7 +40,7 @@ class Database:
                 ex.executed_at = datetime.fromtimestamp(0.0)
                 return ex
 
-    def get_or_create_run(self, name: str) -> Run:
+    def get_or_create_run(self, name: str, checksum: str = "") -> Run:
         stmt = select(Run).where(Run.name == name)
         with self.session() as session, session.begin():
             run = session.scalars(stmt).first()
@@ -48,10 +48,18 @@ class Database:
                 return run
 
             run = Run()
+            run.checksum = checksum
             run.name = name
-            run.hash = 0
             session.add(run)
             return run
+
+    def update_run(self, name: str, checksum: str) -> None:
+        stmt = select(Run).where(Run.name == name)
+        with self.session() as session, session.begin():
+            run = session.scalars(stmt).first()
+            run.checksum = checksum
+            session.add(run)
+            return
 
     def save_execution(self, execution: Execution):
         with self.session() as session, session.begin():
