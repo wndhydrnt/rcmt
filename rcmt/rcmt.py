@@ -222,15 +222,15 @@ def execute(opts: Options) -> bool:
         runs.append(run_)
 
     execution = db.get_last_execution()
-    log.debug("Searching for updated repositories", since=str(execution.executed_at))
+    if needs_all_repositories is True or execution.executed_at is None:
+        since = datetime.datetime.fromtimestamp(0)
+    else:
+        since = execution.executed_at
+
+    log.debug("Searching for updated repositories", since=str(since))
     repositories: list[source.Repository] = []
     for s in opts.sources.values():
         known_repos: list[str] = []
-        if needs_all_repositories is True or execution.executed_at is None:
-            since = datetime.datetime.fromtimestamp(0)
-        else:
-            since = execution.executed_at
-
         for repository in s.list_repositories(since=since):
             known_repos.append(str(repository))
             repositories.append(repository)
