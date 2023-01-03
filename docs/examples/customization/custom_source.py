@@ -1,5 +1,9 @@
+import datetime
+from typing import Generator
+
 import rcmt.encoding
 import rcmt.source
+from rcmt.source import Repository
 
 
 class MyCustomRepository(rcmt.source.Repository):
@@ -11,8 +15,15 @@ class MyCustomRepository(rcmt.source.Repository):
 
 
 class MyCustomSource(rcmt.source.Base):
-    def list_repositories(self) -> list[rcmt.source.Repository]:
+    def list_repositories(
+        self, since: datetime.datetime
+    ) -> list[rcmt.source.Repository]:
         return [MyCustomRepository()]
+
+    def list_repositories_with_open_pull_requests(
+        self,
+    ) -> Generator[Repository, None, None]:
+        yield from []
 
 
 class MyCustomEncoding(rcmt.encoding.Encoding):

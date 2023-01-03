@@ -5,7 +5,7 @@ from typing import Optional
 
 import structlog
 
-from . import config, encoding, git, run, source
+from . import config, database, encoding, git, run, source
 from .log import SECRET_MASKER
 from .source.local import Local
 
@@ -49,7 +49,7 @@ class RepoRun:
         self.git = g
         self.opts = opts
 
-    def execute(self, matcher: run.Run, repo: source.Repository):
+    def execute(self, matcher: run.Run, repo: source.Repository) -> None:
         pr_identifier = repo.find_pull_request(self.git.branch_name)
         if (
             pr_identifier is not None
@@ -178,7 +178,7 @@ class RepoRun:
                     log.info(
                         "Deleting source branch",
                         branch=self.git.branch_name,
-                        repo=str(self),
+                        repo=str(repo),
                     )
                     repo.delete_branch(pr_identifier)
 
@@ -186,6 +186,7 @@ class RepoRun:
 
         if pr_identifier is not None and repo.is_pr_open(pr_identifier) is True:
             repo.update_pull_request(pr_identifier, pr)
+            return
 
 
 def apply_actions(
@@ -209,21 +210,56 @@ def execute(opts: Options) -> bool:
     structlog.configure(
         wrapper_class=structlog.make_filtering_bound_logger(log_level),
     )
+    db = database.new_database(opts.config.database)
+    runs: list[run.Run] = []
+    needs_all_repositories = False
+    for run_path in opts.run_paths:
+        run_ = run.read(run_path)
+        run_db = db.get_or_create_run(name=run_.name)
+        if run_.checksum != run_db.checksum:
+            needs_all_repositories = True
+
+        runs.append(run_)
+
+    execution = db.get_last_execution()
+    if needs_all_repositories is True or execution.executed_at is None:
+        since = datetime.datetime.fromtimestamp(0)
+    else:
+        since = execution.executed_at
+
+    log.debug("Searching for updated repositories", since=str(since))
     repositories: list[source.Repository] = []
     for s in opts.sources.values():
-        repositories += s.list_repositories()
+        known_repos: list[str] = []
+        for repository in s.list_repositories(since=since):
+            known_repos.append(str(repository))
+            repositories.append(repository)
+
+        if needs_all_repositories is False:
+            log.debug("Listing repositories with open pull requests")
+            for repository in s.list_repositories_with_open_pull_requests():
+                if str(repository) in known_repos:
+                    continue
+
+                known_repos.append(str(repository))
+                repositories.append(repository)
 
     log.info("Repositories returned by sources", count=len(repositories))
     success = True
-    for run_path in opts.run_paths:
-        run_ = run.read(run_path)
-        run_success = execute_run(run_, repositories, opts)
-        if run_success is False:
-            success = False
+    if len(repositories) > 0:
+        for run_ in runs:
+            run_success = execute_run(run_, repositories, opts)
+            if run_success is True:
+                db.update_run(run_.name, run_.checksum)
+            else:
+                success = False
 
     if success is False:
         log.error("Errors during execution - check previous log messages")
 
+    ex = database.Execution()
+    ex.executed_at = datetime.datetime.utcnow()
+    db.save_execution(ex)
     return success
 
 

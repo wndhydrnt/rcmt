@@ -1,17 +1,21 @@
+import datetime
 import unittest
 import unittest.mock
 
 import github
 import github.PullRequest
 import github.Repository
+from github.AuthenticatedUser import AuthenticatedUser
 from github.ContentFile import ContentFile
 from github.GitRef import GitRef
 from github.GitTree import GitTree
 from github.GitTreeElement import GitTreeElement
+from github.Issue import Issue
 from github.PullRequestPart import PullRequestPart
+from github.Repository import Repository
 
 from rcmt.source import source
-from rcmt.source.github import GithubRepository
+from rcmt.source.github import Github, GithubRepository
 
 
 class GithubRepositoryTest(unittest.TestCase):
@@ -206,3 +210,75 @@ class GithubRepositoryTest(unittest.TestCase):
 
         gh_repo_mock.get_git_ref.assert_called_once_with(ref="heads/rcmt/unittest")
         git_ref_mock.delete.assert_called_once_with()
+
+
+class GithubTest(unittest.TestCase):
+    def test_list_repositories(self):
+        repo_mock = unittest.mock.Mock(spec=Repository)
+        repo_mock.updated_at = datetime.datetime.now()
+        user_mock = unittest.mock.Mock(spec=AuthenticatedUser)
+        user_mock.get_repos.return_value = [repo_mock]
+        client_mock = unittest.mock.Mock(spec=github.Github)
+        client_mock.get_user.return_value = user_mock
+
+        gh = Github("access_token", "http://localhost")
+        gh.client = client_mock
+        result = gh.list_repositories(since=datetime.datetime.fromtimestamp(0))
+
+        self.assertEqual(1, len(result))
+        self.assertIsInstance(result[0], GithubRepository)
+        gh_repo = result[0]
+        if isinstance(gh_repo, GithubRepository):
+            self.assertEqual(gh_repo.access_token, "access_token")
+            self.assertEqual(gh_repo.repo, repo_mock)
+
+        client_mock.get_user.assert_called_once()
+        user_mock.get_repos.assert_called_once_with(direction="desc", sort="updated")
+
+    def test_list_repositories__filter_updated_only(self):
+        repo_mock_no_updates = unittest.mock.Mock(spec=Repository)
+        repo_mock_no_updates.updated_at = datetime.datetime.fromtimestamp(2934000)
+        repo_mock_updated = unittest.mock.Mock(spec=Repository)
+        repo_mock_updated.updated_at = datetime.datetime.now()
+        user_mock = unittest.mock.Mock(spec=AuthenticatedUser)
+        user_mock.get_repos.return_value = [repo_mock_updated, repo_mock_no_updates]
+        client_mock = unittest.mock.Mock(spec=github.Github)
+        client_mock.get_user.return_value = user_mock
+
+        gh = Github("access_token", "http://localhost")
+        gh.client = client_mock
+        result = gh.list_repositories(
+            since=(datetime.datetime.now() - datetime.timedelta(days=1))
+        )
+
+        self.assertEqual(1, len(result))
+        self.assertIsInstance(result[0], GithubRepository)
+        gh_repo = result[0]
+        if isinstance(gh_repo, GithubRepository):
+            self.assertEqual(gh_repo.access_token, "access_token")
+            self.assertEqual(gh_repo.repo, repo_mock_updated)
+
+    def test_list_repositories_with_open_pull_requests(self):
+        repo_mock = unittest.mock.Mock(spec=Repository)
+        issue_mock = unittest.mock.Mock(spec=Issue)
+        issue_mock.repository = repo_mock
+        user_mock = unittest.mock.Mock(spec=AuthenticatedUser)
+        user_mock.login = "unittest"
+        client_mock = unittest.mock.Mock(spec=github.Github)
+        client_mock.get_user.return_value = user_mock
+        client_mock.search_issues.return_value = [issue_mock]
+
+        gh = Github("access_token", "http://localhost")
+        gh.client = client_mock
+        result = list(gh.list_repositories_with_open_pull_requests())
+
+        self.assertEqual(1, len(result))
+        self.assertIsInstance(result[0], GithubRepository)
+        gh_repo = result[0]
+        if isinstance(gh_repo, GithubRepository):
+            self.assertEqual(gh_repo.access_token, "access_token")
+            self.assertEqual(gh_repo.repo, repo_mock)
+
+        client_mock.search_issues.assert_called_once_with(
+            "is:open is:pr author:unittest archived:false"
+        )

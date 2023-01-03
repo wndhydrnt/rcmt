@@ -2,13 +2,14 @@ import datetime
 import fnmatch
 import io
 import os.path
-from typing import Any, TextIO, Union
+from typing import Any, Generator, Optional, TextIO, Union
 from urllib.parse import urlparse
 
 import gitlab
 import structlog
 from gitlab import GitlabGetError
 from gitlab.base import RESTObjectList
+from gitlab.v4.objects import CurrentUser
 from gitlab.v4.objects import Project as GitlabProject
 from gitlab.v4.objects.merge_requests import ProjectMergeRequest as GitlabMergeRequest
 
@@ -192,10 +193,36 @@ class Gitlab(Base):
 
         SECRET_MASKER.add_secret(private_token)
 
-    def list_repositories(self) -> list[Repository]:
+    def list_repositories_with_open_pull_requests(
+        self,
+    ) -> Generator[Repository, None, None]:
+        if self.client.user is None:
+            self.client.auth()
+
+        user: Optional[CurrentUser] = self.client.user
+        if user is None:
+            log.error("unable to authenticate user while listing open pull requests")
+            return
+
+        merge_requests = self.client.mergerequests.list(
+            author_id=user.attributes["id"], state="opened"
+        )
+        seen_project_ids: list[int] = []
+        for mr in merge_requests:
+            if mr.project_id in seen_project_ids:
+                continue
+
+            seen_project_ids.append(mr.project_id)
+            project = self.client.projects.get(id=mr.project_id)
+            repository = GitlabRepository(
+                project=project, token=self.client.private_token, url=self.url  # type: ignore
+            )
+            yield repository
+
+    def list_repositories(self, since: datetime.datetime) -> list[Repository]:
         log.debug("start fetching repositories")
         projects = self.client.projects.list(
-            all=True, archived=False, min_access_level=30
+            all=True, archived=False, min_access_level=30, last_activity_after=since
         )
         repositories: list[Repository] = []
         for p in projects:

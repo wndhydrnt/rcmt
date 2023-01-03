@@ -1,4 +1,5 @@
 import datetime
+import hashlib
 import importlib.machinery
 import importlib.util
 import os.path
@@ -79,6 +80,7 @@ class Run:
         self.name = name
 
         self.actions: list[action.Action] = []
+        self.checksum: str = ""
         self.file_proxies: list[FileProxy] = []
         self.matchers: list[matcher.Base] = []
 
@@ -142,6 +144,15 @@ class Run:
 
 
 def read(path: str) -> Run:
+    checksum = hashlib.md5()
+    with open(path) as f:
+        while True:
+            line = f.readline()
+            if line == "":
+                break
+
+            checksum.update(line.encode("utf-8"))
+
     rndm = "".join(random.choice(string.ascii_lowercase) for _ in range(8))
     mod_name = f"rcmt_run_{rndm}"
     loader = importlib.machinery.SourceFileLoader(mod_name, path)
@@ -158,6 +169,7 @@ def read(path: str) -> Run:
             )
 
         run.set_path(os.path.dirname(path))
+        run.checksum = checksum.hexdigest()
         return new_module.run  # type: ignore # because the content of module is not known
     except AttributeError:
         raise RuntimeError(f"Run file {path} does not define variable 'run'")

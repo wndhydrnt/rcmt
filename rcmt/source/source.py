@@ -1,6 +1,6 @@
 import datetime
 import urllib.parse
-from typing import Any, Optional, TextIO, Union
+from typing import Any, Generator, Optional, TextIO, Union
 
 import humanize
 
@@ -319,14 +319,21 @@ class Base:
 
     """
 
-    def list_repositories(self) -> list[Repository]:
+    def list_repositories_with_open_pull_requests(
+        self,
+    ) -> Generator[Repository, None, None]:
+        raise NotImplementedError(
+            "class does not implement Base.list_open_pull_requests()"
+        )
+
+    def list_repositories(self, since: datetime.datetime) -> list[Repository]:
         """
+        :param since: Date and time of the last run of rcmt to find only those repositories that have received and update since.
+
         :return: List of all known repositories.
         :rtype: list[rcmt.source.Repository]
         """
-        raise NotImplementedError(
-            "class does not implement SourceLister.list_repositories()"
-        )
+        raise NotImplementedError("class does not implement Base.list_repositories()")
 
 
 def add_credentials_to_url(url: str, password: str, username: str = "") -> str:

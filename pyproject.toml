@@ -33,6 +33,7 @@ multi_line_output = 3
 
 [tool.mypy]
 ignore_missing_imports = true
+plugins = "sqlalchemy.ext.mypy.plugin"
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -48,6 +49,8 @@ colorama = "^0.4.4"
 python-gitlab = ">=2.10,<4.0"
 humanize = "^4.2.3"
 python-slugify = "^7.0.0"
+sqlalchemy = {extras = ["mypy"], version = "^1.4.44"}
+alembic = "^1.8.1"
 
 [tool.poetry.dev-dependencies]
 black = "22.10.0"

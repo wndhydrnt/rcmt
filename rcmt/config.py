@@ -7,6 +7,11 @@ import yaml
 from pydantic.fields import Field
 
 
+class Database(pydantic.BaseModel):
+    connection: str = "sqlite:///:memory:"
+    migrate: bool = True
+
+
 class Git(pydantic.BaseModel):
     branch_prefix: str = "rcmt/"
     clone_options: dict[str, Any] = {"filter": "blob:none"}
@@ -40,6 +45,7 @@ class Yaml(pydantic.BaseModel):
 
 
 class Config(pydantic.BaseSettings):
+    database: Database = Database()
     dry_run: bool = False
     git: Git = Git()
     github: Github = Github()

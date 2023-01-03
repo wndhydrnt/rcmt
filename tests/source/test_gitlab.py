@@ -4,6 +4,9 @@ import unittest.mock
 
 import gitlab.exceptions
 from gitlab.v4.objects import (
+    CurrentUser,
+    MergeRequest,
+    MergeRequestManager,
     Project,
     ProjectBranch,
     ProjectBranchManager,
@@ -13,9 +16,10 @@ from gitlab.v4.objects import (
     ProjectMergeRequestNoteManager,
 )
 from gitlab.v4.objects.files import ProjectFile, ProjectFileManager
+from gitlab.v4.objects.projects import ProjectManager
 
 from rcmt.source import source
-from rcmt.source.gitlab import GitlabRepository
+from rcmt.source.gitlab import Gitlab, GitlabRepository
 
 
 class GitlabRepositoryTest(unittest.TestCase):
@@ -241,3 +245,74 @@ class GitlabRepositoryTest(unittest.TestCase):
 
         branches_mock.get.assert_called_once_with(id="rcmt/unittest", lazy=True)
         branch_mock.delete.assert_called_once_with()
+
+
+class GitlabTest(unittest.TestCase):
+    def test_list_repositories(self):
+        now = datetime.datetime.now()
+        project_mock = unittest.mock.Mock(spec=Project)
+        projects_mock = unittest.mock.Mock(spec=ProjectManager)
+        projects_mock.list.return_value = [project_mock]
+        client_mock = unittest.mock.Mock(spec=gitlab.Gitlab)
+        client_mock.private_token = "private_token"
+        client_mock.projects = projects_mock
+
+        gl = Gitlab(url="http://localhost", private_token=client_mock.private_token)
+        gl.client = client_mock
+        result = gl.list_repositories(since=now)
+
+        self.assertEqual(1, len(result))
+        self.assertIsInstance(result[0], GitlabRepository)
+        gl_repo = result[0]
+        if isinstance(gl_repo, GitlabRepository):
+            self.assertEqual(gl_repo._project, project_mock)
+            self.assertEqual(gl_repo.token, client_mock.private_token)
+            self.assertEqual(gl_repo.url, "localhost")
+
+        projects_mock.list.assert_called_once_with(
+            all=True, archived=False, min_access_level=30, last_activity_after=now
+        )
+
+    def test_list_repositories_with_open_pull_requests(self):
+        client_mock = unittest.mock.Mock(spec=gitlab.Gitlab)
+        client_mock.private_token = "private_token"
+        client_mock.user = None
+
+        user_mock = unittest.mock.Mock(spec=CurrentUser)
+        user_mock.attributes = {"id": 123}
+
+        def auth_call():
+            client_mock.user = user_mock
+
+        client_mock.auth = auth_call
+
+        first_merge_request_mock = unittest.mock.Mock(spec=MergeRequest)
+        first_merge_request_mock.project_id = 456
+        second_merge_request_mock = unittest.mock.Mock(spec=MergeRequest)
+        second_merge_request_mock.project_id = 456
+        mergerequests_mock = unittest.mock.Mock(spec=MergeRequestManager)
+        mergerequests_mock.list.return_value = [
+            first_merge_request_mock,
+            second_merge_request_mock,
+        ]
+        client_mock.mergerequests = mergerequests_mock
+
+        project_mock = unittest.mock.Mock(spec=Project)
+        projects_mock = unittest.mock.Mock(spec=ProjectManager)
+        projects_mock.get.return_value = project_mock
+        client_mock.projects = projects_mock
+
+        gl = Gitlab(url="http://localhost", private_token=client_mock.private_token)
+        gl.client = client_mock
+        result = list(gl.list_repositories_with_open_pull_requests())
+
+        self.assertEqual(1, len(result))
+        self.assertIsInstance(result[0], GitlabRepository)
+        gl_repo = result[0]
+        if isinstance(gl_repo, GitlabRepository):
+            self.assertEqual(gl_repo._project, project_mock)
+            self.assertEqual(gl_repo.token, client_mock.private_token)
+            self.assertEqual(gl_repo.url, "localhost")
+
+        mergerequests_mock.list.assert_called_once_with(author_id=123, state="opened")
+        projects_mock.get.assert_called_once_with(id=456)
