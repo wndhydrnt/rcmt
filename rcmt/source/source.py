@@ -75,19 +75,20 @@ class PullRequest:
         body += "\n---\n\n"
 
         body += "**Automerge:** "
+        # Add two spaces at the end of each line to make GitLab create a line break.
         if self.auto_merge is True:
             if self.auto_merge_after is None:
-                body += "Enabled. rcmt merges this automatically on its next run and if all checks have passed.\n"
+                body += "Enabled. rcmt merges this automatically on its next run and if all checks have passed.  \n"
             else:
                 after = humanize.naturaldelta(self.auto_merge_after)
-                body += f"Enabled. rcmt automatically merges this in {after} and if all checks have passed.\n"
+                body += f"Enabled. rcmt automatically merges this in {after} and if all checks have passed.  \n"
         else:
-            body += "Disabled. Merge this manually.\n"
+            body += "Disabled. Merge this manually.  \n"
 
         if self.merge_once is True:
-            body += "**Ignore:** Close this PR and it will not be recreated again.\n"
+            body += "**Ignore:** Close this PR and it will not be recreated again.  \n"
         else:
-            body += "**Ignore:** This PR will be recreated if closed.\n"
+            body += "**Ignore:** This PR will be recreated if closed.  \n"
 
         body += """
 ---
