@@ -85,6 +85,13 @@ class Git:
         git_repo.remotes["origin"].pull()
         hash_after_pull = str(git_repo.head.commit)
         has_base_branch_update = hash_before_pull != hash_after_pull
+        if has_base_branch_update is True:
+            log.debug(
+                "Base branch contains new commits",
+                base_branch=repo.base_branch,
+                repo=str(repo),
+            )
+
         has_conflict = False
         if remote_branch is not None:
             try:
@@ -95,6 +102,11 @@ class Git:
                 if e.status != 1 and e.status != 2:
                     raise e
 
+                log.debug(
+                    "Merge conflict with base branch",
+                    base_branch=repo.base_branch,
+                    repo=str(repo),
+                )
                 has_conflict = True
 
             try:
