@@ -134,7 +134,7 @@ def branch_exists_local(name: str, repo: git.Repo) -> bool:
     return False
 
 
-def get_remote_branch(name: str, repo: git.Repo) -> Union[git.RemoteReference | None]:
+def get_remote_branch(name: str, repo: git.Repo) -> Union[git.RemoteReference, None]:
     remote = repo.remote()
     for r in remote.refs:
         if r.name == f"{remote.name}/{name}":
