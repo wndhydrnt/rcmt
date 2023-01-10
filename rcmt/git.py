@@ -92,7 +92,7 @@ class Git:
                 git_repo.git.merge(self.branch_name, no_ff=True, no_commit=True)
             except GitCommandError as e:
                 # Exit codes "1" or "2" indicate that a merge is not successful
-                if e.status > 2:
+                if e.status != 1 and e.status != 2:
                     raise e
 
                 has_conflict = True
