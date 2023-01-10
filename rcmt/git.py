@@ -88,6 +88,7 @@ class Git:
         has_conflict = False
         if remote_branch is not None:
             try:
+                # Try to merge. Errors if there is a merge conflict.
                 git_repo.git.merge(self.branch_name, no_ff=True, no_commit=True)
             except GitCommandError as e:
                 # "2" is the exit code of the git command if merge is not successful
@@ -97,6 +98,7 @@ class Git:
                 has_conflict = True
 
             try:
+                # Abort the merge to not leave the branch in a conflicted state
                 git_repo.git.merge(abort=True)
             except GitCommandError as e:
                 # "128" is the exit code of the git command if no abort was needed
