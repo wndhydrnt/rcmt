@@ -75,25 +75,13 @@ class RepoRun:
             )
             return
 
-        work_dir = self.git.prepare(repo)
+        work_dir, did_rebase = self.git.prepare(repo)
         tpl_mapping = create_template_mapping(repo)
-        pr = source.PullRequest(
-            matcher.auto_merge,
-            matcher.merge_once,
-            matcher.name,
-            self.opts.config.pr_title_prefix,
-            self.opts.config.pr_title_body.format(matcher_name=matcher.name),
-            self.opts.config.pr_title_suffix,
-            matcher.pr_body,
-            matcher.pr_title,
-            auto_merge_after=matcher.auto_merge_after,
-        )
         apply_actions(repo, matcher, tpl_mapping, work_dir)
-        has_changes = False
-        if self.git.has_changes(work_dir) is True:
+        has_changes = self.git.has_changes(work_dir)
+        if has_changes is True:
             log.debug("Committing changes", repo=str(repo))
             self.git.commit_changes(work_dir, matcher.commit_msg)
-            has_changes = True
         else:
             log.info("No changes after applying actions", repo=str(repo))
 
@@ -124,9 +112,7 @@ class RepoRun:
 
             return
 
-        # Combining self.git.needs_push and has_changes avoids an unnecessary push of
-        # the branch if the remote branch does not exist.
-        needs_push = self.git.needs_push(work_dir) and has_changes
+        needs_push = did_rebase is True or has_changes is True
         if needs_push:
             if self.opts.config.dry_run:
                 log.warn("DRY RUN: Not pushing changes")
@@ -134,6 +120,17 @@ class RepoRun:
                 log.debug("Pushing changes", repo=str(repo))
                 self.git.push(work_dir)
 
+        pr = source.PullRequest(
+            matcher.auto_merge,
+            matcher.merge_once,
+            matcher.name,
+            self.opts.config.pr_title_prefix,
+            self.opts.config.pr_title_body.format(matcher_name=matcher.name),
+            self.opts.config.pr_title_suffix,
+            matcher.pr_body,
+            matcher.pr_title,
+            auto_merge_after=matcher.auto_merge_after,
+        )
         if needs_push is True and (
             pr_identifier is None
             or repo.is_pr_merged(pr_identifier) is True
