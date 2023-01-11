@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.15.0](https://github.com/wndhydrnt/rcmt/compare/v0.14.0...v0.15.0) (2023-01-11)
+
+
+### Features
+
+* Reduce number of processed repositories per Run ([#232](https://github.com/wndhydrnt/rcmt/issues/232)) ([0ef0582](https://github.com/wndhydrnt/rcmt/commit/0ef0582a5ba08bd218273f0cb6a950cd536a1d84))
+
+
+### Bug Fixes
+
+* Add line breaks to actions in pull request body on GitLab ([#243](https://github.com/wndhydrnt/rcmt/issues/243)) ([4f37ea9](https://github.com/wndhydrnt/rcmt/commit/4f37ea97a9e4ed6f2e6f5ae4fa68b4918befbb64))
+* Let rcmt resolve a merge conflict automatically ([#245](https://github.com/wndhydrnt/rcmt/issues/245)) ([734bb7b](https://github.com/wndhydrnt/rcmt/commit/734bb7b4bc9013ad5d6829ddb07da101d5f07989))
+
 ## [0.14.0](https://github.com/wndhydrnt/rcmt/compare/v0.13.0...v0.14.0) (2022-11-30)
 
 
