@@ -64,8 +64,7 @@ def create_git_mock(
     m.branch_name = branch_name
     m.has_changes.return_value = needs_push
     m.has_changes_base.return_value = has_changes_base
-    m.needs_push.return_value = needs_push
-    m.prepare.return_value = checkout_dir
+    m.prepare.return_value = (checkout_dir, needs_push)
     return m
 
 
