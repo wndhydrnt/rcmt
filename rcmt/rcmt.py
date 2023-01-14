@@ -113,7 +113,7 @@ class RepoRun:
             return
 
         needs_push = (
-            # Push to branch on rebase only if a Pul Request is open
+            # Push to branch on rebase only if a Pull Request is open
             did_rebase is True
             and repo.is_pr_open(pr_identifier) is True
         ) or has_changes is True
