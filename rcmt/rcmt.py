@@ -66,7 +66,7 @@ class RepoRun:
         if (
             pr_identifier is not None
             and repo.is_pr_merged(pr_identifier) is True
-            and matcher.merge_once
+            and matcher.merge_once is True
         ):
             log.info(
                 "Existing PR has been merged",
@@ -112,12 +112,12 @@ class RepoRun:
 
             return
 
-        # Push only if base branch was updated or actions made changes and if no PR
-        # exists or a PR exists and is open
-        needs_push = (did_rebase is True or has_changes is True) and (
-            pr_identifier is None or repo.is_pr_open(pr_identifier) is True
-        )
-        if needs_push:
+        needs_push = (
+            # Push to branch on rebase only if a Pul Request is open
+            did_rebase is True
+            and repo.is_pr_open(pr_identifier) is True
+        ) or has_changes is True
+        if needs_push is True:
             if self.opts.config.dry_run:
                 log.warn("DRY RUN: Not pushing changes")
             else:

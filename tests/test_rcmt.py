@@ -111,6 +111,7 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.name = "myrepo"
         repo_mock.project = "myproject"
         repo_mock.source = "githost.com"
+        repo_mock.is_pr_open.return_value = False
         repo_mock.find_pull_request.return_value = None
 
         runner.execute(run, repo_mock)
