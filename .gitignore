@@ -11,3 +11,4 @@ docs/_build/
 htmlcov
 dist/
 hack/rcmt.sqlite
+hack/forgejo

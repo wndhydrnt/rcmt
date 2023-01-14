@@ -51,6 +51,7 @@ humanize = "^4.2.3"
 python-slugify = "^7.0.0"
 sqlalchemy = {extras = ["mypy"], version = "^1.4.44"}
 alembic = "^1.8.1"
+python-dateutil = "^2.8.2"
 
 [tool.poetry.dev-dependencies]
 black = "22.12.0"
@@ -75,3 +76,6 @@ source = [ ".",]
 [tool.poetry.dev-dependencies.coverage]
 extras = [ "toml",]
 version = "5.5"
+
+[tool.pytest.ini_options]
+testpaths = [ "tests",]

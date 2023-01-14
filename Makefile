@@ -1,14 +1,14 @@
 RCMT_VERSION ?= develop
 
 lint:
-	poetry run black --check .
-	poetry run mypy --exclude '(docs/examples/|tests/fixtures/).+\.py' .
+	poetry run black --check --extend-exclude 'rcmt/source/gitea/client'  .
+	poetry run mypy --exclude '(docs/examples/|tests/fixtures/|rcmt/source/gitea/client/).+\.py' .
 	find ./docs/examples -mindepth 1 -maxdepth 1 -type d -print0 | xargs -0 -n1 poetry run mypy
-	poetry run isort --check-only .
-	poetry run flake8 --extend-ignore E501 ./rcmt ./docs/examples
+	poetry run isort --check-only --skip-glob 'rcmt/source/gitea/client/*' .
+	poetry run flake8 --extend-ignore E501 --extend-exclude 'rcmt/source/gitea/client/' ./rcmt ./docs/examples
 
 test:
-	poetry run pytest .
+	poetry run pytest
 
 coverage:
 	rm .coverage || true
