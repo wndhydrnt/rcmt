@@ -20,6 +20,11 @@ class Git(pydantic.BaseModel):
     user_email: str = ""
 
 
+class Gitea(pydantic.BaseModel):
+    access_token: str = ""
+    url: str = "http://localhost:3000/api/v1"
+
+
 class Github(pydantic.BaseModel):
     access_token: str = ""
     base_url: str = "https://api.github.com"
@@ -50,6 +55,7 @@ class Config(pydantic.BaseSettings):
     git: Git = Git()
     github: Github = Github()
     gitlab: Gitlab = Gitlab()
+    gitea: Gitea = Gitea()
     # Add _ because json is a reserved field of pydantic
     json_: Json = Field(alias="json", default=Json(), env="json")
     log_level: str = "info"

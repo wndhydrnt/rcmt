@@ -330,6 +330,10 @@ def config_to_options(cfg: config.Config) -> Options:
         encoding.Yaml(cfg.yaml.explicit_start), cfg.yaml.extensions
     )
 
+    if cfg.gitea.access_token != "":
+        source_gitea = source.Gitea(cfg.gitea.access_token, cfg.gitea.url)
+        opts.sources["gitea"] = source_gitea
+
     if cfg.github.access_token != "":
         source_github = source.Github(cfg.github.access_token, cfg.github.base_url)
         opts.sources["github"] = source_github
