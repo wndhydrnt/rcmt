@@ -112,7 +112,11 @@ class RepoRun:
 
             return
 
-        needs_push = did_rebase is True or has_changes is True
+        # Push only if base branch was updated or actions made changes and if no PR
+        # exists or a PR exists and is open
+        needs_push = (did_rebase is True or has_changes is True) and (
+            pr_identifier is None or repo.is_pr_open(pr_identifier) is True
+        )
         if needs_push:
             if self.opts.config.dry_run:
                 log.warn("DRY RUN: Not pushing changes")
