@@ -66,7 +66,7 @@ class RepoRun:
         if (
             pr_identifier is not None
             and repo.is_pr_merged(pr_identifier) is True
-            and matcher.merge_once
+            and matcher.merge_once is True
         ):
             log.info(
                 "Existing PR has been merged",
@@ -75,7 +75,7 @@ class RepoRun:
             )
             return
 
-        work_dir, did_rebase = self.git.prepare(repo)
+        work_dir = self.git.prepare(repo)
         tpl_mapping = create_template_mapping(repo)
         apply_actions(repo, matcher, tpl_mapping, work_dir)
         has_changes = self.git.has_changes(work_dir)
@@ -112,8 +112,7 @@ class RepoRun:
 
             return
 
-        needs_push = did_rebase is True or has_changes is True
-        if needs_push:
+        if has_changes is True:
             if self.opts.config.dry_run:
                 log.warn("DRY RUN: Not pushing changes")
             else:
@@ -131,7 +130,7 @@ class RepoRun:
             matcher.pr_title,
             auto_merge_after=matcher.auto_merge_after,
         )
-        if needs_push is True and (
+        if has_changes is True and (
             pr_identifier is None
             or repo.is_pr_merged(pr_identifier) is True
             or repo.is_pr_closed(pr_identifier) is True
@@ -146,7 +145,7 @@ class RepoRun:
 
         if (
             matcher.auto_merge is True
-            and needs_push is False
+            and has_changes is False
             and pr_identifier is not None
             and repo.is_pr_open(pr_identifier) is True
         ):

@@ -58,13 +58,16 @@ class RepositoryMock(source.Repository):
 
 
 def create_git_mock(
-    branch_name: str, checkout_dir: str, needs_push: bool, has_changes_base: bool = True
+    branch_name: str,
+    checkout_dir: str,
+    has_changes: bool,
+    has_changes_base: bool = True,
 ):
     m = unittest.mock.Mock(spec=git.Git)
     m.branch_name = branch_name
-    m.has_changes.return_value = needs_push
+    m.has_changes.return_value = has_changes
     m.has_changes_base.return_value = has_changes_base
-    m.prepare.return_value = (checkout_dir, needs_push)
+    m.prepare.return_value = checkout_dir
     return m
 
 
@@ -111,6 +114,7 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.name = "myrepo"
         repo_mock.project = "myproject"
         repo_mock.source = "githost.com"
+        repo_mock.is_pr_open.return_value = False
         repo_mock.find_pull_request.return_value = None
 
         runner.execute(run, repo_mock)
@@ -379,6 +383,37 @@ class RepoRunTest(unittest.TestCase):
         )
         repo_mock.create_pull_request.assert_called_once_with("rcmt", expected_pr)
         repo_mock.merge_pull_request.assert_not_called()
+
+    def test_no_pr_on_change_of_base_branch_and_no_open_pr(self):
+        cfg = config.Config()
+        opts = Options(cfg)
+        git_mock = create_git_mock("rcmt", "/unit/test", False)
+        runner = RepoRun(git_mock, opts)
+        run = Run(
+            auto_merge=True,
+            auto_merge_after=datetime.timedelta(hours=12),
+            name="testmatch",
+        )
+        run.add_matcher(RepoName("local"))
+        action_mock = unittest.mock.Mock(spec=action.Action)
+        run.add_action(action_mock)
+        repo_mock = unittest.mock.Mock(spec=source.Repository)
+        repo_mock.name = "myrepo"
+        repo_mock.project = "myproject"
+        repo_mock.source = "githost.com"
+        repo_mock.find_pull_request.return_value = "someid"
+        repo_mock.has_successful_pr_build.return_value = True
+        repo_mock.is_pr_closed.return_value = False
+        repo_mock.is_pr_merged.return_value = True
+        repo_mock.is_pr_open.return_value = False
+        repo_mock.pr_created_at.return_value = (
+            datetime.datetime.now() - datetime.timedelta(days=1)
+        )
+
+        runner.execute(run, repo_mock)
+
+        git_mock.push.assert_not_called()
+        repo_mock.create_pull_request.assert_not_called()
 
 
 class LocalTest(unittest.TestCase):

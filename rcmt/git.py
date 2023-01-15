@@ -56,7 +56,7 @@ class Git:
         except git.BadName:
             return True
 
-    def prepare(self, repo: source.Repository) -> tuple[str, bool]:
+    def prepare(self, repo: source.Repository) -> str:
         checkout_dir = self.checkout_dir(repo)
         if os.path.exists(checkout_dir) is False:
             log.debug("Cloning repository", url=repo.clone_url, repo=str(repo))
@@ -119,8 +119,7 @@ class Git:
 
         log.debug("Checking out work branch", branch=self.branch_name, repo=str(repo))
         git_repo.heads[self.branch_name].checkout()
-        needs_reset = has_conflict is True or has_base_branch_update is True
-        if needs_reset is True:
+        if has_conflict is True or has_base_branch_update is True:
             merge_base = git_repo.git.merge_base(repo.base_branch, self.branch_name)
             log.debug(
                 "Resetting to merge base", branch=self.branch_name, repo=str(repo)
@@ -131,7 +130,7 @@ class Git:
             )
             git_repo.git.rebase(repo.base_branch)
 
-        return checkout_dir, needs_reset
+        return checkout_dir
 
     def push(self, repo_dir):
         git_repo = git.Repo(path=repo_dir)
