@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.1](https://github.com/wndhydrnt/rcmt/compare/v0.15.0...v0.15.1) (2023-01-15)
+
+
+### Bug Fixes
+
+* Empty Pull Request created after merging a previous Pull Request ([#251](https://github.com/wndhydrnt/rcmt/issues/251)) ([b4bd1fe](https://github.com/wndhydrnt/rcmt/commit/b4bd1fe4cb78991a987ce792b889f3ab8cb2849f))
+
 ## [0.15.0](https://github.com/wndhydrnt/rcmt/compare/v0.14.0...v0.15.0) (2023-01-11)
 
 
