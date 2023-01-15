@@ -387,8 +387,7 @@ class RepoRunTest(unittest.TestCase):
     def test_no_pr_on_change_of_base_branch_and_no_open_pr(self):
         cfg = config.Config()
         opts = Options(cfg)
-        git_mock = create_git_mock("rcmt", "/unit/test", True)
-        git_mock.has_changes.return_value = False
+        git_mock = create_git_mock("rcmt", "/unit/test", False)
         runner = RepoRun(git_mock, opts)
         run = Run(
             auto_merge=True,
