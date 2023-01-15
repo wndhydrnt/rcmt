@@ -129,7 +129,7 @@ class GiteaRepository(Repository):
         if pr.body == pr_data.body and pr.title == pr_data.title:
             return None
 
-        body = EditPullRequestOption(body=pr_data.body, title=pr.title)
+        body = EditPullRequestOption(body=pr_data.body, title=pr_data.title)
         self.repo_api.repo_edit_pull_request(
             owner=self.repo.owner.login,
             repo=self.repo.name,
