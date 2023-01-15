@@ -58,13 +58,16 @@ class RepositoryMock(source.Repository):
 
 
 def create_git_mock(
-    branch_name: str, checkout_dir: str, needs_push: bool, has_changes_base: bool = True
+    branch_name: str,
+    checkout_dir: str,
+    has_changes: bool,
+    has_changes_base: bool = True,
 ):
     m = unittest.mock.Mock(spec=git.Git)
     m.branch_name = branch_name
-    m.has_changes.return_value = needs_push
+    m.has_changes.return_value = has_changes
     m.has_changes_base.return_value = has_changes_base
-    m.prepare.return_value = (checkout_dir, needs_push)
+    m.prepare.return_value = checkout_dir
     return m
 
 
