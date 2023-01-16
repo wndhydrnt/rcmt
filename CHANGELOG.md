@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.2](https://github.com/wndhydrnt/rcmt/compare/v0.15.1...v0.15.2) (2023-01-16)
+
+
+### Bug Fixes
+
+* Merge test causes exception due to missing user configuration ([#255](https://github.com/wndhydrnt/rcmt/issues/255)) ([b1690df](https://github.com/wndhydrnt/rcmt/commit/b1690df8ce986c8856a43abfd24009e411689616))
+
 ## [0.15.1](https://github.com/wndhydrnt/rcmt/compare/v0.15.0...v0.15.1) (2023-01-15)
 
 
