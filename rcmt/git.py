@@ -22,11 +22,8 @@ class Git:
         self.branch_name = branch_name
         self.clone_opts = clone_opts
         self.data_dir = data_dir
-
-        if user_email == "":
-            self.author = user_name
-        else:
-            self.author = f"{user_name} <{user_email}>"
+        self.user_email = user_email
+        self.user_name = user_name
 
     def checkout_dir(self, repo: source.Repository) -> str:
         return os.path.join(self.data_dir, repo.source, repo.project, repo.name)
@@ -34,11 +31,7 @@ class Git:
     def commit_changes(self, repo_dir: str, msg: str):
         git_repo = git.Repo(path=repo_dir)
         git_repo.git.add(all=True)
-        # Bug in GitPython where the type hint of `author`says the parameter is a string
-        # but the underlying code expects an Actor.
-        git_repo.index.commit(
-            msg, author=git.objects.commit.Actor._from_string(self.author)
-        )
+        git_repo.index.commit(msg)
 
     @staticmethod
     def has_changes(repo_dir: str) -> bool:
@@ -67,6 +60,8 @@ class Git:
         else:
             git_repo = git.Repo(path=checkout_dir)
 
+        git_repo.config_writer().set_value("user", "email", self.user_email).release()
+        git_repo.config_writer().set_value("user", "name", self.user_name).release()
         exists_local = branch_exists_local(self.branch_name, git_repo)
         remote_branch = get_remote_branch(self.branch_name, git_repo)
         if exists_local is False:
