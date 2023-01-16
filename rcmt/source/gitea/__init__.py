@@ -1,3 +1,4 @@
+import base64
 import datetime
 import io
 from typing import Any, Generator, TextIO, Union
@@ -15,6 +16,7 @@ from .client import Repository as GiteaClientRepository
 from .client import RepositoryApi, UserApi
 from .client.api_client import ApiClient
 from .client.configuration import Configuration
+from .client.exceptions import NotFoundException
 
 
 class GiteaRepository(Repository):
@@ -71,22 +73,37 @@ class GiteaRepository(Repository):
         return None
 
     def get_file(self, path: str) -> TextIO:
-        resp: ContentsResponse = self.repo_api.repo_get_contents(
-            owner=self.repo.owner.login, repo=self.repo.name, filepath=path
-        )
+        try:
+            resp = self.repo_api.repo_get_contents(
+                owner=self.repo.owner.login, repo=self.repo.name, filepath=path
+            )
+        except NotFoundException:
+            raise FileNotFoundError("files does not exist")
+
         if resp.type != "file":
             raise FileNotFoundError("not a file")
 
-        return io.StringIO(resp.content)
+        if resp.encoding == "base64":
+            decoded = base64.standard_b64decode(resp.content)
+            return io.StringIO(decoded.decode(encoding="utf-8"))
+        else:
+            raise RuntimeError(f"Unknown encoding '{resp.encoding}'")
 
     def has_file(self, path: str) -> bool:
-        resp: ContentsResponse = self.repo_api.repo_get_contents(
-            owner=self.repo.owner.login, repo=self.repo.name, filepath=path
-        )
-        if resp.type != "file":
+        try:
+            resp = self.repo_api.repo_get_contents(
+                owner=self.repo.owner.login, repo=self.repo.name, filepath=path
+            )
+        except NotFoundException:
             return False
 
-        return True
+        if resp.type == "file":
+            return True
+
+        if resp.type == "dir":
+            return True
+
+        return False
 
     def has_successful_pr_build(self, identifier: Any) -> bool:
         # Gitea does not have its own CI system. TODO: Does it have checks?
@@ -153,6 +170,7 @@ class Gitea(Base):
         yield
 
     def list_repositories(self, since: datetime.datetime) -> list[Repository]:
+        # TODO: Organizations of a user
         user_api = UserApi(api_client=self.client)
         repos: list[GiteaClientRepository] = user_api.user_current_list_repos()
         result: list[Repository] = []

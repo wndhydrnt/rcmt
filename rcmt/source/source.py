@@ -199,7 +199,7 @@ class Repository:
         checking out the whole repository to check if a file exists.
 
         :param path: Path to a file or directory in the repository.
-        :return: Indicates if the files exists.
+        :return: Indicates that the file or directory exists.
         :rtype: bool
         """
         raise NotImplementedError("class does not implement Repository.has_file()")
