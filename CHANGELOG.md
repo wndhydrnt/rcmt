@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.3](https://github.com/wndhydrnt/rcmt/compare/v0.15.2...v0.15.3) (2023-01-18)
+
+
+### Bug Fixes
+
+* Change of one run leaks into another if they both target the same repository ([#259](https://github.com/wndhydrnt/rcmt/issues/259)) ([e773de2](https://github.com/wndhydrnt/rcmt/commit/e773de203e06e05ca55322d459ff9b57001d5e5d))
+
 ## [0.15.2](https://github.com/wndhydrnt/rcmt/compare/v0.15.1...v0.15.2) (2023-01-16)
 
 
