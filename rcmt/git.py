@@ -62,15 +62,6 @@ class Git:
 
         git_repo.config_writer().set_value("user", "email", self.user_email).release()
         git_repo.config_writer().set_value("user", "name", self.user_name).release()
-        exists_local = branch_exists_local(self.branch_name, git_repo)
-        remote_branch = get_remote_branch(self.branch_name, git_repo)
-        if exists_local is False:
-            log.debug("Creating branch", branch=self.branch_name, repo=str(repo))
-            if remote_branch is None:
-                git_repo.create_head(self.branch_name)
-            else:
-                git_repo.create_head(self.branch_name, remote_branch)
-
         log.debug("Checking out base branch", branch=repo.base_branch, repo=str(repo))
         git_repo.heads[repo.base_branch].checkout()
         hash_before_pull = str(git_repo.head.commit)
@@ -86,6 +77,15 @@ class Git:
                 base_branch=repo.base_branch,
                 repo=str(repo),
             )
+
+        exists_local = branch_exists_local(self.branch_name, git_repo)
+        remote_branch = get_remote_branch(self.branch_name, git_repo)
+        if exists_local is False:
+            log.debug("Creating branch", branch=self.branch_name, repo=str(repo))
+            if remote_branch is None:
+                git_repo.create_head(self.branch_name)
+            else:
+                git_repo.create_head(self.branch_name, remote_branch)
 
         has_conflict = False
         if remote_branch is not None:
