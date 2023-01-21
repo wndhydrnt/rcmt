@@ -4,8 +4,11 @@ import io
 from typing import Any, Generator, TextIO, Union
 from urllib.parse import urlparse
 
+import structlog
+
 from ..source import Base, PullRequest, Repository
 from .client import (
+    CommitStatus,
     ContentsResponse,
     CreatePullRequestOption,
     EditPullRequestOption,
@@ -17,6 +20,8 @@ from .client import RepositoryApi, UserApi
 from .client.api_client import ApiClient
 from .client.configuration import Configuration
 from .client.exceptions import NotFoundException
+
+log: structlog.stdlib.BoundLogger = structlog.get_logger(source="gitea")
 
 
 class GiteaRepository(Repository):
@@ -39,6 +44,7 @@ class GiteaRepository(Repository):
         return self.repo.clone_url
 
     def close_pull_request(self, message: str, pr: GiteaPullRequest) -> None:
+        log.debug("Closing pull request", id=pr.id, repo=str(self))
         body = EditPullRequestOption(state="closed")
         self.repo_api.repo_edit_pull_request(
             owner=self.repo.owner.login,
@@ -56,6 +62,7 @@ class GiteaRepository(Repository):
         )
 
     def delete_branch(self, identifier: GiteaPullRequest) -> None:
+        log.debug("Deleting branch", ref=identifier.head.ref, repo=str(self))
         self.repo_api.repo_delete_branch(
             owner=self.repo.owner.login,
             repo=self.repo.name,
@@ -105,8 +112,29 @@ class GiteaRepository(Repository):
 
         return False
 
-    def has_successful_pr_build(self, identifier: Any) -> bool:
-        # Gitea does not have its own CI system. TODO: Does it have checks?
+    def has_successful_pr_build(self, identifier: GiteaPullRequest) -> bool:
+        statuses: list[CommitStatus] = self.repo_api.repo_list_statuses_by_ref(
+            owner=self.repo.owner.login, repo=self.repo.name, ref=identifier.head.sha
+        )
+        context_to_status: dict[str, CommitStatus] = {}
+        for s in statuses:
+            if s.context in context_to_status:
+                current = context_to_status[s.context]
+                if s.created_at > current.created_at:
+                    context_to_status[s.context] = s
+            else:
+                context_to_status[s.context] = s
+
+        for context in context_to_status:
+            if context_to_status[context].status != "success":
+                log.debug(
+                    "Status check not successful",
+                    context=context_to_status[context].context,
+                    repo=str(self),
+                    status=context_to_status[context].status,
+                )
+                return False
+
         return True
 
     def is_pr_closed(self, identifier: GiteaPullRequest) -> bool:
@@ -146,6 +174,7 @@ class GiteaRepository(Repository):
         if pr.body == pr_data.body and pr.title == pr_data.title:
             return None
 
+        log.debug("Updating pull request", id=pr.id, repo=str(self))
         body = EditPullRequestOption(body=pr_data.body, title=pr_data.title)
         self.repo_api.repo_edit_pull_request(
             owner=self.repo.owner.login,
