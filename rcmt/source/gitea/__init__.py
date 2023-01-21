@@ -13,15 +13,18 @@ from .client import (
     CreatePullRequestOption,
     EditPullRequestOption,
     MergePullRequestOption,
+    OrganizationApi,
 )
 from .client import PullRequest as GiteaPullRequest
 from .client import Repository as GiteaClientRepository
-from .client import RepositoryApi, UserApi
+from .client import RepositoryApi, Team, User, UserApi
 from .client.api_client import ApiClient
 from .client.configuration import Configuration
 from .client.exceptions import NotFoundException
 
 log: structlog.stdlib.BoundLogger = structlog.get_logger(source="gitea")
+
+TEAM_PERMISSIONS = ["owner", "write"]
 
 
 class GiteaRepository(Repository):
@@ -199,11 +202,36 @@ class Gitea(Base):
         yield
 
     def list_repositories(self, since: datetime.datetime) -> list[Repository]:
-        # TODO: Organizations of a user
         user_api = UserApi(api_client=self.client)
-        repos: list[GiteaClientRepository] = user_api.user_current_list_repos()
-        result: list[Repository] = []
+        teams: list[Team] = user_api.user_list_teams()
+        org_api = OrganizationApi(api_client=self.client)
         repo_api = RepositoryApi(api_client=self.client)
+        result: list[Repository] = []
+        seen_team_repos: list[str] = []
+        for team in teams:
+            # User needs permission "owner" or "write" to write to repositories of a
+            # team and create pull requests.
+            if (
+                team.units_map["repo.code"] not in TEAM_PERMISSIONS
+                or team.units_map["repo.pulls"] not in TEAM_PERMISSIONS
+            ):
+                continue
+
+            repos_team: list[GiteaClientRepository] = org_api.org_list_team_repos(
+                id=team.id
+            )
+            for repo in repos_team:
+                # Extra guard in case the user is a member of multiple teams that have
+                # access to the same repositories.
+                if repo.full_name in seen_team_repos:
+                    continue
+
+                seen_team_repos.append(repo.full_name)
+                result.append(
+                    GiteaRepository(repo=repo, repo_api=repo_api, source=self.source)
+                )
+
+        repos: list[GiteaClientRepository] = user_api.user_current_list_repos()
         for repo in repos:
             result.append(
                 GiteaRepository(repo=repo, repo_api=repo_api, source=self.source)
