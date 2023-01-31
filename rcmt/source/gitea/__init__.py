@@ -4,6 +4,7 @@ import io
 from typing import Any, Generator, TextIO, Union
 from urllib.parse import urlparse
 
+import pytz
 import structlog
 
 from ..source import Base, PullRequest, Repository
@@ -12,6 +13,8 @@ from .client import (
     ContentsResponse,
     CreatePullRequestOption,
     EditPullRequestOption,
+    Issue,
+    IssueApi,
     MergePullRequestOption,
     OrganizationApi,
 )
@@ -198,41 +201,26 @@ class Gitea(Base):
     def list_repositories_with_open_pull_requests(
         self,
     ) -> Generator[Repository, None, None]:
-        return
-        yield
+        issue_api = IssueApi(api_client=self.client)
+        repo_api = RepositoryApi(api_client=self.client)
+        issues: list[Issue] = issue_api.issue_search_issues(
+            created=True, state="open", type="pulls"
+        )
+        for issue in issues:
+            repo = repo_api.repo_get(
+                owner=issue.repository.owner, repo=issue.repository.name
+            )
+            yield GiteaRepository(repo=repo, repo_api=repo_api, source=self.source)
 
     def list_repositories(self, since: datetime.datetime) -> list[Repository]:
         user_api = UserApi(api_client=self.client)
-        teams: list[Team] = user_api.user_list_teams()
-        org_api = OrganizationApi(api_client=self.client)
         repo_api = RepositoryApi(api_client=self.client)
         result: list[Repository] = []
-        seen_team_repos: list[str] = []
-        for team in teams:
-            # User needs permission "owner" or "write" to write to repositories of a
-            # team and create pull requests.
-            if (
-                team.units_map["repo.code"] not in TEAM_PERMISSIONS
-                or team.units_map["repo.pulls"] not in TEAM_PERMISSIONS
-            ):
-                continue
-
-            repos_team: list[GiteaClientRepository] = org_api.org_list_team_repos(
-                id=team.id
-            )
-            for repo in repos_team:
-                # Extra guard in case the user is a member of multiple teams that have
-                # access to the same repositories.
-                if repo.full_name in seen_team_repos:
-                    continue
-
-                seen_team_repos.append(repo.full_name)
-                result.append(
-                    GiteaRepository(repo=repo, repo_api=repo_api, source=self.source)
-                )
-
         repos: list[GiteaClientRepository] = user_api.user_current_list_repos()
         for repo in repos:
+            if repo.updated_at < since:
+                continue
+
             result.append(
                 GiteaRepository(repo=repo, repo_api=repo_api, source=self.source)
             )

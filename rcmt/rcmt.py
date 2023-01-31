@@ -3,6 +3,7 @@ import logging
 import sys
 from typing import Optional
 
+import pytz
 import structlog
 
 from . import config, database, encoding, git, run, source
@@ -219,9 +220,9 @@ def execute(opts: Options) -> bool:
 
     execution = db.get_last_execution()
     if needs_all_repositories is True or execution.executed_at is None:
-        since = datetime.datetime.fromtimestamp(0)
+        since = datetime.datetime.fromtimestamp(0, tz=pytz.UTC)
     else:
-        since = execution.executed_at
+        since = execution.executed_at.replace(tzinfo=pytz.UTC)
 
     log.debug("Searching for updated repositories", since=str(since))
     repositories: list[source.Repository] = []
@@ -254,7 +255,7 @@ def execute(opts: Options) -> bool:
         log.error("Errors during execution - check previous log messages")
 
     ex = database.Execution()
-    ex.executed_at = datetime.datetime.utcnow()
+    ex.executed_at = datetime.datetime.now(tz=pytz.UTC)
     db.save_execution(ex)
     return success
 
