@@ -14,6 +14,25 @@ Example
 Reference
 ---------
 
+``database``
+^^^^^^^^^^^^
+
+``connection``
+""""""""""""""
+
+Connection to a database where rcmt stores additional data. The value is an
+`SQLAlchemy Database URL <https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls>`_.
+Defaults to ``sqlite:///:memory:``.
+
+.. note::
+   rcmt does not include database drivers like ``psycopg2`` or ``mysqlclient``. These
+   packages need to be installed separately.
+
+``migrate``
+"""""""""""
+
+Run migrations at the start of rcmt. Defaults to ``true``.
+
 ``dry_run``
 ^^^^^^^^^^^
 
