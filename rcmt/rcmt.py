@@ -212,6 +212,11 @@ def execute(opts: Options) -> bool:
     for run_path in opts.run_paths:
         run_ = run.read(run_path)
         run_db = db.get_or_create_run(name=run_.name)
+        if run_.enabled is False:
+            db.update_run(run_.name, run_.checksum)
+            log.info("Run disabled", run=run_.name)
+            continue
+
         if run_.checksum != run_db.checksum:
             needs_all_repositories = True
 
