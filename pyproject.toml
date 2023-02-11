@@ -48,7 +48,7 @@ click = "^8.0.1"
 colorama = "^0.4.4"
 python-gitlab = ">=2.10,<4.0"
 humanize = "^4.2.3"
-python-slugify = "^7.0.0"
+python-slugify = ">=7,<9"
 sqlalchemy = {extras = ["mypy"], version = "^1.4.44"}
 alembic = "^1.8.1"
 
