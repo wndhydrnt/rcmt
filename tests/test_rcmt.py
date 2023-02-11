@@ -742,7 +742,7 @@ class ExecuteTest(unittest.TestCase):
 
     @unittest.mock.patch("rcmt.database.new_database")
     @unittest.mock.patch("rcmt.rcmt.execute_run")
-    def test_execute__no_previous_execution(
+    def test_execute__run_disabled(
         self,
         execute_run_mock: unittest.mock.MagicMock,
         new_database_mock: unittest.mock.MagicMock,
