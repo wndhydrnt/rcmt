@@ -59,8 +59,14 @@ def run_migrations_online() -> None:
     """
     connectable = config.attributes.get("connection", None)
     if connectable is None:
+        config_section = config.get_section(config.config_ini_section)
+        if config_section is None:
+            raise RuntimeError(
+                f"Unable to find config section '{config.config_ini_section}'"
+            )
+
         connectable = engine_from_config(
-            config.get_section(config.config_ini_section),
+            config_section,
             prefix="sqlalchemy.",
             poolclass=pool.NullPool,
         )
