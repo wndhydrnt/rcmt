@@ -24,18 +24,18 @@ wait for a build job to succeed and then merge the pull request is no fun. This 
 rcmt can help.
 
 rcmt needs configuration that tells it what to do and to which repositories it should
-apply changes. This is done via a **Run**. A Run is written in Python and stored in a
-file typically named ``run.py``.
+apply changes. This is done via a **Task**. A Task is written in Python and stored in a
+file typically named ``task.py``.
 
 .. highlight:: python
-.. include:: ./examples/simple/run.py
+.. include:: ./examples/simple/task.py
    :code:
 
 Everything is ready. Run rcmt:
 
 .. code-block:: bash
 
-   rcmt run ./run.py
+   rcmt run ./task.py
 
 rcmt will find all matching repositories, check them out locally, apply the Action and
 create a Pull Request for each repository.
@@ -45,7 +45,7 @@ create a Pull Request for each repository.
 
    installation
    action
-   run
+   task
    sources
    configuration
    encoding

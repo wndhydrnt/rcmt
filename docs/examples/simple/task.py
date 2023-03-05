@@ -1,19 +1,19 @@
-from rcmt import Run
+from rcmt import Task
 from rcmt.action import Own
 from rcmt.matcher import RepoName
 
 # rcmt uses the name when committing changes.
-with Run(name="python-defaults") as run:
+with Task(name="python-defaults") as task:
     content = """[flake8]
 max-line-length = 88
 extend-ignore = E203
 """
 
     # Match all repositories of MyOrg.
-    run.add_matcher(RepoName("github.com/MyOrg/.+"))
-    # Add an action to the run. The action tells rcmt what to do.
+    task.add_matcher(RepoName("github.com/MyOrg/.+"))
+    # Add an action to the task. The action tells rcmt what to do.
     # The Own action creates a file and ensures that its content stays the same.
-    run.add_action(
+    task.add_action(
         Own(
             # The content of the file to write.
             content=content,

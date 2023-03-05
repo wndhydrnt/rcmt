@@ -14,12 +14,12 @@ from rcmt import action, matcher, source
 from rcmt.fs import FileProxy
 
 
-class Run:
+class Task:
     """
-    A Run connects Actions with repositories. rcmt reads the Run, finds matching
+    A Task connects Actions with repositories. rcmt reads the Task, finds matching
     repositories and then applies its Actions to each repository.
 
-    :param name: The name of the Run. rcmt uses the name to identify a run.
+    :param name: The name of the Task. rcmt uses the name to identify a task.
     :param auto_merge: rcmt automatically merges a pull request on its next run. The
                        pull request must pass all its checks.
     :param auto_merge_after: A duration after which to automatically merge a Pull
@@ -29,7 +29,7 @@ class Run:
     :param commit_msg: Message to use when committing changes via git.
     :param delete_branch_after_merge: If ``True``, rcmt will delete the branch after it
                                       has been merged. Defaults to ``True``.
-    :param enabled: If ``False``, disables the run. Handy if a run needs to be stopped
+    :param enabled: If ``False``, disables the task. Handy if a task needs to be stopped
                     temporarily. Defaults to ``True``.
     :param merge_once: If ``True``, rcmt does not create another pull request if it
                        created a pull request for the same branch before and that pull
@@ -43,19 +43,19 @@ class Run:
 
        from datetime import timedelta
 
-       from rcmt import Run
+       from rcmt import Task
        from rcmt.matcher import FileExists, RepoName
 
-       with Run(
+       with Task(
            name="python-defaults",
            auto_merge=True,
            auto_merge_after=timedelta(days=7)
-       ) as run:
-           run.add_matcher(FileExists("pyproject.toml"))
-           run.add_matcher(RepoName("^github.com/wndhydrnt/rcmt$"))
+       ) as task:
+           task.add_matcher(FileExists("pyproject.toml"))
+           task.add_matcher(RepoName("^github.com/wndhydrnt/rcmt$"))
 
-           run.pr_title = "A custom PR title"
-           run.pr_body = '''A custom PR title.
+           task.pr_title = "A custom PR title"
+           task.pr_body = '''A custom PR title.
            It supports multiline strings.'''
     """
 
@@ -121,7 +121,7 @@ class Run:
         Returns a proxy that an Action can use to load a file.
 
         :param path: Path to the file to load. Relative to the file that contains the
-                     Run.
+                     Task.
         """
         fp = FileProxy(path)
         self.file_proxies.append(fp)
@@ -136,18 +136,28 @@ class Run:
 
     def set_path(self, path):
         """
-        Set the path to the Run.
+        Set the path to the Task.
         Forwards this path to all ``FileProxys`` created when calling the
         ``load_file`` function.
-        rcmt calls this function when it loads a Run file.
+        rcmt calls this function when it loads a Task file.
 
-        :param path: Path to the directory that contains the Run file.
+        :param path: Path to the directory that contains the Task file.
         """
         for fp in self.file_proxies:
             fp.set_path(path)
 
 
-def read(path: str) -> Run:
+class Run(Task):
+    """
+    Run is an alias of Task.
+
+    Provides backwards compatibility with task files written for rcmt <= 0.15.3.
+    """
+
+    pass
+
+
+def read(path: str) -> Task:
     checksum = hashlib.md5()
     with open(path) as f:
         while True:
@@ -158,7 +168,7 @@ def read(path: str) -> Run:
             checksum.update(line.encode("utf-8"))
 
     rndm = "".join(random.choice(string.ascii_lowercase) for _ in range(8))
-    mod_name = f"rcmt_run_{rndm}"
+    mod_name = f"rcmt_task_{rndm}"
     loader = importlib.machinery.SourceFileLoader(mod_name, path)
     spec = importlib.util.spec_from_loader(mod_name, loader)
     assert spec is not None
@@ -166,14 +176,19 @@ def read(path: str) -> Run:
     sys.modules[spec.name] = new_module
     loader.exec_module(new_module)
     try:
-        run = new_module.run  # type: ignore # because the content of module is not known
-        if not isinstance(run, Run):
-            raise RuntimeError(
-                f"Run file {path} defines variable 'run' but is not of type Run"
-            )
-
-        run.set_path(os.path.dirname(path))
-        run.checksum = checksum.hexdigest()
-        return new_module.run  # type: ignore # because the content of module is not known
+        task = new_module.task  # type: ignore # because the content of module is not known
     except AttributeError:
-        raise RuntimeError(f"Run file {path} does not define variable 'run'")
+        try:
+            # Accept variable "run" for backward compatibility with versions <= 0.15.3
+            task = new_module.run  # type: ignore # because the content of module is not known
+        except AttributeError:
+            raise RuntimeError(f"Task file {path} does not define variable 'task'")
+
+    if not isinstance(task, Task):
+        raise RuntimeError(
+            f"Task file {path} defines variable 'task' but is not of type Task"
+        )
+
+    task.set_path(os.path.dirname(path))
+    task.checksum = checksum.hexdigest()
+    return task  # type: ignore # because the content of module is not known

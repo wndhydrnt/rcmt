@@ -1,7 +1,7 @@
 import os.path
 
 from rcmt.action import Action
-from rcmt.run import Run
+from rcmt.task import Task
 
 
 class HelloWorld(Action):
@@ -17,5 +17,5 @@ class HelloWorld(Action):
             f.write("\n")
 
 
-with Run(name="custom-action") as run:
-    run.add_action(HelloWorld())
+with Task(name="custom-action") as task:
+    task.add_action(HelloWorld())
