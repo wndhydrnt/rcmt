@@ -9,9 +9,9 @@ from rcmt.config import Config
 from rcmt.config import Database as DatabaseConfig
 from rcmt.database import Database, Execution
 from rcmt.matcher import RepoName
-from rcmt.rcmt import Options, RepoRun, execute, execute_local, execute_run
-from rcmt.run import Run
+from rcmt.rcmt import Options, RepoRun, execute, execute_local, execute_task
 from rcmt.source import Base
+from rcmt.task import Task
 
 
 class RepositoryMock(source.Repository):
@@ -77,7 +77,7 @@ class RepoRunTest(unittest.TestCase):
         opts = Options(cfg)
         git_mock = create_git_mock("rcmt", "/unit/test", False)
         runner = RepoRun(git_mock, opts)
-        run = Run(name="testrun")
+        run = Task(name="testrun")
         run.add_matcher(RepoName("local"))
         action_mock = unittest.mock.Mock(spec=action.Action)
         run.add_action(action_mock)
@@ -106,7 +106,7 @@ class RepoRunTest(unittest.TestCase):
         opts = Options(cfg)
         git_mock = create_git_mock("rcmt", "/unit/test", True)
         runner = RepoRun(git_mock, opts)
-        run = Run(commit_msg="Custom commit", name="testrun")
+        run = Task(commit_msg="Custom commit", name="testrun")
         run.add_matcher(RepoName("local"))
         action_mock = unittest.mock.Mock(spec=action.Action)
         run.add_action(action_mock)
@@ -146,7 +146,7 @@ class RepoRunTest(unittest.TestCase):
         opts = Options(cfg)
         git_mock = create_git_mock("rcmt", "/unit/test", False)
         runner = RepoRun(git_mock, opts)
-        run = Run(
+        run = Task(
             auto_merge=True,
             auto_merge_after=datetime.timedelta(hours=12),
             name="testmatch",
@@ -187,7 +187,7 @@ class RepoRunTest(unittest.TestCase):
         opts = Options(cfg)
         git_mock = create_git_mock("rcmt", "/unit/test", True)
         runner = RepoRun(git_mock, opts)
-        run = Run(name="testmatch", merge_once=True)
+        run = Task(name="testmatch", merge_once=True)
         run.add_matcher(RepoName("local"))
         action_mock = unittest.mock.Mock(spec=action.Action)
         run.add_action(action_mock)
@@ -211,7 +211,7 @@ class RepoRunTest(unittest.TestCase):
         opts = Options(cfg)
         git_mock = create_git_mock("rcmt", "/unit/test", True)
         runner = RepoRun(git_mock, opts)
-        run = Run(name="testmatch", merge_once=True)
+        run = Task(name="testmatch", merge_once=True)
         run.add_matcher(RepoName("local"))
         action_mock = unittest.mock.Mock(spec=action.Action)
         run.add_action(action_mock)
@@ -234,7 +234,7 @@ class RepoRunTest(unittest.TestCase):
         cfg = config.Config()
         opts = Options(cfg)
         git_mock = create_git_mock("rcmt", "/unit/test", False, False)
-        run = Run(name="testmatch")
+        run = Task(name="testmatch")
         repo_mock = unittest.mock.Mock(spec=source.Repository)
         repo_mock.name = "myrepo"
         repo_mock.project = "myproject"
@@ -256,7 +256,7 @@ class RepoRunTest(unittest.TestCase):
         cfg = config.Config()
         opts = Options(cfg)
         git_mock = create_git_mock("rcmt", "/unit/test", False, False)
-        run = Run(name="testmatch")
+        run = Task(name="testmatch")
         repo_mock = unittest.mock.Mock(spec=source.Repository)
         repo_mock.name = "myrepo"
         repo_mock.project = "myproject"
@@ -274,7 +274,7 @@ class RepoRunTest(unittest.TestCase):
         cfg = config.Config()
         opts = Options(cfg)
         git_mock = create_git_mock("rcmt", "/unit/test", False, True)
-        run = Run(name="testmatch")
+        run = Task(name="testmatch")
         repo_mock = unittest.mock.Mock(spec=source.Repository)
         repo_mock.name = "myrepo"
         repo_mock.project = "myproject"
@@ -302,7 +302,7 @@ class RepoRunTest(unittest.TestCase):
         cfg = config.Config()
         opts = Options(cfg)
         git_mock = create_git_mock("rcmt", "/unit/test", False, True)
-        run = Run(name="testmatch", auto_merge=True)
+        run = Task(name="testmatch", auto_merge=True)
         repo_mock = unittest.mock.Mock(spec=source.Repository)
         repo_mock.name = "myrepo"
         repo_mock.project = "myproject"
@@ -324,7 +324,7 @@ class RepoRunTest(unittest.TestCase):
         cfg = config.Config()
         opts = Options(cfg)
         git_mock = create_git_mock("rcmt", "/unit/test", False, True)
-        run = Run(name="testmatch", auto_merge=True, delete_branch_after_merge=False)
+        run = Task(name="testmatch", auto_merge=True, delete_branch_after_merge=False)
         repo_mock = unittest.mock.Mock(spec=source.Repository)
         repo_mock.name = "myrepo"
         repo_mock.project = "myproject"
@@ -348,7 +348,7 @@ class RepoRunTest(unittest.TestCase):
         opts = Options(cfg)
         git_mock = create_git_mock("rcmt", "/unit/test", True)
         runner = RepoRun(git_mock, opts)
-        run = Run(commit_msg="Custom commit", name="testrun")
+        run = Task(commit_msg="Custom commit", name="testrun")
         run.add_matcher(RepoName("local"))
         action_mock = unittest.mock.Mock(spec=action.Action)
         run.add_action(action_mock)
@@ -389,7 +389,7 @@ class RepoRunTest(unittest.TestCase):
         opts = Options(cfg)
         git_mock = create_git_mock("rcmt", "/unit/test", False)
         runner = RepoRun(git_mock, opts)
-        run = Run(
+        run = Task(
             auto_merge=True,
             auto_merge_after=datetime.timedelta(hours=12),
             name="testmatch",
@@ -417,19 +417,19 @@ class RepoRunTest(unittest.TestCase):
 
 
 class LocalTest(unittest.TestCase):
-    @unittest.mock.patch("rcmt.run.read")
-    def test_execute_local(self, run_read_mock):
+    @unittest.mock.patch("rcmt.task.read")
+    def test_execute_local(self, task_read_mock):
         opts = Options(cfg=Config())
-        opts.run_paths = ["/tmp/run.py"]
+        opts.task_paths = ["/tmp/run.py"]
         opts.encoding_registry = encoding.Registry()
-        run = Run(name="local")
+        run = Task(name="local")
         action_mock = unittest.mock.Mock(spec=action.Action)
         run.add_action(action_mock)
-        run_read_mock.return_value = run
+        task_read_mock.return_value = run
 
         execute_local("/tmp/repository", "github.com/wndhydrnt/rcmt", opts)
 
-        run_read_mock.assert_called_with("/tmp/run.py")
+        task_read_mock.assert_called_with("/tmp/run.py")
         action_mock.apply.assert_called_once_with(
             "/tmp/repository",
             {
@@ -445,13 +445,13 @@ class ExecuteRunTest(unittest.TestCase):
     def test_execute_run__successful(self, repo_run_class):
         repo_run = unittest.mock.Mock(spec=RepoRun)
         repo_run_class.return_value = repo_run
-        run = unittest.mock.Mock(spec=Run)
+        run = unittest.mock.Mock(spec=Task)
         run.match.return_value = True
         run.name = "test"
         repository = unittest.mock.Mock(spec=source.Repository)
         opts = Options(cfg=Config())
 
-        result = execute_run(run_=run, repos=[repository], opts=opts)
+        result = execute_task(task_=run, repos=[repository], opts=opts)
 
         self.assertTrue(result)
         repo_run.execute.assert_called_once_with(run, repository)
@@ -460,13 +460,13 @@ class ExecuteRunTest(unittest.TestCase):
     def test_execute_run__does_not_match(self, repo_run_class):
         repo_run = unittest.mock.Mock(spec=RepoRun)
         repo_run_class.return_value = repo_run
-        run = unittest.mock.Mock(spec=Run)
+        run = unittest.mock.Mock(spec=Task)
         run.match.return_value = False
         run.name = "test"
         repository = unittest.mock.Mock(spec=source.Repository)
         opts = Options(cfg=Config())
 
-        result = execute_run(run_=run, repos=[repository], opts=opts)
+        result = execute_task(task_=run, repos=[repository], opts=opts)
 
         self.assertTrue(result)
         repo_run.execute.not_called()
@@ -476,13 +476,13 @@ class ExecuteRunTest(unittest.TestCase):
         repo_run = unittest.mock.Mock(spec=RepoRun)
         repo_run.execute.side_effect = RuntimeError
         repo_run_class.return_value = repo_run
-        run = unittest.mock.Mock(spec=Run)
+        run = unittest.mock.Mock(spec=Task)
         run.match.return_value = True
         run.name = "test"
         repository = unittest.mock.Mock(spec=source.Repository)
         opts = Options(cfg=Config())
 
-        result = execute_run(run_=run, repos=[repository], opts=opts)
+        result = execute_task(task_=run, repos=[repository], opts=opts)
 
         self.assertFalse(result)
 
@@ -490,13 +490,13 @@ class ExecuteRunTest(unittest.TestCase):
     def test_execute_run__match_exception(self, repo_run_class):
         repo_run = unittest.mock.Mock(spec=RepoRun)
         repo_run_class.return_value = repo_run
-        run = unittest.mock.Mock(spec=Run)
+        run = unittest.mock.Mock(spec=Task)
         run.match.side_effect = RuntimeError
         run.name = "test"
         repository = unittest.mock.Mock(spec=source.Repository)
         opts = Options(cfg=Config())
 
-        result = execute_run(run_=run, repos=[repository], opts=opts)
+        result = execute_task(task_=run, repos=[repository], opts=opts)
 
         self.assertFalse(result)
 
@@ -506,30 +506,30 @@ class ExecuteTest(unittest.TestCase):
         self.db: Database = database.new_database(DatabaseConfig())
 
     @unittest.mock.patch("rcmt.database.new_database")
-    @unittest.mock.patch("rcmt.rcmt.execute_run")
+    @unittest.mock.patch("rcmt.rcmt.execute_task")
     def test_execute__no_repositories(
         self,
-        execute_run_mock: unittest.mock.MagicMock,
+        execute_task_mock: unittest.mock.MagicMock,
         new_database_mock: unittest.mock.MagicMock,
     ) -> None:
         opts = Options(Config())
-        opts.run_paths = ["tests/fixtures/test_rcmt/ExecuteTest/run.py"]
+        opts.task_paths = ["tests/fixtures/test_rcmt/ExecuteTest/task.py"]
         new_database_mock.return_value = self.db
 
         result = execute(opts)
 
         self.assertTrue(result)
-        run_db = self.db.get_or_create_run(name="unit-test")
+        run_db = self.db.get_or_create_task(name="unit-test")
         self.assertEqual(run_db.checksum, "")
         execution_db = self.db.get_last_execution()
         self.assertIsNotNone(execution_db)
-        execute_run_mock.assert_not_called()
+        execute_task_mock.assert_not_called()
 
     @unittest.mock.patch("rcmt.database.new_database")
-    @unittest.mock.patch("rcmt.rcmt.execute_run")
+    @unittest.mock.patch("rcmt.rcmt.execute_task")
     def test_execute__no_previous_execution(
         self,
-        execute_run_mock: unittest.mock.MagicMock,
+        execute_task_mock: unittest.mock.MagicMock,
         new_database_mock: unittest.mock.MagicMock,
     ) -> None:
         new_database_mock.return_value = self.db
@@ -540,48 +540,48 @@ class ExecuteTest(unittest.TestCase):
         source_mock.list_repositories.return_value = [repo_mock]
 
         opts = Options(Config())
-        opts.run_paths = ["tests/fixtures/test_rcmt/ExecuteTest/run.py"]
+        opts.task_paths = ["tests/fixtures/test_rcmt/ExecuteTest/task.py"]
         opts.sources = {"mock": source_mock}
 
-        execute_run_mock.return_value = True
+        execute_task_mock.return_value = True
 
         result = execute(opts)
 
         self.assertTrue(result, msg="Should be successful")
-        run_db = self.db.get_or_create_run(name="unit-test")
+        run_db = self.db.get_or_create_task(name="unit-test")
         self.assertEqual(
             run_db.checksum,
-            "db319430618ee31a97b3c220dca083c1",
+            "e96d87b82e15adb13ef63d6559b7ce85",
             msg="Should write the checksum because the Run was successfully executed",
         )
         execution_db = self.db.get_last_execution()
         self.assertIsNotNone(execution_db, msg="Should write the last execution")
         self.assertEqual(
-            execute_run_mock.call_count,
+            execute_task_mock.call_count,
             1,
             "Should execute a Run only once because one repository has been returned",
         )
         self.assertIsInstance(
-            execute_run_mock.call_args.args[0],
-            Run,
+            execute_task_mock.call_args.args[0],
+            Task,
             "Should pass the Run to 'execute_run'",
         )
         self.assertListEqual(
             [repo_mock],
-            execute_run_mock.call_args.args[1],
+            execute_task_mock.call_args.args[1],
             "Should pass the repositories to 'execute_run'",
         )
         self.assertEqual(
             opts,
-            execute_run_mock.call_args.args[2],
+            execute_task_mock.call_args.args[2],
             "Should pass the options to 'execute_run'",
         )
 
     @unittest.mock.patch("rcmt.database.new_database")
-    @unittest.mock.patch("rcmt.rcmt.execute_run")
+    @unittest.mock.patch("rcmt.rcmt.execute_task")
     def test_execute__query_repositories_since_previous_execution(
         self,
-        execute_run_mock: unittest.mock.MagicMock,
+        execute_task_mock: unittest.mock.MagicMock,
         new_database_mock: unittest.mock.MagicMock,
     ) -> None:
         executed_at = datetime.datetime.fromtimestamp(2934000)
@@ -589,9 +589,9 @@ class ExecuteTest(unittest.TestCase):
         execution.executed_at = executed_at
         self.db.save_execution(execution)
 
-        self.db.get_or_create_run(name="unit-test")
-        self.db.update_run(
-            name="unit-test", checksum="db319430618ee31a97b3c220dca083c1"
+        self.db.get_or_create_task(name="unit-test")
+        self.db.update_task(
+            name="unit-test", checksum="e96d87b82e15adb13ef63d6559b7ce85"
         )
 
         new_database_mock.return_value = self.db
@@ -603,10 +603,10 @@ class ExecuteTest(unittest.TestCase):
         source_mock.list_repositories_with_open_pull_requests.return_value = []
 
         opts = Options(Config())
-        opts.run_paths = ["tests/fixtures/test_rcmt/ExecuteTest/run.py"]
+        opts.task_paths = ["tests/fixtures/test_rcmt/ExecuteTest/task.py"]
         opts.sources = {"mock": source_mock}
 
-        execute_run_mock.return_value = True
+        execute_task_mock.return_value = True
 
         result = execute(opts)
 
@@ -614,10 +614,10 @@ class ExecuteTest(unittest.TestCase):
         source_mock.list_repositories.assert_called_once_with(since=executed_at)
 
     @unittest.mock.patch("rcmt.database.new_database")
-    @unittest.mock.patch("rcmt.rcmt.execute_run")
+    @unittest.mock.patch("rcmt.rcmt.execute_task")
     def test_execute__query_repositories_with_open_pull_requests(
         self,
-        execute_run_mock: unittest.mock.MagicMock,
+        execute_task_mock: unittest.mock.MagicMock,
         new_database_mock: unittest.mock.MagicMock,
     ) -> None:
         executed_at = datetime.datetime.fromtimestamp(2934000)
@@ -625,9 +625,9 @@ class ExecuteTest(unittest.TestCase):
         execution.executed_at = executed_at
         self.db.save_execution(execution)
 
-        self.db.get_or_create_run(name="unit-test")
-        self.db.update_run(
-            name="unit-test", checksum="db319430618ee31a97b3c220dca083c1"
+        self.db.get_or_create_task(name="unit-test")
+        self.db.update_task(
+            name="unit-test", checksum="e96d87b82e15adb13ef63d6559b7ce85"
         )
 
         new_database_mock.return_value = self.db
@@ -639,36 +639,36 @@ class ExecuteTest(unittest.TestCase):
         source_mock.list_repositories_with_open_pull_requests.return_value = [repo_mock]
 
         opts = Options(Config())
-        opts.run_paths = ["tests/fixtures/test_rcmt/ExecuteTest/run.py"]
+        opts.task_paths = ["tests/fixtures/test_rcmt/ExecuteTest/task.py"]
         opts.sources = {"mock": source_mock}
 
-        execute_run_mock.return_value = True
+        execute_task_mock.return_value = True
 
         result = execute(opts)
 
         self.assertTrue(result, msg="Should be successful")
         source_mock.list_repositories_with_open_pull_requests.assert_called_once_with()
         self.assertIsInstance(
-            execute_run_mock.call_args.args[0],
-            Run,
+            execute_task_mock.call_args.args[0],
+            Task,
             "Should pass the Run to 'execute_run'",
         )
         self.assertListEqual(
             [repo_mock],
-            execute_run_mock.call_args.args[1],
+            execute_task_mock.call_args.args[1],
             "Should pass the repositories to 'execute_run'",
         )
         self.assertEqual(
             opts,
-            execute_run_mock.call_args.args[2],
+            execute_task_mock.call_args.args[2],
             "Should pass the options to 'execute_run'",
         )
 
     @unittest.mock.patch("rcmt.database.new_database")
-    @unittest.mock.patch("rcmt.rcmt.execute_run")
+    @unittest.mock.patch("rcmt.rcmt.execute_task")
     def test_execute__deduplicate_repositories(
         self,
-        execute_run_mock: unittest.mock.MagicMock,
+        execute_task_mock: unittest.mock.MagicMock,
         new_database_mock: unittest.mock.MagicMock,
     ) -> None:
         executed_at = datetime.datetime.fromtimestamp(2934000)
@@ -676,9 +676,9 @@ class ExecuteTest(unittest.TestCase):
         execution.executed_at = executed_at
         self.db.save_execution(execution)
 
-        self.db.get_or_create_run(name="unit-test")
-        self.db.update_run(
-            name="unit-test", checksum="db319430618ee31a97b3c220dca083c1"
+        self.db.get_or_create_task(name="unit-test")
+        self.db.update_task(
+            name="unit-test", checksum="e96d87b82e15adb13ef63d6559b7ce85"
         )
 
         new_database_mock.return_value = self.db
@@ -690,36 +690,36 @@ class ExecuteTest(unittest.TestCase):
         source_mock.list_repositories_with_open_pull_requests.return_value = [repo_mock]
 
         opts = Options(Config())
-        opts.run_paths = ["tests/fixtures/test_rcmt/ExecuteTest/run.py"]
+        opts.task_paths = ["tests/fixtures/test_rcmt/ExecuteTest/task.py"]
         opts.sources = {"mock": source_mock}
 
-        execute_run_mock.return_value = True
+        execute_task_mock.return_value = True
 
         result = execute(opts)
 
         self.assertTrue(result, msg="Should be successful")
         source_mock.list_repositories_with_open_pull_requests.assert_called_once_with()
         self.assertIsInstance(
-            execute_run_mock.call_args.args[0],
-            Run,
+            execute_task_mock.call_args.args[0],
+            Task,
             "Should pass the Run to 'execute_run'",
         )
         self.assertListEqual(
             [repo_mock],
-            execute_run_mock.call_args.args[1],
+            execute_task_mock.call_args.args[1],
             "Should pass the repositories to 'execute_run'",
         )
         self.assertEqual(
             opts,
-            execute_run_mock.call_args.args[2],
+            execute_task_mock.call_args.args[2],
             "Should pass the options to 'execute_run'",
         )
 
     @unittest.mock.patch("rcmt.database.new_database")
-    @unittest.mock.patch("rcmt.rcmt.execute_run")
+    @unittest.mock.patch("rcmt.rcmt.execute_task")
     def test_execute__indicate_a_failed_run(
         self,
-        execute_run_mock: unittest.mock.MagicMock,
+        execute_task_mock: unittest.mock.MagicMock,
         new_database_mock: unittest.mock.MagicMock,
     ) -> None:
         new_database_mock.return_value = self.db
@@ -730,21 +730,21 @@ class ExecuteTest(unittest.TestCase):
         source_mock.list_repositories.return_value = [repo_mock]
 
         opts = Options(Config())
-        opts.run_paths = ["tests/fixtures/test_rcmt/ExecuteTest/run.py"]
+        opts.task_paths = ["tests/fixtures/test_rcmt/ExecuteTest/task.py"]
         opts.sources = {"mock": source_mock}
 
-        execute_run_mock.return_value = False
+        execute_task_mock.return_value = False
 
         result = execute(opts)
 
         self.assertFalse(result, msg="Should be unsuccessful")
-        execute_run_mock.assert_called_once()
+        execute_task_mock.assert_called_once()
 
     @unittest.mock.patch("rcmt.database.new_database")
-    @unittest.mock.patch("rcmt.rcmt.execute_run")
+    @unittest.mock.patch("rcmt.rcmt.execute_task")
     def test_execute__run_disabled(
         self,
-        execute_run_mock: unittest.mock.MagicMock,
+        execute_task_mock: unittest.mock.MagicMock,
         new_database_mock: unittest.mock.MagicMock,
     ) -> None:
         new_database_mock.return_value = self.db
@@ -756,16 +756,16 @@ class ExecuteTest(unittest.TestCase):
         source_mock.list_repositories_with_open_pull_requests.return_value = []
 
         opts = Options(Config())
-        opts.run_paths = ["tests/fixtures/test_rcmt/ExecuteTest/run_disabled.py"]
+        opts.task_paths = ["tests/fixtures/test_rcmt/ExecuteTest/task_disabled.py"]
         opts.sources = {"mock": source_mock}
 
         result = execute(opts)
 
         self.assertTrue(result, msg="Should be successful")
-        run_db = self.db.get_or_create_run(name="unit-test")
+        task_db = self.db.get_or_create_task(name="unit-test")
         self.assertEqual(
-            run_db.checksum,
-            "1b0eb1314f112374156e934cbbaa0b14",
+            task_db.checksum,
+            "992c6a2a2b39dabbf200c93c80059718",
             msg="Should write the checksum of the Run if it has been disabled",
         )
-        execute_run_mock.assert_not_called()
+        execute_task_mock.assert_not_called()

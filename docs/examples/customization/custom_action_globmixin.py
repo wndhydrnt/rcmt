@@ -1,5 +1,5 @@
 from rcmt.action import Action, GlobMixin
-from rcmt.run import Run
+from rcmt.task import Task
 
 
 class HelloWorld(GlobMixin, Action):
@@ -13,6 +13,6 @@ class HelloWorld(GlobMixin, Action):
             f.write("Hello World")
 
 
-with Run(name="custom-action-glob") as run:
+with Task(name="custom-action-glob") as task:
     # This selector matches all files with the extension "txt" in the root of a repository.
-    run.add_action(HelloWorld(selector="*.txt"))
+    task.add_action(HelloWorld(selector="*.txt"))

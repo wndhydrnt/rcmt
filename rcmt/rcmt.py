@@ -5,7 +5,7 @@ from typing import Optional
 
 import structlog
 
-from . import config, database, encoding, git, run, source
+from . import config, database, encoding, git, source, task
 from .log import SECRET_MASKER
 from .source.local import Local
 
@@ -30,7 +30,7 @@ class Options:
     def __init__(self, cfg: config.Config):
         self.config = cfg
         self.encoding_registry: encoding.Registry = encoding.Registry()
-        self.run_paths: list[str] = []
+        self.task_paths: list[str] = []
         self.sources: dict[str, source.Base] = {}
 
 
@@ -49,7 +49,7 @@ class RepoRun:
         self.git = g
         self.opts = opts
 
-    def execute(self, matcher: run.Run, repo: source.Repository) -> None:
+    def execute(self, matcher: task.Task, repo: source.Repository) -> None:
         pr_identifier = repo.find_pull_request(self.git.branch_name)
         if (
             pr_identifier is not None
@@ -187,15 +187,15 @@ class RepoRun:
 
 def apply_actions(
     repo: source.Repository,
-    rrun: run.Run,
+    task_: task.Task,
     tpl_mapping: dict,
     work_dir: str,
 ) -> None:
-    for a in rrun.actions:
+    for a in task_.actions:
         log.debug(
-            "Applying action from run",
+            "Applying action from task",
             action=a.__class__.__name__,
-            run=rrun.name,
+            task=task_.name,
             repo=str(repo),
         )
         a.apply(work_dir, tpl_mapping)
@@ -207,20 +207,20 @@ def execute(opts: Options) -> bool:
         wrapper_class=structlog.make_filtering_bound_logger(log_level),
     )
     db = database.new_database(opts.config.database)
-    runs: list[run.Run] = []
+    tasks: list[task.Task] = []
     needs_all_repositories = False
-    for run_path in opts.run_paths:
-        run_ = run.read(run_path)
-        run_db = db.get_or_create_run(name=run_.name)
-        if run_.enabled is False:
-            db.update_run(run_.name, run_.checksum)
-            log.info("Run disabled", run=run_.name)
+    for task_path in opts.task_paths:
+        task_ = task.read(task_path)
+        task_db = db.get_or_create_task(name=task_.name)
+        if task_.enabled is False:
+            db.update_task(task_.name, task_.checksum)
+            log.info("Task disabled", task=task_.name)
             continue
 
-        if run_.checksum != run_db.checksum:
+        if task_.checksum != task_db.checksum:
             needs_all_repositories = True
 
-        runs.append(run_)
+        tasks.append(task_)
 
     execution = db.get_last_execution()
     if needs_all_repositories is True or execution.executed_at is None:
@@ -248,10 +248,10 @@ def execute(opts: Options) -> bool:
     log.info("Repositories returned by sources", count=len(repositories))
     success = True
     if len(repositories) > 0:
-        for run_ in runs:
-            run_success = execute_run(run_, repositories, opts)
-            if run_success is True:
-                db.update_run(run_.name, run_.checksum)
+        for task_ in tasks:
+            task_success = execute_task(task_, repositories, opts)
+            if task_success is True:
+                db.update_task(task_.name, task_.checksum)
             else:
                 success = False
 
@@ -269,8 +269,8 @@ def execute_local(directory: str, repository: str, opts: Options) -> None:
     structlog.configure(
         wrapper_class=structlog.make_filtering_bound_logger(log_level),
     )
-    if len(opts.run_paths) == 0:
-        log.warning("No path to a run file supplied")
+    if len(opts.task_paths) == 0:
+        log.warning("No path to a task file supplied")
         return
     repo_host = ""
     repo_project = ""
@@ -281,19 +281,19 @@ def execute_local(directory: str, repository: str, opts: Options) -> None:
         repo_project = "/".join(parts[1:-1])
         repo_name = parts[-1]
 
-    matcher = run.read(opts.run_paths[0])
+    matcher = task.read(opts.task_paths[0])
     repo = Local(repo_host, repo_project, repo_name)
     tpl_mapping: dict[str, str] = create_template_mapping(repo)
     apply_actions(repo, matcher, tpl_mapping, directory)
 
 
-def execute_run(
-    run_: run.Run,
+def execute_task(
+    task_: task.Task,
     repos: list[source.Repository],
     opts: Options,
 ) -> bool:
     gitc = git.Git(
-        run_.branch(opts.config.git.branch_prefix),
+        task_.branch(opts.config.git.branch_prefix),
         opts.config.git.clone_options,
         opts.config.git.data_dir,
         opts.config.git.user_name,
@@ -303,16 +303,16 @@ def execute_run(
     success = True
     for repo in repos:
         try:
-            if run_.match(repo) is False:
+            if task_.match(repo) is False:
                 log.debug(
-                    "Repository does not match", repository=str(repo), run=run_.name
+                    "Repository does not match", repository=str(repo), task=task_.name
                 )
                 continue
 
-            log.info("Matched repository", repository=str(repo), run=run_.name)
-            runner.execute(run_, repo)
+            log.info("Matched repository", repository=str(repo), task=task_.name)
+            runner.execute(task_, repo)
         except Exception:
-            log.exception("Run failed", repository=str(repo), run=run_.name)
+            log.exception("Task failed", repository=str(repo), task=task_.name)
             success = False
 
     return success

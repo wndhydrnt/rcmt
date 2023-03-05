@@ -1,16 +1,16 @@
-Run
-===
+Task
+====
 
-A Run connects Actions with repositories. rcmt reads the Run, finds
+A Task connects Actions with repositories. rcmt reads the Task, finds
 repositories and then applies Actions to each repository.
 
-.. autoclass:: rcmt.run.Run
+.. autoclass:: rcmt.task.Task
    :members:
 
 Matchers
 --------
 
-A Run uses Matchers to find the repositories to which it applies Actions.
+A Task uses Matchers to find the repositories to which it applies Actions.
 
 And
 ^^^

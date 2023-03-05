@@ -34,7 +34,7 @@ class MyCustomEncoding(rcmt.encoding.Encoding):
 
 # Basic setup
 opts = rcmt.options_from_config("<path to rcmt config file>")
-opts.run_paths = ["<paths to run files>"]
+opts.task_paths = ["<paths to run files>"]
 
 # Add the custom Source
 opts.sources["custom"] = MyCustomSource()

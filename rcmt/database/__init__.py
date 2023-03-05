@@ -40,7 +40,7 @@ class Database:
                 ex.executed_at = datetime.fromtimestamp(0.0)
                 return ex
 
-    def get_or_create_run(self, name: str, checksum: str = "") -> Run:
+    def get_or_create_task(self, name: str, checksum: str = "") -> Run:
         stmt = select(Run).where(Run.name == name)
         with self.session() as session, session.begin():
             run = session.scalars(stmt).first()
@@ -53,7 +53,7 @@ class Database:
             session.add(run)
             return run
 
-    def update_run(self, name: str, checksum: str) -> None:
+    def update_task(self, name: str, checksum: str) -> None:
         stmt = select(Run).where(Run.name == name)
         with self.session() as session, session.begin():
             run = session.scalars(stmt).first()
