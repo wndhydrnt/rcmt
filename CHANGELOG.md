@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.16.0](https://github.com/wndhydrnt/rcmt/compare/v0.15.3...v0.16.0) (2023-03-05)
+
+
+### Features
+
+* Add flag "enabled" to "Run" ([#276](https://github.com/wndhydrnt/rcmt/issues/276)) ([20363f9](https://github.com/wndhydrnt/rcmt/commit/20363f98319ad44992f0f9e6665a20ef846aae3e))
+* Rename "Run" to "Task" ([#288](https://github.com/wndhydrnt/rcmt/issues/288)) ([878f80d](https://github.com/wndhydrnt/rcmt/commit/878f80d441e9959ee090d6d563accc425efdcac5))
+
 ## [0.15.3](https://github.com/wndhydrnt/rcmt/compare/v0.15.2...v0.15.3) (2023-01-18)
 
 
