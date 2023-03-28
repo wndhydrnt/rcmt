@@ -6,7 +6,7 @@ import os.path
 import random
 import string
 import sys
-from typing import Optional, Union
+from typing import Optional
 
 from slugify import slugify
 
@@ -70,7 +70,7 @@ class Task:
         auto_merge: bool = False,
         auto_merge_after: Optional[datetime.timedelta] = None,
         branch_name: str = "",
-        change_limit: Union[int, None] = None,
+        change_limit: Optional[int] = None,
         commit_msg: str = "Applied actions",
         delete_branch_after_merge: bool = True,
         enabled: bool = True,
