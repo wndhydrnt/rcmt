@@ -191,6 +191,8 @@ class RepoRun:
             repo.update_pull_request(pr_identifier, pr)
             return RunResult.NO_CHANGES
 
+        return RunResult.NO_CHANGES
+
 
 def apply_actions(
     repo: source.Repository,
