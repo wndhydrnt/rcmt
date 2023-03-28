@@ -26,6 +26,11 @@ class Task:
                              Request. Requires ``auto_merge`` to be set to ``true``.
     :param branch_name: Name of the branch in git. Defaults to ``branch_prefix`` +
                         ``name``.
+    :param change_limit: Limits the number of changes per run of the Task. A change is
+                         either a pull request created or merged. Helps to reduce the
+                         load on a CI/CD system when a Task would create a lot of pull
+                         requests at the same time. Defaults to ``None`` which means no
+                         limit.
     :param commit_msg: Message to use when committing changes via git.
     :param delete_branch_after_merge: If ``True``, rcmt will delete the branch after it
                                       has been merged. Defaults to ``True``.
@@ -65,6 +70,7 @@ class Task:
         auto_merge: bool = False,
         auto_merge_after: Optional[datetime.timedelta] = None,
         branch_name: str = "",
+        change_limit: Optional[int] = None,
         commit_msg: str = "Applied actions",
         delete_branch_after_merge: bool = True,
         enabled: bool = True,
@@ -75,13 +81,14 @@ class Task:
         self.auto_merge = auto_merge
         self.auto_merge_after = auto_merge_after
         self.branch_name = branch_name
+        self.change_limit = change_limit
         self.commit_msg = commit_msg
         self.delete_branch_after_merge = delete_branch_after_merge
         self.enabled = enabled
-        self.pr_body = pr_body
-        self.pr_title = pr_title
         self.merge_once = merge_once
         self.name = name
+        self.pr_body = pr_body
+        self.pr_title = pr_title
 
         self.actions: list[action.Action] = []
         self.checksum: str = ""
