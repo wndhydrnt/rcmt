@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.0](https://github.com/wndhydrnt/rcmt/compare/v0.16.0...v0.17.0) (2023-03-28)
+
+
+### Features
+
+* Add setting to limit the number of changes per run of Task ([#290](https://github.com/wndhydrnt/rcmt/issues/290)) ([09f23a2](https://github.com/wndhydrnt/rcmt/commit/09f23a228059838a611e6fb55beb31e5381e146d))
+
 ## [0.16.0](https://github.com/wndhydrnt/rcmt/compare/v0.15.3...v0.16.0) (2023-03-05)
 
 
