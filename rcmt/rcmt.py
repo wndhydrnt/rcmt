@@ -1,6 +1,7 @@
 import datetime
 import logging
 import sys
+from enum import Enum
 from typing import Optional
 
 import structlog
@@ -44,12 +45,18 @@ def can_merge_after(
     return passed >= delay
 
 
+class RunResult(Enum):
+    NO_CHANGES = 1
+    PR_CREATED = 2
+    PR_MERGED = 3
+
+
 class RepoRun:
     def __init__(self, g: git.Git, opts: Options):
         self.git = g
         self.opts = opts
 
-    def execute(self, matcher: task.Task, repo: source.Repository) -> None:
+    def execute(self, matcher: task.Task, repo: source.Repository) -> RunResult:
         pr_identifier = repo.find_pull_request(self.git.branch_name)
         if (
             pr_identifier is not None
@@ -61,7 +68,7 @@ class RepoRun:
                 branch=self.git.branch_name,
                 repo=str(repo),
             )
-            return
+            return RunResult.NO_CHANGES
 
         if (
             pr_identifier is not None
@@ -73,7 +80,7 @@ class RepoRun:
                 branch=self.git.branch_name,
                 repo=str(repo),
             )
-            return
+            return RunResult.NO_CHANGES
 
         work_dir = self.git.prepare(repo)
         tpl_mapping = create_template_mapping(repo)
@@ -110,7 +117,7 @@ class RepoRun:
                 )
                 repo.delete_branch(pr_identifier)
 
-            return
+            return RunResult.NO_CHANGES
 
         if has_changes is True:
             if self.opts.config.dry_run:
@@ -141,7 +148,7 @@ class RepoRun:
                 log.info("Create pull request", repo=str(repo))
                 repo.create_pull_request(self.git.branch_name, pr)
 
-            return
+            return RunResult.PR_CREATED
 
         if (
             matcher.auto_merge is True
@@ -153,17 +160,17 @@ class RepoRun:
                 log.warn(
                     "Cannot merge because build of pull request failed", repo=str(repo)
                 )
-                return
+                return RunResult.NO_CHANGES
 
             if not can_merge_after(
                 repo.pr_created_at(pr_identifier), matcher.auto_merge_after
             ):
                 log.info("Too early to merge pull request", repo=str(repo))
-                return
+                return RunResult.NO_CHANGES
 
             if not repo.can_merge_pull_request(pr_identifier):
                 log.warn("Cannot merge pull request", repo=str(repo))
-                return
+                return RunResult.NO_CHANGES
 
             if self.opts.config.dry_run:
                 log.warn("DRY RUN: Not merging pull request", repo=str(repo))
@@ -178,11 +185,11 @@ class RepoRun:
                     )
                     repo.delete_branch(pr_identifier)
 
-            return
+            return RunResult.PR_MERGED
 
         if pr_identifier is not None and repo.is_pr_open(pr_identifier) is True:
             repo.update_pull_request(pr_identifier, pr)
-            return
+            return RunResult.NO_CHANGES
 
 
 def apply_actions(
@@ -301,6 +308,7 @@ def execute_task(
     )
     runner = RepoRun(gitc, opts)
     success = True
+    changes_total: int = 0
     for repo in repos:
         try:
             if task_.match(repo) is False:
@@ -310,7 +318,18 @@ def execute_task(
                 continue
 
             log.info("Matched repository", repository=str(repo), task=task_.name)
-            runner.execute(task_, repo)
+            result: RunResult = runner.execute(task_, repo)
+            if result != RunResult.NO_CHANGES:
+                changes_total += 1
+
+            if task_.change_limit is not None and changes_total >= task_.change_limit:
+                log.info(
+                    "Limit of changes reached",
+                    limit=task_.change_limit,
+                    task=task_.name,
+                )
+                return success
+
         except Exception:
             log.exception("Task failed", repository=str(repo), task=task_.name)
             success = False

@@ -9,7 +9,7 @@ from rcmt.config import Config
 from rcmt.config import Database as DatabaseConfig
 from rcmt.database import Database, Execution
 from rcmt.matcher import RepoName
-from rcmt.rcmt import Options, RepoRun, execute, execute_local, execute_task
+from rcmt.rcmt import Options, RepoRun, RunResult, execute, execute_local, execute_task
 from rcmt.source import Base
 from rcmt.task import Task
 
@@ -440,21 +440,22 @@ class LocalTest(unittest.TestCase):
         )
 
 
-class ExecuteRunTest(unittest.TestCase):
+class ExecuteTaskTest(unittest.TestCase):
     @unittest.mock.patch("rcmt.rcmt.RepoRun")
     def test_execute_run__successful(self, repo_run_class):
         repo_run = unittest.mock.Mock(spec=RepoRun)
         repo_run_class.return_value = repo_run
-        run = unittest.mock.Mock(spec=Task)
-        run.match.return_value = True
-        run.name = "test"
+        task = unittest.mock.Mock(spec=Task)
+        task.match.return_value = True
+        task.name = "test"
+        task.change_limit = None
         repository = unittest.mock.Mock(spec=source.Repository)
         opts = Options(cfg=Config())
 
-        result = execute_task(task_=run, repos=[repository], opts=opts)
+        result = execute_task(task_=task, repos=[repository], opts=opts)
 
         self.assertTrue(result)
-        repo_run.execute.assert_called_once_with(run, repository)
+        repo_run.execute.assert_called_once_with(task, repository)
 
     @unittest.mock.patch("rcmt.rcmt.RepoRun")
     def test_execute_run__does_not_match(self, repo_run_class):
@@ -499,6 +500,26 @@ class ExecuteRunTest(unittest.TestCase):
         result = execute_task(task_=run, repos=[repository], opts=opts)
 
         self.assertFalse(result)
+
+    @unittest.mock.patch("rcmt.rcmt.RepoRun")
+    def test_execute_run__max_changes_reached(self, repo_run_class):
+        repo_run = unittest.mock.Mock(spec=RepoRun)
+        repo_run_class.return_value = repo_run
+        repo_run.execute.return_value = RunResult.PR_CREATED
+        task = unittest.mock.Mock(spec=Task)
+        task.match.return_value = True
+        task.name = "test"
+        task.change_limit = 1
+        repository_one = unittest.mock.Mock(spec=source.Repository)
+        repository_two = unittest.mock.Mock(spec=source.Repository)
+        opts = Options(cfg=Config())
+
+        result = execute_task(
+            task_=task, repos=[repository_one, repository_two], opts=opts
+        )
+
+        self.assertTrue(result)
+        repo_run.execute.assert_called_once_with(task, repository_one)
 
 
 class ExecuteTest(unittest.TestCase):
