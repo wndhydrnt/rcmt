@@ -1007,19 +1007,19 @@ testing = ["argcomplete", "hypothesis (>=3.56)", "mock", "nose", "pygments (>=2.
 
 [[package]]
 name = "python-gitlab"
-version = "3.12.0"
+version = "3.14.0"
 description = "Interact with GitLab API"
 category = "main"
 optional = false
 python-versions = ">=3.7.0"
 files = [
-    {file = "python-gitlab-3.12.0.tar.gz", hash = "sha256:567390c2b93690dae62ed9738bf9f221fa45c01378fdf896089dbf7c8a134fbd"},
-    {file = "python_gitlab-3.12.0-py3-none-any.whl", hash = "sha256:a5eb36b49783fda34563376674d5251dbbdbd1abd23b287dadf82f67d861b2c1"},
+    {file = "python-gitlab-3.14.0.tar.gz", hash = "sha256:ef3b8960faeee9880f82b0872d807e3fab94ace12b0d2a8418a97875c8812d3c"},
+    {file = "python_gitlab-3.14.0-py3-none-any.whl", hash = "sha256:da614c014c6860147783dde8c216218d8fc6bd83a8bd2e3929dcdf11b211aa58"},
 ]
 
 [package.dependencies]
 requests = ">=2.25.0"
-requests-toolbelt = ">=0.9.1"
+requests-toolbelt = ">=0.10.1"
 
 [package.extras]
 autocompletion = ["argcomplete (>=1.10.0,<3)"]
@@ -1129,14 +1129,14 @@ socks = ["PySocks (>=1.5.6,!=1.5.7)", "win-inet-pton"]
 
 [[package]]
 name = "requests-toolbelt"
-version = "0.9.1"
+version = "0.10.1"
 description = "A utility belt for advanced users of python-requests"
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 files = [
-    {file = "requests-toolbelt-0.9.1.tar.gz", hash = "sha256:968089d4584ad4ad7c171454f0a5c6dac23971e9472521ea3b6d49d610aa6fc0"},
-    {file = "requests_toolbelt-0.9.1-py2.py3-none-any.whl", hash = "sha256:380606e1d10dc85c3bd47bf5a6095f815ec007be7a8b69c878507068df059e6f"},
+    {file = "requests-toolbelt-0.10.1.tar.gz", hash = "sha256:62e09f7ff5ccbda92772a29f394a49c3ad6cb181d568b1337626b2abb628a63d"},
+    {file = "requests_toolbelt-0.10.1-py2.py3-none-any.whl", hash = "sha256:18565aa58116d9951ac39baa288d3adb5b3ff975c4f25eee78555d89e8f247f7"},
 ]
 
 [package.dependencies]
