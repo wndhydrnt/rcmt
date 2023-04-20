@@ -193,6 +193,16 @@ class Gitlab(Base):
 
         SECRET_MASKER.add_secret(private_token)
 
+    def create_from_name(self, name: str) -> Optional[Repository]:
+        if name.startswith(self.url) is False:
+            return None
+
+        name_without_host = name.replace(f"{self.url}/", "")
+        p = self.client.projects.get(id=name_without_host)
+        return GitlabRepository(
+            project=p, token=self.client.private_token, url=self.url
+        )
+
     def list_repositories_with_open_pull_requests(
         self,
     ) -> Generator[Repository, None, None]:

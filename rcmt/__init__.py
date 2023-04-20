@@ -1,5 +1,7 @@
 import importlib.metadata
 
+import rcmt.verify
+
 from .rcmt import execute, execute_local, options_from_config
 from .task import Run, Task
 

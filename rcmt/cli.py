@@ -67,6 +67,47 @@ def run(config: str, task_file: list[str]):
         exit(1)
 
 
+@click.command(help="", short_help="Verify Actions of a Task locally.")
+def verify_actions():
+    pass
+
+
+verify_matchers_help = """Verify Matchers of a Task locally.
+
+This command makes it possible to quickly verify that Matchers of a Task match or do not
+match a given repository.
+
+Examples:
+
+\b
+# Verify that Matchers in file task.py match the repository "github.com/wndhydrnt/rcmt"
+rcmt verify-matchers gitlab.com/wandhydrant/rcmt-test task.py
+
+Note: rcmt needs to query the API of a Source, like GitHub or GitLab, to execute the
+Matchers.
+
+\b
+# Supply a GitHub Acess Token
+RCMT_GITHUB__ACCESS_TOKEN=xxx rcmt verify-matchers gitlab.com/wandhydrant/rcmt-test task.py
+
+\b
+# Supply a configuration file that contains an access token
+rcmt verify-matchers --config config.yaml gitlab.com/wandhydrant/rcmt-test task.py
+"""
+
+
+@click.command(
+    help=verify_matchers_help, short_help="Verify Matchers of a Task locally."
+)
+@click.option("--config", help="Path to configuration file.", default="", type=str)
+@click.argument("repository", type=str)
+@click.argument("task_file", type=str)
+def verify_matchers(config: str, repository: str, task_file: str):
+    opts = rcmt.options_from_config(config)
+    opts.task_paths = [task_file]
+    rcmt.verify.matchers(opts=opts, repo_name=repository)
+
+
 @click.command()
 def version():
     click.echo(rcmt.__version__)
@@ -79,4 +120,6 @@ def main():
 
 main.add_command(local)
 main.add_command(run)
+main.add_command(verify_actions)
+main.add_command(verify_matchers)
 main.add_command(version)
