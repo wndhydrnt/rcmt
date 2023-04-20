@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.1](https://github.com/wndhydrnt/rcmt/compare/v0.17.0...v0.17.1) (2023-04-20)
+
+
+### Bug Fixes
+
+* git pull can fail if repository names overlap ([#300](https://github.com/wndhydrnt/rcmt/issues/300)) ([f33947f](https://github.com/wndhydrnt/rcmt/commit/f33947fb599d56257f84cb5b5e0b9d4ce88e1369))
+
 ## [0.17.0](https://github.com/wndhydrnt/rcmt/compare/v0.16.0...v0.17.0) (2023-03-28)
 
 
