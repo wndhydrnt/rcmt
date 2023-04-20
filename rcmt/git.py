@@ -69,6 +69,7 @@ class Git:
             "Pulling changes into base branch", branch=repo.base_branch, repo=str(repo)
         )
         git_repo.remotes["origin"].pull()
+        git_repo.git.remote("prune", "origin")
         hash_after_pull = str(git_repo.head.commit)
         has_base_branch_update = hash_before_pull != hash_after_pull
         if has_base_branch_update is True:
