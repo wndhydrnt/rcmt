@@ -1,15 +1,15 @@
 version: 2
 
 build:
-  image: testing # Because Python 3.9 is only available in "testing".
+  os: "ubuntu-22.04"
+  tools:
+    python: "3.10"
+  jobs:
+    post_create_environment:
+      - pip install poetry
+      - poetry config virtualenvs.create false
+    post_install:
+      - poetry install --with docs
 
 sphinx:
   configuration: docs/conf.py
-
-python:
-  # Use 3.9 instead of 3.10 due to errors.
-  version: "3.9"
-  install:
-    - requirements: docs/requirements.txt
-    - method: pip
-      path: .
