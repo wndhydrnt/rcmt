@@ -16,7 +16,7 @@ Requirements:
 - [poetry](https://python-poetry.org/)
 
 ```shell
-poetry install
+poetry install --with docs
 ```
 
 ### Run linters
