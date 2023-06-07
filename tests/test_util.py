@@ -27,3 +27,16 @@ class UtilTest(unittest.TestCase):
             self.assertEqual(
                 str(ee.exception), "Selector ../*.txt escapes root directory"
             )
+
+            # Check if protection against selector escaping root directory
+            # supports relative paths
+            current_cwd = os.getcwd()
+            try:
+                current_dir = os.path.basename(dirname)
+                parent_dir = os.path.abspath(os.path.join(dirname, ".."))
+                os.chdir(parent_dir)
+                util.iglob(f"./{current_dir}", "*.txt")
+            except Exception as e:
+                raise e
+            finally:
+                os.chdir(current_cwd)
