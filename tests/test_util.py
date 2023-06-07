@@ -28,7 +28,8 @@ class UtilTest(unittest.TestCase):
                 str(ee.exception), "Selector ../*.txt escapes root directory"
             )
 
-            # Check if selector escapes root directory should support relative paths
+            # Check if protection against selector escaping root directory
+            # supports relative paths
             current_cwd = os.getcwd()
             try:
                 current_dir = os.path.basename(dirname)
