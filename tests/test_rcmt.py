@@ -533,8 +533,11 @@ class ExecuteTest(unittest.TestCase):
         execute_task_mock: unittest.mock.MagicMock,
         new_database_mock: unittest.mock.MagicMock,
     ) -> None:
+        source_mock = unittest.mock.Mock(spec=Base)
+        source_mock.list_repositories.return_value = []
         opts = Options(Config())
         opts.task_paths = ["tests/fixtures/test_rcmt/ExecuteTest/task.py"]
+        opts.sources = {"mock": source_mock}
         new_database_mock.return_value = self.db
 
         result = execute(opts)
@@ -790,3 +793,22 @@ class ExecuteTest(unittest.TestCase):
             msg="Should write the checksum of the Run if it has been disabled",
         )
         execute_task_mock.assert_not_called()
+
+    @unittest.mock.patch("rcmt.database.new_database")
+    @unittest.mock.patch("rcmt.rcmt.execute_task")
+    def test_execute__no_sources(
+        self,
+        execute_task_mock: unittest.mock.MagicMock,
+        new_database_mock: unittest.mock.MagicMock,
+    ) -> None:
+        opts = Options(Config())
+        opts.sources = {}
+        new_database_mock.return_value = self.db
+
+        with self.assertRaises(RuntimeError) as ee:
+            execute(opts)
+
+        self.assertEqual(
+            str(ee.exception),
+            "No Source has been configured. Configure access credentials for GitHub or GitLab.",
+        )
