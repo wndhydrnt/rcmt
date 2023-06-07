@@ -215,6 +215,11 @@ def execute(opts: Options) -> bool:
     structlog.configure(
         wrapper_class=structlog.make_filtering_bound_logger(log_level),
     )
+    if len(opts.sources) < 1:
+        raise RuntimeError(
+            "No Source has been configured. Configure access credentials for GitHub or GitLab."
+        )
+
     db = database.new_database(opts.config.database)
     tasks: list[task.Task] = []
     needs_all_repositories = False
