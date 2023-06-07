@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.18.0](https://github.com/wndhydrnt/rcmt/compare/v0.17.1...v0.18.0) (2023-06-07)
+
+
+### Features
+
+* Raise an exception if no sources have been configured ([#314](https://github.com/wndhydrnt/rcmt/issues/314)) ([a2b5340](https://github.com/wndhydrnt/rcmt/commit/a2b5340ce73419be1bb125b59d39fe58eadb83f9))
+
+
+### Bug Fixes
+
+* Fix RuntimeError when passing relative path to "rcmt local" ([#313](https://github.com/wndhydrnt/rcmt/issues/313)) ([0d863a0](https://github.com/wndhydrnt/rcmt/commit/0d863a06f9ca4554b1a1ee4a220327fd40f89571))
+
 ## [0.17.1](https://github.com/wndhydrnt/rcmt/compare/v0.17.0...v0.17.1) (2023-04-20)
 
 
