@@ -14,10 +14,11 @@ def iglob(root: str, selector: str) -> Generator[str, Any, None]:
     :param selector: The selector expression to pass to glob.iglob.
     :return: Generator[str]
     """
+    root_abs_path = os.path.abspath(root)
     paths = glob.iglob(os.path.join(root, selector), recursive=True)
     for p in paths:
         abs_path = os.path.abspath(p)
-        if abs_path.startswith(root) is False:
+        if abs_path.startswith(root_abs_path) is False:
             raise RuntimeError(f"Selector {selector} escapes root directory")
 
         yield abs_path
