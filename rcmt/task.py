@@ -12,6 +12,7 @@ from slugify import slugify
 
 from rcmt import action, matcher, source
 from rcmt.fs import FileProxy
+from rcmt.event import EventListener
 
 
 class Task:
@@ -41,6 +42,7 @@ class Task:
                        request has been merged.
     :param pr_body: Define a custom body of a pull request.
     :param pr_title: Set a custom title for a pull request.
+    :param event_listener: Add an Event listener that get called on certain event in the lifecycle for rcmt.
 
     **Example**
 
@@ -77,6 +79,7 @@ class Task:
         merge_once: bool = False,
         pr_body: str = "",
         pr_title: str = "",
+        event_listener: EventListener = EventListener()
     ):
         self.auto_merge = auto_merge
         self.auto_merge_after = auto_merge_after
@@ -89,6 +92,7 @@ class Task:
         self.name = name
         self.pr_body = pr_body
         self.pr_title = pr_title
+        self.event_listener = event_listener
 
         self.actions: list[action.Action] = []
         self.checksum: str = ""

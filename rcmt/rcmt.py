@@ -3,6 +3,7 @@ import logging
 import sys
 from enum import Enum
 from typing import Optional
+from rcmt.event import PREvent
 
 import structlog
 
@@ -110,6 +111,8 @@ class RepoRun:
                 repo.close_pull_request(
                     "Everything up-to-date. Closing.", pr_identifier
                 )
+
+                matcher.event_listener.on_pr_closed(PREvent(pr_id=pr_identifier, repository=repo))
                 log.info(
                     "Deleting source branch because base branch contains all changes",
                     branch=self.git.branch_name,
@@ -147,6 +150,8 @@ class RepoRun:
             else:
                 log.info("Create pull request", repo=str(repo))
                 repo.create_pull_request(self.git.branch_name, pr)
+                
+                matcher.event_listener.on_pr_created(PREvent(pr_identifier, pr, repo))
 
             return RunResult.PR_CREATED
 
@@ -177,6 +182,8 @@ class RepoRun:
             else:
                 log.info("Merge pull request", repo=str(repo))
                 repo.merge_pull_request(pr_identifier)
+
+                matcher.event_listener.on_pr_merged(PREvent(pr_identifier, pr, repo))
                 if matcher.delete_branch_after_merge:
                     log.info(
                         "Deleting source branch",
@@ -189,8 +196,10 @@ class RepoRun:
 
         if pr_identifier is not None and repo.is_pr_open(pr_identifier) is True:
             repo.update_pull_request(pr_identifier, pr)
+            
+            matcher.event_listener.on_pr_updated(PREvent(pr_identifier, pr, repo))
             return RunResult.NO_CHANGES
-
+        
         return RunResult.NO_CHANGES
 
 

@@ -10,6 +10,9 @@ lint:
 test:
 	poetry run pytest .
 
+test_debug:
+	poetry run pytest -rP .
+
 coverage:
 	rm .coverage || true
 	rm -rf ./htmlcov/
