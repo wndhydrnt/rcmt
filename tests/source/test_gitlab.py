@@ -248,6 +248,48 @@ class GitlabRepositoryTest(unittest.TestCase):
 
 
 class GitlabTest(unittest.TestCase):
+    def test_create_from_name__return_repository(self):
+        project_mock = unittest.mock.Mock(spec=Project)
+        projects_mock = unittest.mock.Mock(spec=ProjectManager)
+        projects_mock.get.return_value = project_mock
+        client_mock = unittest.mock.Mock(spec=gitlab.Gitlab)
+        client_mock.private_token = "private_token"
+        client_mock.projects = projects_mock
+
+        gl = Gitlab(url="http://localhost", private_token=client_mock.private_token)
+        gl.client = client_mock
+        result = gl.create_from_name("localhost/group/subgroup/project")
+
+        self.assertIsInstance(result, GitlabRepository)
+        projects_mock.get.assert_called_once_with(id="group/subgroup/project")
+
+    def test_create_from_name__not_matching_host(self):
+        projects_mock = unittest.mock.Mock(spec=ProjectManager)
+        client_mock = unittest.mock.Mock(spec=gitlab.Gitlab)
+        client_mock.private_token = "private_token"
+        client_mock.projects = projects_mock
+
+        gl = Gitlab(url="http://localhost", private_token=client_mock.private_token)
+        gl.client = client_mock
+        result = gl.create_from_name("other/group/project")
+
+        self.assertIsNone(result)
+        projects_mock.get.assert_not_called()
+
+    def test_create_from_name__project_not_found(self):
+        projects_mock = unittest.mock.Mock(spec=ProjectManager)
+        projects_mock.get.side_effect = gitlab.GitlabGetError
+        client_mock = unittest.mock.Mock(spec=gitlab.Gitlab)
+        client_mock.private_token = "private_token"
+        client_mock.projects = projects_mock
+
+        gl = Gitlab(url="http://localhost", private_token=client_mock.private_token)
+        gl.client = client_mock
+        result = gl.create_from_name("localhost/group/subgroup/project")
+
+        self.assertIsNone(result)
+        projects_mock.get.assert_called_once_with(id="group/subgroup/project")
+
     def test_list_repositories(self):
         now = datetime.datetime.now()
         project_mock = unittest.mock.Mock(spec=Project)

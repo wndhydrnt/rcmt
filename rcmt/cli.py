@@ -1,4 +1,7 @@
+import logging
+
 import click
+import structlog
 
 import rcmt
 
@@ -87,8 +90,8 @@ Note: rcmt needs to query the API of a Source, like GitHub or GitLab, to execute
 Matchers.
 
 \b
-# Supply a GitHub Acess Token
-RCMT_GITHUB__ACCESS_TOKEN=xxx rcmt verify-matchers gitlab.com/wandhydrant/rcmt-test task.py
+# Supply a GitHub Access Token
+RCMT_GITHUB__ACCESS_TOKEN=xxx rcmt verify-matchers github.com/wndhydrnt/rcmt task.py
 
 \b
 # Supply a configuration file that contains an access token
@@ -105,6 +108,10 @@ rcmt verify-matchers --config config.yaml gitlab.com/wandhydrant/rcmt-test task.
 def verify_matchers(config: str, repository: str, task_file: str):
     opts = rcmt.options_from_config(config)
     opts.task_paths = [task_file]
+    log_level = logging.getLevelName(opts.config.log_level.upper())
+    structlog.configure(
+        wrapper_class=structlog.make_filtering_bound_logger(log_level),
+    )
     rcmt.verify.matchers(opts=opts, repo_name=repository)
 
 

@@ -11,13 +11,15 @@ log: structlog.stdlib.BoundLogger = structlog.get_logger()
 
 def matchers(opts: Options, repo_name: str) -> None:
     repository: Optional[Repository] = None
-    for source in opts.sources.values():
+    for source_name, source in opts.sources.items():
         repository = source.create_from_name(repo_name)
         if repository is not None:
             break
 
+        log.debug("Source did not return a repository", source=source_name)
+
     if repository is None:
-        log.error("No Source found for name", name=repo_name)
+        log.error(f"No Source found for repository {repo_name}")
         return
 
     for task_path in opts.task_paths:

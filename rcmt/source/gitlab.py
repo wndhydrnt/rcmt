@@ -198,7 +198,12 @@ class Gitlab(Base):
             return None
 
         name_without_host = name.replace(f"{self.url}/", "")
-        p = self.client.projects.get(id=name_without_host)
+        try:
+            p = self.client.projects.get(id=name_without_host)
+        except gitlab.GitlabGetError as e:
+            log.debug("Unable to get project", name=name, status_code=e.response_code)
+            return None
+
         return GitlabRepository(
             project=p, token=self.client.private_token, url=self.url
         )
