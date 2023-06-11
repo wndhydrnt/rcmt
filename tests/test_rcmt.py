@@ -16,7 +16,6 @@ from rcmt.event import EventListener, PREvent
 
 
 class PRClosedEventListener(EventListener):
-
     def __init__(self, test_case: unittest.TestCase) -> None:
         super().__init__()
         self.test_case = test_case
@@ -24,8 +23,8 @@ class PRClosedEventListener(EventListener):
     def on_pr_closed(self, event: PREvent):
         self.test_case.assertEqual(event.pr_id, "someid")
 
-class PRCreateEventListener(EventListener):
 
+class PRCreateEventListener(EventListener):
     def __init__(self, test_case: unittest.TestCase) -> None:
         super().__init__()
         self.test_case = test_case
@@ -35,7 +34,6 @@ class PRCreateEventListener(EventListener):
 
 
 class PRMergedEventListener(EventListener):
-
     def __init__(self, test_case: unittest.TestCase) -> None:
         super().__init__()
         self.test_case = test_case
@@ -43,8 +41,8 @@ class PRMergedEventListener(EventListener):
     def on_pr_merged(self, event: PREvent):
         self.test_case.assertEqual(event.pr_id, "someid")
 
-class PRUpdateEventListener(EventListener):
 
+class PRUpdateEventListener(EventListener):
     def __init__(self, test_case: unittest.TestCase) -> None:
         super().__init__()
         self.test_case = test_case
@@ -189,7 +187,7 @@ class RepoRunTest(unittest.TestCase):
             auto_merge=True,
             auto_merge_after=datetime.timedelta(hours=12),
             name="testmatch",
-            event_listener= PRMergedEventListener(self),
+            event_listener=PRMergedEventListener(self),
         )
         run.add_matcher(RepoName("local"))
         action_mock = unittest.mock.Mock(spec=action.Action)
@@ -274,7 +272,7 @@ class RepoRunTest(unittest.TestCase):
         cfg = config.Config()
         opts = Options(cfg)
         git_mock = create_git_mock("rcmt", "/unit/test", False, False)
-        run = Task(name="testmatch", event_listener= PRClosedEventListener(self))
+        run = Task(name="testmatch", event_listener=PRClosedEventListener(self))
         repo_mock = unittest.mock.Mock(spec=source.Repository)
         repo_mock.name = "myrepo"
         repo_mock.project = "myproject"
@@ -314,7 +312,7 @@ class RepoRunTest(unittest.TestCase):
         cfg = config.Config()
         opts = Options(cfg)
         git_mock = create_git_mock("rcmt", "/unit/test", False, True)
-        run = Task(name="testmatch", event_listener= PRUpdateEventListener(self))
+        run = Task(name="testmatch", event_listener=PRUpdateEventListener(self))
         repo_mock = unittest.mock.Mock(spec=source.Repository)
         repo_mock.name = "myrepo"
         repo_mock.project = "myproject"
@@ -388,7 +386,11 @@ class RepoRunTest(unittest.TestCase):
         opts = Options(cfg)
         git_mock = create_git_mock("rcmt", "/unit/test", True)
         runner = RepoRun(git_mock, opts)
-        run = Task(commit_msg="Custom commit", name="testrun", event_listener= PRCreateEventListener(self))
+        run = Task(
+            commit_msg="Custom commit",
+            name="testrun",
+            event_listener=PRCreateEventListener(self),
+        )
         run.add_matcher(RepoName("local"))
         action_mock = unittest.mock.Mock(spec=action.Action)
         run.add_action(action_mock)

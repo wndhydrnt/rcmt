@@ -79,7 +79,7 @@ class Task:
         merge_once: bool = False,
         pr_body: str = "",
         pr_title: str = "",
-        event_listener: EventListener = EventListener()
+        event_listener: EventListener = EventListener(),
     ):
         self.auto_merge = auto_merge
         self.auto_merge_after = auto_merge_after

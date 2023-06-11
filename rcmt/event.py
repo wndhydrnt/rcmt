@@ -1,22 +1,24 @@
-
 from typing import Any
 from rcmt.source import Repository
 
+
 class Event:
-    """ Event is a data class. Instance of this class is passed to each listeners"""
+    """Event is a data class. Instance of this class is passed to each listeners"""
+
     def __init__(self):
         pass
- 
+
+
 class PREvent(Event):
-    """ PR Event is a data class. Instance of this class is passed to each listeners related to PR"""
-    def __init__(self, pr_id = None, pr: Any = {}, repository: Repository = {}):
+    """PR Event is a data class. Instance of this class is passed to each listeners related to PR"""
+
+    def __init__(self, pr_id=None, pr: Any = {}, repository: Repository = {}):
         self.pr_id = pr_id
         self.pr: Any = pr
         self.repository: Repository = repository
 
 
 class EventListener:
-
     def on_pr_created(self, event: PREvent):
         """
         on_pr_created listener is called after pr creation.
