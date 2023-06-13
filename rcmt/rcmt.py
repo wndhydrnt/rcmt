@@ -8,7 +8,6 @@ import structlog
 
 from . import config, database, encoding, git, source, task
 from .log import SECRET_MASKER
-from .source.local import Local
 
 structlog.configure(
     processors=[

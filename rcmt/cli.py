@@ -80,7 +80,7 @@ def verify(config: str, directory: str, repository: str, task_file: str):
     structlog.configure(
         wrapper_class=structlog.make_filtering_bound_logger(log_level),
     )
-    rcmt.verify.execute(
+    rcmt.execute_verify(
         directory=directory, opts=opts, out=sys.stdout, repo_name=repository
     )
 

@@ -204,9 +204,8 @@ class Gitlab(Base):
             log.debug("Unable to get project", name=name, status_code=e.response_code)
             return None
 
-        return GitlabRepository(
-            project=p, token=self.client.private_token, url=self.url
-        )
+        token = self.client.private_token or ""
+        return GitlabRepository(project=p, token=token, url=self.url)
 
     def list_repositories_with_open_pull_requests(
         self,
