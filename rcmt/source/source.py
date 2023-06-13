@@ -322,7 +322,7 @@ class Base:
 
     def create_from_name(self, name: str) -> Optional[Repository]:
         """
-        Crate an instance of Repository the name of the repository.
+        Crate an instance of Repository from the name of a repository.
 
         :param name: Name of the repository.
         :return: An instance of Repository.

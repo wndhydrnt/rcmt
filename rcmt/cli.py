@@ -1,4 +1,5 @@
 import logging
+import sys
 
 import click
 import structlog
@@ -79,7 +80,9 @@ def verify(config: str, directory: str, repository: str, task_file: str):
     structlog.configure(
         wrapper_class=structlog.make_filtering_bound_logger(log_level),
     )
-    rcmt.verify.execute(directory=directory, opts=opts, repo_name=repository)
+    rcmt.verify.execute(
+        directory=directory, opts=opts, out=sys.stdout, repo_name=repository
+    )
 
 
 @click.command()
@@ -92,7 +95,6 @@ def main():
     pass
 
 
-main.add_command(local)
 main.add_command(run)
 main.add_command(verify)
 main.add_command(version)
