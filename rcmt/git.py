@@ -59,6 +59,7 @@ class Git:
             )
         else:
             git_repo = git.Repo(path=checkout_dir)
+            self.restore(git_repo)
 
         git_repo.config_writer().set_value("user", "email", self.user_email).release()
         git_repo.config_writer().set_value("user", "name", self.user_name).release()
@@ -131,6 +132,9 @@ class Git:
     def push(self, repo_dir):
         git_repo = git.Repo(path=repo_dir)
         git_repo.git.push("origin", self.branch_name, force=True, set_upstream=True)
+
+    def restore(self, repo: git.Repo) -> None:
+        repo.git.restore(".")
 
 
 def branch_exists_local(name: str, repo: git.Repo) -> bool:

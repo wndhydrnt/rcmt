@@ -9,7 +9,7 @@ from rcmt.config import Config
 from rcmt.config import Database as DatabaseConfig
 from rcmt.database import Database, Execution
 from rcmt.matcher import RepoName
-from rcmt.rcmt import Options, RepoRun, RunResult, execute, execute_local, execute_task
+from rcmt.rcmt import Options, RepoRun, RunResult, execute, execute_task
 from rcmt.source import Base
 from rcmt.task import Task
 
@@ -414,30 +414,6 @@ class RepoRunTest(unittest.TestCase):
 
         git_mock.push.assert_not_called()
         repo_mock.create_pull_request.assert_not_called()
-
-
-class LocalTest(unittest.TestCase):
-    @unittest.mock.patch("rcmt.task.read")
-    def test_execute_local(self, task_read_mock):
-        opts = Options(cfg=Config())
-        opts.task_paths = ["/tmp/run.py"]
-        opts.encoding_registry = encoding.Registry()
-        run = Task(name="local")
-        action_mock = unittest.mock.Mock(spec=action.Action)
-        run.add_action(action_mock)
-        task_read_mock.return_value = run
-
-        execute_local("/tmp/repository", "github.com/wndhydrnt/rcmt", opts)
-
-        task_read_mock.assert_called_with("/tmp/run.py")
-        action_mock.apply.assert_called_once_with(
-            "/tmp/repository",
-            {
-                "repo_source": "github.com",
-                "repo_project": "wndhydrnt",
-                "repo_name": "rcmt",
-            },
-        )
 
 
 class ExecuteTaskTest(unittest.TestCase):
