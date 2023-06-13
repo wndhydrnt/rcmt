@@ -65,7 +65,7 @@ rcmt verify --config config.yaml gitlab.com/wandhydrant/rcmt-test task.py
 
 @click.command(
     help=verify_help,
-    short_help="Verify a Task locally. Useful during local development.",
+    short_help="Verify a Task locally. Useful during development.",
 )
 @click.option("--config", help="Path to configuration file.", default="", type=str)
 @click.option(
