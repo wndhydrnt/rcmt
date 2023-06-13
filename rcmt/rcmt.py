@@ -8,6 +8,7 @@ import structlog
 
 from . import config, database, encoding, git, source, task
 from .log import SECRET_MASKER
+from .log import configure as configure_logging
 
 structlog.configure(
     processors=[
@@ -210,10 +211,11 @@ def apply_actions(
 
 
 def execute(opts: Options) -> bool:
-    log_level = logging.getLevelName(opts.config.log_level.upper())
-    structlog.configure(
-        wrapper_class=structlog.make_filtering_bound_logger(log_level),
-    )
+    # log_level = logging.getLevelName(opts.config.log_level.upper())
+    # structlog.configure(
+    #     wrapper_class=structlog.make_filtering_bound_logger(log_level),
+    # )
+    configure_logging(opts.config.log_level)
     if len(opts.sources) < 1:
         raise RuntimeError(
             "No Source has been configured. Configure access credentials for GitHub or GitLab."
