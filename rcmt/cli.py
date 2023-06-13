@@ -69,7 +69,10 @@ rcmt verify --config config.yaml gitlab.com/wandhydrant/rcmt-test task.py
 )
 @click.option("--config", help="Path to configuration file.", default="", type=str)
 @click.option(
-    "--directory", help="Directory to clone git repository.", default=".rcmt", type=str
+    "--directory",
+    help="Directory that stores cloned git repositories.",
+    default=".rcmt",
+    type=str,
 )
 @click.argument("repository", type=str)
 @click.argument("task_file", type=str)
