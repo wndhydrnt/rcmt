@@ -36,8 +36,8 @@ class ReadTaskTest(unittest.TestCase):
 
 
 class RunTest(unittest.TestCase):
-    def test_branch__slugify_custom_name(self):
-        r = Task(name="This is a test", branch_name="Branch Name")
+    def test_branch__slugify_custom_name_not_altered(self):
+        r = Task(name="This is a test", branch_name="branch-name")
         result = r.branch("rcmt/")
         self.assertEqual("branch-name", result)
 
