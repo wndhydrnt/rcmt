@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.19.0](https://github.com/wndhydrnt/rcmt/compare/v0.18.0...v0.19.0) (2023-06-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* Do not slugify custom branch names ([#321](https://github.com/wndhydrnt/rcmt/issues/321))
+* Replace command "local" with "verify" ([#319](https://github.com/wndhydrnt/rcmt/issues/319))
+
+### Features
+
+* Replace command "local" with "verify" ([#319](https://github.com/wndhydrnt/rcmt/issues/319)) ([3ab7f87](https://github.com/wndhydrnt/rcmt/commit/3ab7f87457c895489dd8257ddcd6543fabafed3d))
+
+
+### Bug Fixes
+
+* Do not slugify custom branch names ([#321](https://github.com/wndhydrnt/rcmt/issues/321)) ([8e0ebe0](https://github.com/wndhydrnt/rcmt/commit/8e0ebe0119148759ebaf2128bd4c9f301b8734ec))
+
 ## [0.18.0](https://github.com/wndhydrnt/rcmt/compare/v0.17.1...v0.18.0) (2023-06-07)
 
 
