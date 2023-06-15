@@ -119,7 +119,7 @@ class Task:
 
     def branch(self, prefix: str) -> str:
         if self.branch_name != "":
-            return slugify(self.branch_name)
+            return self.branch_name
 
         return f"{prefix}{slugify(self.name)}"
 
