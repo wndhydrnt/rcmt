@@ -32,6 +32,9 @@ class FileExists(Base):
     def __init__(self, path: str):
         self.path = path
 
+    def __repr__(self):
+        return f"FileExists(path={self.path})"
+
     def match(self, repo: source.Repository) -> bool:
         return repo.has_file(self.path)
 
@@ -50,7 +53,12 @@ class LineInFile(Base):
 
     def __init__(self, path: str, search: str):
         self.path = path
+        self._search = search
+
         self.regex = re.compile(search)
+
+    def __repr__(self):
+        return f"LineInFile(path={self.path}, search={self._search})"
 
     def match(self, repo: source.Repository) -> bool:
         try:
@@ -72,7 +80,11 @@ class RepoName(Base):
     """
 
     def __init__(self, search: str):
+        self._search = search
         self.regex = re.compile(search)
+
+    def __repr__(self):
+        return f"RepoName(search={self._search})"
 
     def match(self, repo: source.Repository) -> bool:
         if self.regex.match(str(repo)) is None:
@@ -95,6 +107,13 @@ class Or(Base):
             raise RuntimeError("Matcher Or expects at least one argument")
 
         self.matchers: tuple[Base, ...] = args
+
+    def __repr__(self):
+        matchers_repr: list[str] = []
+        for m in self.matchers:
+            matchers_repr.append(str(m))
+
+        return f'Or(matchers=[{", ".join(matchers_repr)}])'
 
     def match(self, repo: source.Repository) -> bool:
         for m in self.matchers:
@@ -119,6 +138,13 @@ class And(Base):
 
         self.matchers: tuple[Base, ...] = args
 
+    def __repr__(self):
+        matchers_repr: list[str] = []
+        for m in self.matchers:
+            matchers_repr.append(str(m))
+
+        return f'And(matchers=[{", ".join(matchers_repr)}])'
+
     def match(self, repo: source.Repository) -> bool:
         for m in self.matchers:
             if m.match(repo) is False:
@@ -138,6 +164,9 @@ class Not(Base):
 
     def __init__(self, matcher: Base):
         self.matcher: Base = matcher
+
+    def __repr__(self):
+        return f"Not(matcher={str(self.matcher)})"
 
     def match(self, repo: source.Repository) -> bool:
         return not self.matcher.match(repo)

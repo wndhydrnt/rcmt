@@ -1,7 +1,7 @@
 import datetime
 import fnmatch
 import io
-from typing import Any, Generator, TextIO, Union
+from typing import Any, Generator, Optional, TextIO, Union
 
 import github
 import github.PullRequest
@@ -168,6 +168,15 @@ class Github(Base):
         self.client = github.Github(login_or_token=access_token, base_url=base_url)
 
         SECRET_MASKER.add_secret(access_token)
+
+    def create_from_name(self, name: str) -> Optional[Repository]:
+        repo_name = "/".join(name.split("/")[1:])
+        try:
+            gh_repo = self.client.get_repo(full_name_or_id=repo_name, lazy=False)
+        except github.UnknownObjectException:
+            return None
+
+        return GithubRepository(access_token=self.access_token, repo=gh_repo)
 
     def list_repositories_with_open_pull_requests(
         self,

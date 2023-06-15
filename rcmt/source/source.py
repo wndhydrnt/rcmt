@@ -320,6 +320,16 @@ class Base:
 
     """
 
+    def create_from_name(self, name: str) -> Optional[Repository]:
+        """
+        Crate an instance of Repository from the name of a repository.
+
+        :param name: Name of the repository.
+        :return: An instance of Repository.
+        :rtype: rcmt.source.Repository
+        """
+        raise NotImplementedError("class does not implement Base.create_from_name()")
+
     def list_repositories_with_open_pull_requests(
         self,
     ) -> Generator[Repository, None, None]:

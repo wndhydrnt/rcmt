@@ -213,6 +213,33 @@ class GithubRepositoryTest(unittest.TestCase):
 
 
 class GithubTest(unittest.TestCase):
+    def test_create_from_name__returns_repository(self):
+        repo_mock = unittest.mock.Mock(spec=Repository)
+        client_mock = unittest.mock.Mock(spec=github.Github)
+        client_mock.get_repo.return_value = repo_mock
+        repo_name = "github.com/wndhydrnt/rcmt"
+
+        gh = Github("access_token", "http://localhost")
+        gh.client = client_mock
+        result = gh.create_from_name(repo_name)
+
+        self.assertIsInstance(result, GithubRepository)
+        client_mock.get_repo.assert_called_once_with(
+            full_name_or_id="wndhydrnt/rcmt", lazy=False
+        )
+
+    def test_create_from_name__no_repository_found(self):
+        client_mock = unittest.mock.Mock(spec=github.Github)
+        client_mock.get_repo.side_effect = github.UnknownObjectException(
+            data=None, headers=None, status=404
+        )
+
+        gh = Github("access_token", "http://localhost")
+        gh.client = client_mock
+        result = gh.create_from_name("github.com/wndhydrnt/rcmt")
+
+        self.assertIsNone(result)
+
     def test_list_repositories(self):
         repo_mock = unittest.mock.Mock(spec=Repository)
         repo_mock.updated_at = datetime.datetime.now()
