@@ -141,7 +141,7 @@ class Git:
 
     def validate_branch_name(self, repo: git.Repo) -> bool:
         try:
-            repo.git.check_ref_name(f"refs/heads/{self.branch_name}")
+            repo.git.check_ref_format(f"refs/heads/{self.branch_name}")
             return True
         except GitCommandError:
             return False
