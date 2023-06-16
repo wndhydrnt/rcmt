@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.1](https://github.com/wndhydrnt/rcmt/compare/v0.19.0...v0.19.1) (2023-06-16)
+
+
+### Bug Fixes
+
+* Fix wrong git command to validate branch name ([#322](https://github.com/wndhydrnt/rcmt/issues/322)) ([fadacfe](https://github.com/wndhydrnt/rcmt/commit/fadacfeecd2a2fd7052b61267997500f9201d7af))
+
 ## [0.19.0](https://github.com/wndhydrnt/rcmt/compare/v0.18.0...v0.19.0) (2023-06-15)
 
 
