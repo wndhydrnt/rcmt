@@ -120,6 +120,18 @@ List of file extensions that the JSON encoding supports. Defaults to ``[".json"]
 
 Indentation to use when writing JSON files. Defaults to ``2``.
 
+``log_format``
+^^^^^^^^^^^^^^
+
+Format of log records. If not set, rcmt will auto-detect if it is run from a terminal
+and pretty-print records. Otherwise it uses JSON.
+
+Set to ``json`` to force JSON format.
+
+Set to ``console`` to force pretty-printing of log records.
+
+.. versionadded:: 0.20.0
+
 ``log_level``
 ^^^^^^^^^^^^^
 

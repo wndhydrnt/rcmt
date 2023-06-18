@@ -1,28 +1,10 @@
 import datetime
-import logging
-import sys
 from enum import Enum
 from typing import Optional
 
 import structlog
 
 from . import config, database, encoding, git, source, task
-from .log import SECRET_MASKER
-from .log import configure as configure_logging
-
-structlog.configure(
-    processors=[
-        structlog.processors.add_log_level,
-        SECRET_MASKER.process_event,
-        structlog.processors.StackInfoRenderer(),
-        structlog.dev.set_exc_info,
-        structlog.processors.TimeStamper(fmt="%Y-%m-%d %H:%M.%S", utc=False),
-        structlog.dev.ConsoleRenderer(
-            colors=sys.stdout is not None and sys.stdout.isatty()
-        ),
-    ],
-    wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
-)
 
 log: structlog.stdlib.BoundLogger = structlog.get_logger()
 
@@ -211,11 +193,6 @@ def apply_actions(
 
 
 def execute(opts: Options) -> bool:
-    # log_level = logging.getLevelName(opts.config.log_level.upper())
-    # structlog.configure(
-    #     wrapper_class=structlog.make_filtering_bound_logger(log_level),
-    # )
-    configure_logging(opts.config.log_level)
     if len(opts.sources) < 1:
         raise RuntimeError(
             "No Source has been configured. Configure access credentials for GitHub or GitLab."

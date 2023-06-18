@@ -1,6 +1,6 @@
 import logging
 import sys
-from typing import Any, Mapping, MutableMapping
+from typing import Any, Mapping, MutableMapping, Optional
 
 import structlog
 
@@ -29,16 +29,10 @@ class SecretMasker:
 SECRET_MASKER = SecretMasker()
 
 
-def configure(log_level: str):
+def configure(format: Optional[str], level: str) -> None:
     processors = [
-        # If log level is too low, abort pipeline and throw away log entry.
-        structlog.stdlib.filter_by_level,
-        # Add the name of the logger to event dict.
-        structlog.stdlib.add_logger_name,
-        # Add log level to event dict.
-        structlog.stdlib.add_log_level,
-        # Perform %-style formatting.
-        structlog.stdlib.PositionalArgumentsFormatter(),
+        SECRET_MASKER.process_event,
+        structlog.processors.add_log_level,
         # Add a timestamp in ISO 8601 format.
         structlog.processors.TimeStamper(fmt="iso"),
         # If the "stack_info" key in the event dict is true, remove it and
@@ -50,40 +44,38 @@ def configure(log_level: str):
         structlog.processors.format_exc_info,
         # If some value is in bytes, decode it to a unicode str.
         structlog.processors.UnicodeDecoder(),
-        # Add callsite parameters.
-        structlog.processors.CallsiteParameterAdder(
-            {
-                structlog.processors.CallsiteParameter.FILENAME,
-                structlog.processors.CallsiteParameter.FUNC_NAME,
-                structlog.processors.CallsiteParameter.LINENO,
-            }
-        ),
-        structlog.processors.EventRenamer("message"),
     ]
 
-    processors.append(structlog.processors.JSONRenderer())
-    # if sys.stderr.isatty():
-    #     processors.append(structlog.dev.ConsoleRenderer())
-    # else:
-    #     processors.append(structlog.processors.JSONRenderer())
+    use_json = False
+    if format is None:
+        if sys.stderr.isatty() is False:
+            use_json = True
+    else:
+        if format.lower() == "json":
+            use_json = True
 
+    if use_json is True:
+        processors.append(structlog.processors.EventRenamer("message"))
+        processors.append(structlog.processors.JSONRenderer())
+    else:
+        processors.append(
+            structlog.dev.ConsoleRenderer(
+                colors=sys.stderr is not None and sys.stderr.isatty()
+            )
+        )
+
+    log_level = logging.getLevelName(level.upper())
     structlog.configure(
         processors=processors,
         # `wrapper_class` is the bound logger that you get back from
         # get_logger(). This one imitates the API of `logging.Logger`.
-        wrapper_class=structlog.stdlib.BoundLogger,
+        wrapper_class=structlog.make_filtering_bound_logger(log_level),
         # `logger_factory` is used to create wrapped loggers that are used for
         # OUTPUT. This one returns a `logging.Logger`. The final value (a JSON
         # string) from the final processor (`JSONRenderer`) will be passed to
         # the method of the same name as that you've called on the bound logger.
-        logger_factory=structlog.stdlib.LoggerFactory(),
+        logger_factory=structlog.PrintLoggerFactory(sys.stderr),
         # Effectively freeze configuration after creating the first bound
         # logger.
         cache_logger_on_first_use=True,
-    )
-
-    logging.basicConfig(
-        format="%(message)s",
-        stream=sys.stderr,
-        level=log_level.upper(),
     )
