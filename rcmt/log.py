@@ -66,7 +66,7 @@ def configure(format: Optional[str], level: str) -> None:
 
     log_level = logging.getLevelName(level.upper())
     structlog.configure(
-        processors=processors,
+        processors=processors,  # type: ignore
         # `wrapper_class` is the bound logger that you get back from
         # get_logger(). This one imitates the API of `logging.Logger`.
         wrapper_class=structlog.make_filtering_bound_logger(log_level),
