@@ -7,7 +7,7 @@ import rcmt
 from rcmt.log import configure as configure_logging
 
 # Default logging settings before any configuration has been read.
-configure_logging(None, "error")
+configure_logging(format=None, level="error")
 log: structlog.stdlib.BoundLogger = structlog.get_logger()
 
 
@@ -34,7 +34,7 @@ def run(config: str, task_file: list[str]):
     try:
         opts = rcmt.options_from_config(config)
         opts.task_paths = task_file
-        configure_logging(opts.config.log_format, opts.config.log_level)
+        configure_logging(format=opts.config.log_format, level=opts.config.log_level)
         result = rcmt.execute(opts)
         if result is False:
             exit(1)
@@ -90,7 +90,7 @@ def verify(config: str, directory: str, repository: str, task_file: str):
     try:
         opts = rcmt.options_from_config(config)
         opts.task_paths = [task_file]
-        configure_logging(opts.config.log_format, opts.config.log_level)
+        configure_logging(format=opts.config.log_format, level=opts.config.log_level)
         rcmt.execute_verify(
             directory=directory, opts=opts, out=sys.stdout, repo_name=repository
         )
