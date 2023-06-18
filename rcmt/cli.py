@@ -1,10 +1,15 @@
-import logging
 import sys
 
 import click
 import structlog
 
 import rcmt
+from rcmt.log import configure as configure_logging
+
+# Default logging settings before any configuration has been read.
+configure_logging(format=None, level="error")
+log: structlog.stdlib.BoundLogger = structlog.get_logger()
+
 
 run_help = """Apply a Task to all matching repositories of a remote Git host.
 
@@ -26,10 +31,15 @@ rcmt run --config ./config.yaml ./task.py
 @click.option("--config", help="Path to configuration file.", default="", type=str)
 @click.argument("task_file", nargs=-1)
 def run(config: str, task_file: list[str]):
-    opts = rcmt.options_from_config(config)
-    opts.task_paths = task_file
-    result = rcmt.execute(opts)
-    if result is False:
+    try:
+        opts = rcmt.options_from_config(config)
+        opts.task_paths = task_file
+        configure_logging(format=opts.config.log_format, level=opts.config.log_level)
+        result = rcmt.execute(opts)
+        if result is False:
+            exit(1)
+    except Exception:
+        log.exception("Unexpected error")
         exit(1)
 
 
@@ -77,15 +87,16 @@ rcmt verify --config config.yaml gitlab.com/wandhydrant/rcmt-test task.py
 @click.argument("repository", type=str)
 @click.argument("task_file", type=str)
 def verify(config: str, directory: str, repository: str, task_file: str):
-    opts = rcmt.options_from_config(config)
-    opts.task_paths = [task_file]
-    log_level = logging.getLevelName(opts.config.log_level.upper())
-    structlog.configure(
-        wrapper_class=structlog.make_filtering_bound_logger(log_level),
-    )
-    rcmt.execute_verify(
-        directory=directory, opts=opts, out=sys.stdout, repo_name=repository
-    )
+    try:
+        opts = rcmt.options_from_config(config)
+        opts.task_paths = [task_file]
+        configure_logging(format=opts.config.log_format, level=opts.config.log_level)
+        rcmt.execute_verify(
+            directory=directory, opts=opts, out=sys.stdout, repo_name=repository
+        )
+    except Exception:
+        log.exception("Unexpected error")
+        exit(1)
 
 
 @click.command()
