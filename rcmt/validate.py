@@ -1,7 +1,7 @@
 from rcmt import task
 
 
-def validate(task_file_paths: list[str]) -> bool:
+def validate(task_file_paths: tuple[str]) -> bool:
     result: bool = False
     for task_file_path in task_file_paths:
         try:
