@@ -8,6 +8,16 @@ class Base:
     Base class that describes the methods of a Matcher.
     """
 
+    def __repr__(self) -> str:
+        args: list[str] = []
+        for k, v in self.__dict__.items():
+            if k.startswith("_") is True:
+                continue
+
+            args.append(f"{k}={v}")
+
+        return f'{self.__class__.__name__}({", ".join(args)})'
+
     def match(self, repo: source.Repository) -> bool:
         """
         Indicates if a repository matches.
