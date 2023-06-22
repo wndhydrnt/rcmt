@@ -112,7 +112,7 @@ class Repository:
     """
 
     def __str__(self):
-        return f"{self.source}/{self.project}/{self.name}"
+        return self.full_name
 
     @property
     def base_branch(self) -> str:
@@ -187,6 +187,14 @@ class Repository:
         raise NotImplementedError(
             "class does not implement Repository.has_open_pull_request()"
         )
+
+    @property
+    def full_name(self) -> str:
+        """
+        :return: Full name of the repository.
+        :rtype: str
+        """
+        return f"{self.source}/{self.project}/{self.name}"
 
     def get_file(self, path: str) -> TextIO:
         raise NotImplementedError("class does not implement Repository.has_file()")
