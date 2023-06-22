@@ -43,6 +43,47 @@ def run(config: str, task_file: list[str]):
         exit(1)
 
 
+validate_help = """Validate Task files.
+
+Test that rcmt can load a task file. Useful during CI/CD before rolling out a change to
+production.
+
+No extra configuration is necessary to execute this command. A Task is loaded but no
+calls to external APIs are made.
+
+Note: Code in module scope of a Task will be executed during validation. A Task file
+with the following content will print "Hello" when validated:
+
+\b
+print("Hello")
+with Task(name="example") as task:
+    # Add matchers/actions here
+
+
+
+Examples:
+
+\b
+# Validate a single Task file
+rcmt validate task.py
+
+\b
+# Validate multiple Task files
+rcmt validate task1.py task2.py
+
+\b
+# Validate all Task files in a directory
+rcmt validate tasks/*.py
+"""
+
+
+@click.command(help=validate_help, short_help="Validate Task files")
+@click.argument("task_file", type=click.Path(), nargs=-1)
+def validate(task_file: tuple[str]):
+    if rcmt.validate(task_file_paths=task_file) is False:
+        exit(1)
+
+
 verify_help = """Verify a Task locally.
 
 This command makes it possible to quickly verify that Matchers and Actions of a Task
@@ -110,5 +151,6 @@ def main():
 
 
 main.add_command(run)
+main.add_command(validate)
 main.add_command(verify)
 main.add_command(version)
