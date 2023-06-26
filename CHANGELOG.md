@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.1](https://github.com/wndhydrnt/rcmt/compare/v0.20.0...v0.20.1) (2023-06-26)
+
+
+### Bug Fixes
+
+* FileExists Matcher with nested search does not work for GitLab repositories ([#329](https://github.com/wndhydrnt/rcmt/issues/329)) ([975cd04](https://github.com/wndhydrnt/rcmt/commit/975cd04912fd8d5c9d58814f83f79d29ae49e009))
+
 ## [0.20.0](https://github.com/wndhydrnt/rcmt/compare/v0.19.1...v0.20.0) (2023-06-22)
 
 
