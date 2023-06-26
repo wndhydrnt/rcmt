@@ -80,6 +80,21 @@ class GitlabRepositoryTest(unittest.TestCase):
         self.assertTrue(result)
         project.repository_tree.assert_called_once_with(path="", iterator=True)
 
+    def test_has_file__nested(self):
+        project = unittest.mock.Mock(spec=Project)
+        project.default_branch = "main"
+        project.repository_tree.return_value = [
+            {"path": "data/config/test.json", "type": "blob"}
+        ]
+
+        repo = GitlabRepository(project=project, token="", url="")
+        result = repo.has_file("data/config/test.json")
+
+        self.assertTrue(result)
+        project.repository_tree.assert_called_once_with(
+            path="data/config", iterator=True
+        )
+
     def test_has_file__file_does_not_exist(self):
         project = unittest.mock.Mock(spec=Project)
         project.default_branch = "main"
@@ -95,7 +110,7 @@ class GitlabRepositoryTest(unittest.TestCase):
         project = unittest.mock.Mock(spec=Project)
         project.default_branch = "main"
         project.repository_tree.return_value = [
-            {"path": "production.json", "type": "blob"}
+            {"path": "config/production.json", "type": "blob"}
         ]
 
         repo = GitlabRepository(project=project, token="", url="")
