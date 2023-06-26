@@ -94,14 +94,13 @@ class GitlabRepository(Repository):
 
     def has_file(self, path: str) -> bool:
         directory = os.path.dirname(path)
-        file = os.path.basename(path)
         try:
             tree = self._project.repository_tree(path=directory, iterator=True)
             for entry in tree:
                 if entry["type"] != "blob":
                     continue
 
-                if fnmatch.fnmatch(entry["path"], file):
+                if fnmatch.fnmatch(entry["path"], path):
                     return True
         except gitlab.GitlabGetError as e:
             if e.response_code == 404:
