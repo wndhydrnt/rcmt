@@ -110,7 +110,7 @@ class GitlabRepositoryTest(unittest.TestCase):
         project = unittest.mock.Mock(spec=Project)
         project.default_branch = "main"
         project.repository_tree.return_value = [
-            {"path": "production.json", "type": "blob"}
+            {"path": "config/production.json", "type": "blob"}
         ]
 
         repo = GitlabRepository(project=project, token="", url="")
