@@ -140,7 +140,10 @@ def verify(config: str, directory: str, repository: str, task_file: str):
         exit(1)
 
 
-@click.command()
+@click.command(
+    help="Display version information",
+    short_help="Display version information",
+)
 def version():
     click.echo(rcmt.__version__)
 
