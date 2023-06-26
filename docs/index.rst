@@ -44,6 +44,7 @@ create a Pull Request for each repository.
    :maxdepth: 1
 
    installation
+   cli
    action
    task
    sources
