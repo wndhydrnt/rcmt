@@ -14,6 +14,7 @@ class Options:
         self.config = cfg
         self.encoding_registry: encoding.Registry = encoding.Registry()
         self.task_paths: list[str] = []
+        self.repositories: list[str] = []
         self.sources: dict[str, source.Base] = {}
 
 
@@ -199,45 +200,30 @@ def execute(opts: Options) -> bool:
         )
 
     db = database.new_database(opts.config.database)
-    tasks: list[task.Task] = []
-    needs_all_repositories = False
-    for task_path in opts.task_paths:
-        task_ = task.read(task_path)
-        task_db = db.get_or_create_task(name=task_.name)
-        if task_.enabled is False:
-            db.update_task(task_.name, task_.checksum)
-            log.info("Task disabled", task=task_.name)
-            continue
-
-        if task_.checksum != task_db.checksum:
-            needs_all_repositories = True
-
-        tasks.append(task_)
-
-    execution = db.get_last_execution()
-    if needs_all_repositories is True or execution.executed_at is None:
-        since = datetime.datetime.fromtimestamp(0)
-    else:
-        since = execution.executed_at
-
-    log.debug("Searching for updated repositories", since=str(since))
+    tasks, needs_all_repositories = read_tasks(db=db, task_paths=opts.task_paths)
     repositories: list[source.Repository] = []
-    for s in opts.sources.values():
-        known_repos: list[str] = []
-        for repository in s.list_repositories(since=since):
-            known_repos.append(str(repository))
-            repositories.append(repository)
+    if len(opts.repositories) > 0:
+        for repository_name in opts.repositories:
+            for s in opts.sources.values():
+                repository = s.create_from_name(name=repository_name)
+                if repository is not None:
+                    repositories.append(repository)
 
-        if needs_all_repositories is False:
-            log.debug("Listing repositories with open pull requests")
-            for repository in s.list_repositories_with_open_pull_requests():
-                if str(repository) in known_repos:
-                    continue
+    else:
+        execution = db.get_last_execution()
+        if needs_all_repositories is True or execution.executed_at is None:
+            since = datetime.datetime.fromtimestamp(0)
+        else:
+            since = execution.executed_at
 
-                known_repos.append(str(repository))
-                repositories.append(repository)
+        log.debug("Searching for updated repositories", since=str(since))
+        repositories = list_repositories(
+            all_repositories=needs_all_repositories,
+            since=since,
+            sources=list(opts.sources.values()),
+        )
+        log.info("Repositories returned by sources", count=len(repositories))
 
-    log.info("Repositories returned by sources", count=len(repositories))
     success = True
     if len(repositories) > 0:
         for task_ in tasks:
@@ -333,3 +319,48 @@ def create_template_mapping(repo: source.Repository) -> dict[str, str]:
         "repo_project": repo.project,
         "repo_source": repo.source,
     }
+
+
+def list_repositories(
+    all_repositories: bool,
+    since: datetime.datetime,
+    sources: list[source.Base],
+) -> list[source.Repository]:
+    repositories: list[source.Repository] = []
+    known_repos: list[str] = []
+    for s in sources:
+        for repository in s.list_repositories(since=since):
+            known_repos.append(str(repository))
+            repositories.append(repository)
+
+        if all_repositories is False:
+            log.debug("Listing repositories with open pull requests")
+            for repository in s.list_repositories_with_open_pull_requests():
+                if str(repository) in known_repos:
+                    continue
+
+                known_repos.append(str(repository))
+                repositories.append(repository)
+
+    return repositories
+
+
+def read_tasks(
+    db: database.Database, task_paths: list[str]
+) -> tuple[list[task.Task], bool]:
+    tasks: list[task.Task] = []
+    needs_all_repositories = False
+    for task_path in task_paths:
+        task_ = task.read(task_path)
+        task_db = db.get_or_create_task(name=task_.name)
+        if task_.enabled is False:
+            db.update_task(task_.name, task_.checksum)
+            log.info("Task disabled", task=task_.name)
+            continue
+
+        if task_.checksum != task_db.checksum:
+            needs_all_repositories = True
+
+        tasks.append(task_)
+
+    return (tasks, needs_all_repositories)

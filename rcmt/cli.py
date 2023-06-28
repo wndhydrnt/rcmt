@@ -21,6 +21,11 @@ Examples:
 \b
 # Apply Task "task.py"
 rcmt run --config ./config.yaml ./task.py
+
+\b
+# Apply Task "task.py" to a single repository
+rcmt run --config ./config.yaml --repository github.com/wndhydrnt/rcmt-test ./task.py
+
 """
 
 
@@ -29,11 +34,18 @@ rcmt run --config ./config.yaml ./task.py
     short_help="Apply a Task to all matching repositories of a remote Git host.",
 )
 @click.option("--config", help="Path to configuration file.", default="", type=str)
+@click.option(
+    "--repository",
+    help="Name of a repository to which to apply the Task. Can be passed multiple times. rcmt will not query for all repositories if this option is set.",
+    default=[],
+    multiple=True,
+)
 @click.argument("task_file", nargs=-1)
-def run(config: str, task_file: list[str]):
+def run(config: str, repository: tuple[str], task_file: list[str]):
     try:
         opts = rcmt.options_from_config(config)
         opts.task_paths = task_file
+        opts.repositories = list(repository)
         configure_logging(format=opts.config.log_format, level=opts.config.log_level)
         result = rcmt.execute(opts)
         if result is False:
