@@ -788,3 +788,60 @@ class ExecuteTest(unittest.TestCase):
             str(ee.exception),
             "No Source has been configured. Configure access credentials for GitHub or GitLab.",
         )
+
+    @unittest.mock.patch("rcmt.database.new_database")
+    @unittest.mock.patch("rcmt.rcmt.execute_task")
+    def test_execute__repository_from_opts(
+        self,
+        execute_task_mock: unittest.mock.MagicMock,
+        new_database_mock: unittest.mock.MagicMock,
+    ) -> None:
+        new_database_mock.return_value = self.db
+        source_mock = unittest.mock.Mock(spec=Base)
+        repo_mock = RepositoryMock(
+            name="unit-test", project="wndhydrnt", src="github.com", has_file=False
+        )
+        source_mock.create_from_name.return_value = repo_mock
+
+        opts = Options(Config())
+        opts.task_paths = ["tests/fixtures/test_rcmt/ExecuteTest/task.py"]
+        opts.repositories = ["github.com/wndhydrnt/unit-test"]
+        opts.sources = {"mock": source_mock}
+
+        execute_task_mock.return_value = True
+
+        result = execute(opts)
+
+        self.assertTrue(result, msg="Should be successful")
+        source_mock.create_from_name.assert_called_once_with(
+            name="github.com/wndhydrnt/unit-test"
+        )
+        source_mock.list_repositories.assert_not_called()
+        run_db = self.db.get_or_create_task(name="unit-test")
+        self.assertEqual(
+            run_db.checksum,
+            "e96d87b82e15adb13ef63d6559b7ce85",
+            msg="Should write the checksum because the Run was successfully executed",
+        )
+        execution_db = self.db.get_last_execution()
+        self.assertIsNotNone(execution_db, msg="Should write the last execution")
+        self.assertEqual(
+            execute_task_mock.call_count,
+            1,
+            "Should execute a Run only once because one repository has been returned",
+        )
+        self.assertIsInstance(
+            execute_task_mock.call_args.args[0],
+            Task,
+            "Should pass the Run to 'execute_run'",
+        )
+        self.assertListEqual(
+            [repo_mock],
+            execute_task_mock.call_args.args[1],
+            "Should pass the repositories to 'execute_run'",
+        )
+        self.assertEqual(
+            opts,
+            execute_task_mock.call_args.args[2],
+            "Should pass the options to 'execute_run'",
+        )
