@@ -203,6 +203,7 @@ def execute(opts: Options) -> bool:
     tasks, needs_all_repositories = read_tasks(db=db, task_paths=opts.task_paths)
     repositories: list[source.Repository] = []
     if len(opts.repositories) > 0:
+        log.info("Reading repositories passed in from command-line")
         for repository_name in opts.repositories:
             for s in opts.sources.values():
                 repository = s.create_from_name(name=repository_name)
