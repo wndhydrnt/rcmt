@@ -791,7 +791,7 @@ class ExecuteTest(unittest.TestCase):
 
     @unittest.mock.patch("rcmt.database.new_database")
     @unittest.mock.patch("rcmt.rcmt.execute_task")
-    def test_execute__no_previous_execution(
+    def test_execute__repository_from_opts(
         self,
         execute_task_mock: unittest.mock.MagicMock,
         new_database_mock: unittest.mock.MagicMock,
