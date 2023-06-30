@@ -6,11 +6,11 @@ import os.path
 import random
 import string
 import sys
-from typing import Optional
+from typing import Callable, Optional
 
 from slugify import slugify
 
-from rcmt import action, matcher, source
+from rcmt import action, source
 from rcmt.fs import FileProxy
 
 
@@ -93,7 +93,7 @@ class Task:
         self.actions: list[action.Action] = []
         self.checksum: str = ""
         self.file_proxies: list[FileProxy] = []
-        self.matchers: list[matcher.Base] = []
+        self.matchers: list[Callable[[source.Repository], bool]] = []
 
     def __enter__(self):
         return self
@@ -109,7 +109,7 @@ class Task:
         """
         self.actions.append(a)
 
-    def add_matcher(self, m: matcher.Base) -> None:
+    def add_matcher(self, m: Callable[[source.Repository], bool]) -> None:
         """
         Add a Matcher that matches repositories.
 

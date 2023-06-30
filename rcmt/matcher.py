@@ -8,6 +8,9 @@ class Base:
     Base class that describes the methods of a Matcher.
     """
 
+    def __call__(self, repo: source.Repository) -> bool:
+        return self.match(repo)
+
     def __repr__(self) -> str:
         args: list[str] = []
         for k, v in self.__dict__.items():
