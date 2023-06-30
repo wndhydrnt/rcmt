@@ -89,7 +89,7 @@ class RepoRunTest(unittest.TestCase):
 
         runner.execute(run, repo_mock)
 
-        action_mock.apply.assert_called_once_with(
+        action_mock.assert_called_once_with(
             "/unit/test",
             {
                 "repo_name": "myrepo",
@@ -120,7 +120,7 @@ class RepoRunTest(unittest.TestCase):
         runner.execute(run, repo_mock)
 
         git_mock.commit_changes.assert_called_once_with("/unit/test", "Custom commit")
-        action_mock.apply.assert_called_once_with(
+        action_mock.assert_called_once_with(
             "/unit/test",
             {
                 "repo_name": "myrepo",
@@ -168,7 +168,7 @@ class RepoRunTest(unittest.TestCase):
 
         runner.execute(run, repo_mock)
 
-        action_mock.apply.assert_called_once_with(
+        action_mock.assert_called_once_with(
             "/unit/test",
             {
                 "repo_name": "myrepo",
@@ -362,7 +362,7 @@ class RepoRunTest(unittest.TestCase):
         runner.execute(run, repo_mock)
 
         git_mock.commit_changes.assert_called_once_with("/unit/test", "Custom commit")
-        action_mock.apply.assert_called_once_with(
+        action_mock.assert_called_once_with(
             "/unit/test",
             {
                 "repo_name": "myrepo",
