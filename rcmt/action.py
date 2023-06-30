@@ -22,6 +22,9 @@ class Action:
     def __call__(self, repo_path: str, tpl_data: dict) -> None:
         return self.apply(repo_path=repo_path, tpl_data=tpl_data)
 
+    def __repr__(self) -> str:
+        return self.__class__.__name__
+
     def apply(self, repo_path: str, tpl_data: dict) -> None:
         """
         apply modifies a file in a repository.
