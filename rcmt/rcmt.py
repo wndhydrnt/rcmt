@@ -183,14 +183,14 @@ def apply_actions(
     tpl_mapping: dict,
     work_dir: str,
 ) -> None:
-    for a in task_.actions:
+    for idx, a in enumerate(task_.actions):
         log.debug(
             "Applying action from task",
-            action=a.__class__.__name__,
+            action_index=idx,
             task=task_.name,
             repo=str(repo),
         )
-        a.apply(work_dir, tpl_mapping)
+        a(work_dir, tpl_mapping)
 
 
 def execute(opts: Options) -> bool:

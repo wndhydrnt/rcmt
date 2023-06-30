@@ -19,6 +19,9 @@ class Action:
     Action is the abstract class that defines the interface each action implements.
     """
 
+    def __call__(self, repo_path: str, tpl_data: dict) -> None:
+        return self.apply(repo_path=repo_path, tpl_data=tpl_data)
+
     def apply(self, repo_path: str, tpl_data: dict) -> None:
         """
         apply modifies a file in a repository.

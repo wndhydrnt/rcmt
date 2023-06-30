@@ -10,8 +10,9 @@ from typing import Callable, Optional
 
 from slugify import slugify
 
-from rcmt import action, source
+from rcmt import source
 from rcmt.fs import FileProxy
+from rcmt.typing import Action, Matcher
 
 
 class Task:
@@ -90,10 +91,10 @@ class Task:
         self.pr_body = pr_body
         self.pr_title = pr_title
 
-        self.actions: list[action.Action] = []
+        self.actions: list[Action] = []
         self.checksum: str = ""
         self.file_proxies: list[FileProxy] = []
-        self.matchers: list[Callable[[source.Repository], bool]] = []
+        self.matchers: list[Matcher] = []
 
     def __enter__(self):
         return self
@@ -101,7 +102,7 @@ class Task:
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
-    def add_action(self, a: action.Action) -> None:
+    def add_action(self, a: Callable[[str, dict], None]) -> None:
         """
         Add an Action to apply to every matching repository.
 
@@ -136,7 +137,7 @@ class Task:
 
     def match(self, repo: source.Repository) -> bool:
         for m in self.matchers:
-            if m.match(repo) is False:
+            if m(repo) is False:
                 return False
 
         return True
