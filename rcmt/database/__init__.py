@@ -26,7 +26,7 @@ class Run(Base):
 
 
 class Database:
-    def __init__(self, engine):
+    def __init__(self, engine) -> None:
         self.session: sessionmaker = sessionmaker(engine, expire_on_commit=False)
 
     def get_last_execution(self) -> Execution:
