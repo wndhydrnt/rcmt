@@ -27,7 +27,7 @@ class Action:
 
     def apply(self, repo_path: str, tpl_data: dict) -> None:
         """
-        apply modifies a file in a repository.
+        apply modifies files in the clone of a repository.
 
         :param repo_path: The absolute path to the file in a repository to modify.
         :param tpl_data: The content of the file from an Action, already populated with
