@@ -1,5 +1,5 @@
 """
-This file demonstrates the various wys to create a Matcher.
+This file demonstrates the various ways to create a Matcher.
 A Matcher is a function that accepts a source.Repository as an argument and returns a
 boolean.
 That makes it possible to create a Matcher in multiple ways, depending on what is
