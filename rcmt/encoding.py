@@ -51,7 +51,7 @@ class Registry:
     Registry holds all known encodings and the file extensions each encoding supports.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.encodings: list[dict] = []
 
     def register(self, enc: Encoding, extensions: list[str]) -> None:

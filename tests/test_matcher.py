@@ -13,7 +13,7 @@ class FileExistsTest(unittest.TestCase):
         path = "test.json"
 
         under_test = FileExists(path=path)
-        result: bool = under_test.match(repo=repo)
+        result = under_test.match(repo=repo)
 
         self.assertTrue(result)
         repo.has_file.assert_called_once_with(path)

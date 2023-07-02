@@ -118,7 +118,7 @@ class Or(Base):
 
         self.matchers: tuple[Base, ...] = args
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         matchers_repr: list[str] = []
         for m in self.matchers:
             matchers_repr.append(str(m))
@@ -148,7 +148,7 @@ class And(Base):
 
         self.matchers: tuple[Base, ...] = args
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         matchers_repr: list[str] = []
         for m in self.matchers:
             matchers_repr.append(str(m))

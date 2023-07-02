@@ -143,7 +143,7 @@ class Seed(Own):
 
 
 class EncodingAware:
-    def __init__(self):
+    def __init__(self) -> None:
         self._encodings: encoding.Registry
 
     @property
