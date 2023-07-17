@@ -28,7 +28,7 @@ class ExecuteTest(unittest.TestCase):
 
         task = Task(name="local")
         matcher_mock = unittest.mock.Mock(spec=matcher.Base)
-        matcher_mock.match.return_value = True
+        matcher_mock.return_value = True
         task.add_matcher(matcher_mock)
         action_mock = unittest.mock.Mock(spec=action.Action)
         task.add_action(action_mock)
@@ -47,9 +47,9 @@ class ExecuteTest(unittest.TestCase):
                 repo_name="github.com/wndhydrnt/rcmt",
             )
 
-        matcher_mock.match.assert_called_with(repository_mock)
+        matcher_mock.assert_called_with(repository_mock)
         task_read_mock.assert_called_with("/tmp/run.py")
-        action_mock.apply.assert_called_once_with(
+        action_mock.assert_called_once_with(
             checkout_dir,
             {
                 "repo_source": "github.com",

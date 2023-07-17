@@ -27,7 +27,7 @@ def execute(directory: str, opts: Options, out: TextIO, repo_name: str) -> None:
         result: bool = True
         t = task.read(task_path)
         for m in t.matchers:
-            if m.match(repository) is True:
+            if m(repository) is True:
                 print(f"✅ Matcher {str(m)} matches", file=out)
             else:
                 result = False

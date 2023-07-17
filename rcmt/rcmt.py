@@ -186,11 +186,11 @@ def apply_actions(
     for a in task_.actions:
         log.debug(
             "Applying action from task",
-            action=a.__class__.__name__,
+            action=str(a),
             task=task_.name,
             repo=str(repo),
         )
-        a.apply(work_dir, tpl_mapping)
+        a(work_dir, tpl_mapping)
 
 
 def execute(opts: Options) -> bool:

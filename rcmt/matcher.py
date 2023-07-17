@@ -1,12 +1,16 @@
 import re
 
 from rcmt import source
+from rcmt.typing import Matcher
 
 
 class Base:
     """
     Base class that describes the methods of a Matcher.
     """
+
+    def __call__(self, repo: source.Repository) -> bool:
+        return self.match(repo)
 
     def __repr__(self) -> str:
         args: list[str] = []
@@ -112,11 +116,11 @@ class Or(Base):
     .. versionadded:: 0.9.0
     """
 
-    def __init__(self, *args: Base):
+    def __init__(self, *args: Matcher):
         if len(args) < 1:
             raise RuntimeError("Matcher Or expects at least one argument")
 
-        self.matchers: tuple[Base, ...] = args
+        self.matchers: tuple[Matcher, ...] = args
 
     def __repr__(self) -> str:
         matchers_repr: list[str] = []
@@ -127,7 +131,7 @@ class Or(Base):
 
     def match(self, repo: source.Repository) -> bool:
         for m in self.matchers:
-            if m.match(repo) is True:
+            if m(repo) is True:
                 return True
 
         return False
@@ -142,11 +146,11 @@ class And(Base):
     .. versionadded:: 0.14.0
     """
 
-    def __init__(self, *args: Base):
+    def __init__(self, *args: Matcher):
         if len(args) < 1:
             raise RuntimeError("Matcher And expects at least one argument")
 
-        self.matchers: tuple[Base, ...] = args
+        self.matchers: tuple[Matcher, ...] = args
 
     def __repr__(self) -> str:
         matchers_repr: list[str] = []
@@ -157,7 +161,7 @@ class And(Base):
 
     def match(self, repo: source.Repository) -> bool:
         for m in self.matchers:
-            if m.match(repo) is False:
+            if m(repo) is False:
                 return False
 
         return True
@@ -172,11 +176,11 @@ class Not(Base):
     .. versionadded:: 0.14.0
     """
 
-    def __init__(self, matcher: Base):
-        self.matcher: Base = matcher
+    def __init__(self, matcher: Matcher):
+        self.matcher = matcher
 
     def __repr__(self):
         return f"Not(matcher={str(self.matcher)})"
 
     def match(self, repo: source.Repository) -> bool:
-        return not self.matcher.match(repo)
+        return not self.matcher(repo)
