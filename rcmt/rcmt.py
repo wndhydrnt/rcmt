@@ -1,6 +1,6 @@
 import datetime
 from enum import Enum
-from typing import Optional
+from typing import Iterator, Optional
 
 import structlog
 
@@ -201,14 +201,18 @@ def execute(opts: Options) -> bool:
 
     db = database.new_database(opts.config.database)
     tasks, needs_all_repositories = read_tasks(db=db, task_paths=opts.task_paths)
-    repositories: list[source.Repository] = []
     if len(opts.repositories) > 0:
         log.info("Reading repositories passed in from command-line")
+        cli_repositories: list[source.Repository] = []
         for repository_name in opts.repositories:
             for s in opts.sources.values():
                 repository = s.create_from_name(name=repository_name)
                 if repository is not None:
-                    repositories.append(repository)
+                    cli_repositories.append(repository)
+
+        repositories: Iterator[source.Repository] = (
+            repository for repository in cli_repositories
+        )
 
     else:
         execution = db.get_last_execution()
@@ -223,16 +227,28 @@ def execute(opts: Options) -> bool:
             since=since,
             sources=list(opts.sources.values()),
         )
-        log.info("Repositories returned by sources", count=len(repositories))
 
+    repository_count: int = 0
     success = True
-    if len(repositories) > 0:
+    for repository in repositories:
+        repository_count += 1
         for task_ in tasks:
-            task_success = execute_task(task_, repositories, opts)
-            if task_success is True:
-                db.update_task(task_.name, task_.checksum)
-            else:
+            task_success = execute_task(task_, repository, opts)
+            if task_success is False:
+                task_.failure_count += 1
                 success = False
+
+    log.info("Finished processing of repositories", repository_count=repository_count)
+
+    if repository_count > 0:
+        for task_ in tasks:
+            if task_.failure_count == 0:
+                # Only update the checksum if the task did not fail.
+                # Without an updated checksum, on the next run, rcmt ensures that all
+                # repositories are visited by the task again.
+                # This logic guarantees that, if a new task fails, it is able to visit
+                # the failed repositories again.
+                db.update_task(task_.name, task_.checksum)
 
     if success is False:
         log.error("Errors during execution - check previous log messages")
@@ -245,7 +261,7 @@ def execute(opts: Options) -> bool:
 
 def execute_task(
     task_: task.Task,
-    repos: list[source.Repository],
+    repo: source.Repository,
     opts: Options,
 ) -> bool:
     gitc = git.Git(
@@ -257,31 +273,29 @@ def execute_task(
     )
     runner = RepoRun(gitc, opts)
     success = True
-    changes_total: int = 0
-    for repo in repos:
-        try:
-            if task_.match(repo) is False:
-                log.debug(
-                    "Repository does not match", repository=str(repo), task=task_.name
-                )
-                continue
+    try:
+        if task_.has_reached_change_limit():
+            log.info(
+                "Limit of changes reached",
+                limit=task_.change_limit,
+                task=task_.name,
+            )
+            return success
 
-            log.info("Matched repository", repository=str(repo), task=task_.name)
-            result: RunResult = runner.execute(task_, repo)
-            if result != RunResult.NO_CHANGES:
-                changes_total += 1
+        if task_.match(repo) is False:
+            log.debug(
+                "Repository does not match", repository=str(repo), task=task_.name
+            )
+            return success
 
-            if task_.change_limit is not None and changes_total >= task_.change_limit:
-                log.info(
-                    "Limit of changes reached",
-                    limit=task_.change_limit,
-                    task=task_.name,
-                )
-                return success
+        log.info("Matched repository", repository=str(repo), task=task_.name)
+        result: RunResult = runner.execute(task_, repo)
+        if result != RunResult.NO_CHANGES:
+            task_.changes_total += 1
 
-        except Exception:
-            log.exception("Task failed", repository=str(repo), task=task_.name)
-            success = False
+    except Exception:
+        log.exception("Task failed", repository=str(repo), task=task_.name)
+        success = False
 
     return success
 
@@ -326,13 +340,12 @@ def list_repositories(
     all_repositories: bool,
     since: datetime.datetime,
     sources: list[source.Base],
-) -> list[source.Repository]:
-    repositories: list[source.Repository] = []
+) -> Iterator[source.Repository]:
     known_repos: list[str] = []
     for s in sources:
         for repository in s.list_repositories(since=since):
             known_repos.append(str(repository))
-            repositories.append(repository)
+            yield repository
 
         if all_repositories is False:
             log.debug("Listing repositories with open pull requests")
@@ -341,9 +354,7 @@ def list_repositories(
                     continue
 
                 known_repos.append(str(repository))
-                repositories.append(repository)
-
-    return repositories
+                yield repository
 
 
 def read_tasks(
@@ -364,4 +375,4 @@ def read_tasks(
 
         tasks.append(task_)
 
-    return (tasks, needs_all_repositories)
+    return tasks, needs_all_repositories

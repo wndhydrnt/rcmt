@@ -92,7 +92,9 @@ class Task:
         self.pr_title = pr_title
 
         self.actions: list[Action] = []
+        self.changes_total: int = 0
         self.checksum: str = ""
+        self.failure_count: int = 0
         self.file_proxies: list[FileProxy] = []
         self.matchers: list[Matcher] = []
 
@@ -123,6 +125,12 @@ class Task:
             return self.branch_name
 
         return f"{prefix}{slugify(self.name)}"
+
+    def has_reached_change_limit(self) -> bool:
+        if self.change_limit is None:
+            return False
+
+        return self.changes_total >= self.change_limit
 
     def load_file(self, path: str) -> FileProxy:
         """
