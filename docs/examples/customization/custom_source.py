@@ -1,5 +1,5 @@
 import datetime
-from typing import Generator
+from typing import Generator, Iterator
 
 import rcmt.encoding
 import rcmt.source
@@ -17,8 +17,8 @@ class MyCustomRepository(rcmt.source.Repository):
 class MyCustomSource(rcmt.source.Base):
     def list_repositories(
         self, since: datetime.datetime
-    ) -> list[rcmt.source.Repository]:
-        return [MyCustomRepository()]
+    ) -> Iterator[rcmt.source.Repository]:
+        yield MyCustomRepository()
 
     def list_repositories_with_open_pull_requests(
         self,
