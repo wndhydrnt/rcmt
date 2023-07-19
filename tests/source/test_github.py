@@ -1,4 +1,5 @@
 import datetime
+import types
 import unittest
 import unittest.mock
 
@@ -252,9 +253,11 @@ class GithubTest(unittest.TestCase):
         gh.client = client_mock
         result = gh.list_repositories(since=datetime.datetime.fromtimestamp(0))
 
-        self.assertEqual(1, len(result))
-        self.assertIsInstance(result[0], GithubRepository)
-        gh_repo = result[0]
+        self.assertIsInstance(result, types.GeneratorType)
+        result_list = list(result)
+        self.assertEqual(1, len(result_list))
+        self.assertIsInstance(result_list[0], GithubRepository)
+        gh_repo = result_list[0]
         if isinstance(gh_repo, GithubRepository):
             self.assertEqual(gh_repo.access_token, "access_token")
             self.assertEqual(gh_repo.repo, repo_mock)
@@ -278,9 +281,11 @@ class GithubTest(unittest.TestCase):
             since=(datetime.datetime.now() - datetime.timedelta(days=1))
         )
 
-        self.assertEqual(1, len(result))
-        self.assertIsInstance(result[0], GithubRepository)
-        gh_repo = result[0]
+        self.assertIsInstance(result, types.GeneratorType)
+        result_list = list(result)
+        self.assertEqual(1, len(result_list))
+        self.assertIsInstance(result_list[0], GithubRepository)
+        gh_repo = result_list[0]
         if isinstance(gh_repo, GithubRepository):
             self.assertEqual(gh_repo.access_token, "access_token")
             self.assertEqual(gh_repo.repo, repo_mock_updated)

@@ -1,4 +1,5 @@
 import datetime
+import types
 import unittest
 import unittest.mock
 
@@ -318,16 +319,18 @@ class GitlabTest(unittest.TestCase):
         gl.client = client_mock
         result = gl.list_repositories(since=now)
 
-        self.assertEqual(1, len(result))
-        self.assertIsInstance(result[0], GitlabRepository)
-        gl_repo = result[0]
+        self.assertIsInstance(result, types.GeneratorType)
+        result_list = list(result)
+        self.assertEqual(1, len(result_list))
+        self.assertIsInstance(result_list[0], GitlabRepository)
+        gl_repo = result_list[0]
         if isinstance(gl_repo, GitlabRepository):
             self.assertEqual(gl_repo._project, project_mock)
             self.assertEqual(gl_repo.token, client_mock.private_token)
             self.assertEqual(gl_repo.url, "localhost")
 
         projects_mock.list.assert_called_once_with(
-            all=True, archived=False, min_access_level=30, last_activity_after=now
+            archived=False, last_activity_after=now, iterator=True, min_access_level=30
         )
 
     def test_list_repositories_with_open_pull_requests(self):
@@ -371,5 +374,7 @@ class GitlabTest(unittest.TestCase):
             self.assertEqual(gl_repo.token, client_mock.private_token)
             self.assertEqual(gl_repo.url, "localhost")
 
-        mergerequests_mock.list.assert_called_once_with(author_id=123, state="opened")
+        mergerequests_mock.list.assert_called_once_with(
+            author_id=123, iterator=True, state="opened"
+        )
         projects_mock.get.assert_called_once_with(id=456)

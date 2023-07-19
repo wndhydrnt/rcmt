@@ -1,7 +1,7 @@
 import datetime
 import fnmatch
 import io
-from typing import Any, Generator, Optional, TextIO, Union
+from typing import Any, Generator, Iterator, Optional, TextIO, Union
 
 import github
 import github.PullRequest
@@ -187,16 +187,14 @@ class Github(Base):
         ):
             yield GithubRepository(self.access_token, issue.repository)
 
-    def list_repositories(self, since: datetime.datetime) -> list[Repository]:
+    def list_repositories(self, since: datetime.datetime) -> Iterator[Repository]:
         log.debug("start fetching repositories")
-        repos: list[Repository] = []
         for gh_repo in self.client.get_user().get_repos(
             direction="desc", sort="updated"
         ):
             if gh_repo.updated_at > since:
-                repos.append(GithubRepository(self.access_token, gh_repo))
+                yield GithubRepository(self.access_token, gh_repo)
             else:
                 break
 
         log.debug("finished fetching repositories")
-        return repos

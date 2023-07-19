@@ -2,7 +2,7 @@ import datetime
 import fnmatch
 import io
 import os.path
-from typing import Any, Generator, Optional, TextIO, Union
+from typing import Any, Generator, Iterator, Optional, TextIO, Union
 from urllib.parse import urlparse
 
 import gitlab
@@ -218,7 +218,7 @@ class Gitlab(Base):
             return
 
         merge_requests = self.client.mergerequests.list(
-            author_id=user.attributes["id"], state="opened"
+            author_id=user.attributes["id"], iterator=True, state="opened"
         )
         seen_project_ids: list[int] = []
         for mr in merge_requests:
@@ -232,14 +232,17 @@ class Gitlab(Base):
             )
             yield repository
 
-    def list_repositories(self, since: datetime.datetime) -> list[Repository]:
+    def list_repositories(self, since: datetime.datetime) -> Iterator[Repository]:
         log.debug("start fetching repositories")
         projects = self.client.projects.list(
-            all=True, archived=False, min_access_level=30, last_activity_after=since
+            archived=False,
+            last_activity_after=since,
+            iterator=True,
+            min_access_level=30,
         )
-        repositories: list[Repository] = []
         for p in projects:
-            repositories.append(GitlabRepository(project=p, token=self.client.private_token, url=self.url))  # type: ignore
+            yield GitlabRepository(
+                project=p, token=self.client.private_token, url=self.url  # type: ignore
+            )
 
         log.debug("finished fetching repositories")
-        return repositories

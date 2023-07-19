@@ -422,13 +422,15 @@ class ExecuteTaskTest(unittest.TestCase):
         repo_run = unittest.mock.Mock(spec=RepoRun)
         repo_run_class.return_value = repo_run
         task = unittest.mock.Mock(spec=Task)
+        task.has_reached_change_limit.return_value = False
         task.match.return_value = True
         task.name = "test"
         task.change_limit = None
+        task.changes_total = 0
         repository = unittest.mock.Mock(spec=source.Repository)
         opts = Options(cfg=Config())
 
-        result = execute_task(task_=task, repos=[repository], opts=opts)
+        result = execute_task(task_=task, repo=repository, opts=opts)
 
         self.assertTrue(result)
         repo_run.execute.assert_called_once_with(task, repository)
@@ -437,13 +439,14 @@ class ExecuteTaskTest(unittest.TestCase):
     def test_execute_run__does_not_match(self, repo_run_class):
         repo_run = unittest.mock.Mock(spec=RepoRun)
         repo_run_class.return_value = repo_run
-        run = unittest.mock.Mock(spec=Task)
-        run.match.return_value = False
-        run.name = "test"
+        task = unittest.mock.Mock(spec=Task)
+        task.has_reached_change_limit.return_value = False
+        task.match.return_value = False
+        task.name = "test"
         repository = unittest.mock.Mock(spec=source.Repository)
         opts = Options(cfg=Config())
 
-        result = execute_task(task_=run, repos=[repository], opts=opts)
+        result = execute_task(task_=task, repo=repository, opts=opts)
 
         self.assertTrue(result)
         repo_run.execute.not_called()
@@ -459,7 +462,7 @@ class ExecuteTaskTest(unittest.TestCase):
         repository = unittest.mock.Mock(spec=source.Repository)
         opts = Options(cfg=Config())
 
-        result = execute_task(task_=run, repos=[repository], opts=opts)
+        result = execute_task(task_=run, repo=repository, opts=opts)
 
         self.assertFalse(result)
 
@@ -473,7 +476,7 @@ class ExecuteTaskTest(unittest.TestCase):
         repository = unittest.mock.Mock(spec=source.Repository)
         opts = Options(cfg=Config())
 
-        result = execute_task(task_=run, repos=[repository], opts=opts)
+        result = execute_task(task_=run, repo=repository, opts=opts)
 
         self.assertFalse(result)
 
@@ -482,19 +485,21 @@ class ExecuteTaskTest(unittest.TestCase):
         repo_run = unittest.mock.Mock(spec=RepoRun)
         repo_run_class.return_value = repo_run
         repo_run.execute.return_value = RunResult.PR_CREATED
-        task = unittest.mock.Mock(spec=Task)
-        task.match.return_value = True
-        task.name = "test"
-        task.change_limit = 1
+        task = Task(name="unittest", change_limit=1)
+
+        def return_true(*args, **kwargs) -> bool:
+            return True
+
+        task.match = return_true
         repository_one = unittest.mock.Mock(spec=source.Repository)
         repository_two = unittest.mock.Mock(spec=source.Repository)
         opts = Options(cfg=Config())
 
-        result = execute_task(
-            task_=task, repos=[repository_one, repository_two], opts=opts
-        )
+        result_one = execute_task(task_=task, repo=repository_one, opts=opts)
+        result_two = execute_task(task_=task, repo=repository_two, opts=opts)
 
-        self.assertTrue(result)
+        self.assertTrue(result_one)
+        self.assertTrue(result_two)
         repo_run.execute.assert_called_once_with(task, repository_one)
 
 
@@ -566,8 +571,8 @@ class ExecuteTest(unittest.TestCase):
             Task,
             "Should pass the Run to 'execute_run'",
         )
-        self.assertListEqual(
-            [repo_mock],
+        self.assertEqual(
+            repo_mock,
             execute_task_mock.call_args.args[1],
             "Should pass the repositories to 'execute_run'",
         )
@@ -653,8 +658,8 @@ class ExecuteTest(unittest.TestCase):
             Task,
             "Should pass the Run to 'execute_run'",
         )
-        self.assertListEqual(
-            [repo_mock],
+        self.assertEqual(
+            repo_mock,
             execute_task_mock.call_args.args[1],
             "Should pass the repositories to 'execute_run'",
         )
@@ -704,10 +709,10 @@ class ExecuteTest(unittest.TestCase):
             Task,
             "Should pass the Run to 'execute_run'",
         )
-        self.assertListEqual(
-            [repo_mock],
+        self.assertEqual(
+            repo_mock,
             execute_task_mock.call_args.args[1],
-            "Should pass the repositories to 'execute_run'",
+            "Should pass the repositories to 'execute_task'",
         )
         self.assertEqual(
             opts,
@@ -835,8 +840,8 @@ class ExecuteTest(unittest.TestCase):
             Task,
             "Should pass the Run to 'execute_run'",
         )
-        self.assertListEqual(
-            [repo_mock],
+        self.assertEqual(
+            repo_mock,
             execute_task_mock.call_args.args[1],
             "Should pass the repositories to 'execute_run'",
         )
