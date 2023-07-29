@@ -4,10 +4,12 @@ import unittest.mock
 from typing import Any, Union
 from unittest.mock import call
 
+from sqlalchemy import select
+
 from rcmt import action, config, database, encoding, git, source
 from rcmt.config import Config
 from rcmt.config import Database as DatabaseConfig
-from rcmt.database import Database, Execution
+from rcmt.database import Database, Execution, Run
 from rcmt.matcher import RepoName
 from rcmt.rcmt import Options, RepoRun, RunResult, execute, execute_task
 from rcmt.source import Base
@@ -849,4 +851,67 @@ class ExecuteTest(unittest.TestCase):
             opts,
             execute_task_mock.call_args.args[2],
             "Should pass the options to 'execute_run'",
+        )
+
+    @unittest.mock.patch("rcmt.database.new_database")
+    @unittest.mock.patch("rcmt.rcmt.execute_task")
+    def test_execute__task_exception(
+        self,
+        execute_task_mock: unittest.mock.MagicMock,
+        new_database_mock: unittest.mock.MagicMock,
+    ) -> None:
+        new_database_mock.return_value = self.db
+        source_mock = unittest.mock.Mock(spec=Base)
+        repo_mock = RepositoryMock(
+            name="unit-test", project="wndhydrnt", src="github.com", has_file=False
+        )
+        source_mock.list_repositories.return_value = [repo_mock]
+        source_mock.list_repositories_with_open_pull_requests.return_value = []
+
+        opts = Options(Config())
+        opts.task_paths = [
+            "tests/fixtures/test_rcmt/ExecuteTest/task.py",
+            "tests/fixtures/test_rcmt/ExecuteTest/task_exception.py",
+        ]
+        opts.sources = {"mock": source_mock}
+
+        result = execute(opts)
+
+        self.assertFalse(
+            result, msg="Should not be successful because one Task could not be read"
+        )
+        task_db = self.db.get_or_create_task(name="unit-test")
+        self.assertEqual(
+            task_db.checksum,
+            "e96d87b82e15adb13ef63d6559b7ce85",
+            msg="Should write the checksum of the working Task to the DB",
+        )
+        with self.db.session() as session, session.begin():
+            stmt = select(Run).where(Run.name == "unit-test-exception")
+            task_exception_db = session.scalars(stmt).first()
+
+        self.assertIsNone(
+            task_exception_db,
+            "Should not write the checksum of the invalid Task to the DB",
+        )
+
+        self.assertEqual(
+            execute_task_mock.call_count,
+            1,
+            "Should execute the Task that is valid",
+        )
+        self.assertEqual(
+            execute_task_mock.call_args.args[0].name,
+            "unit-test",
+            "Should pass the Task to 'execute_run'",
+        )
+        self.assertEqual(
+            repo_mock,
+            execute_task_mock.call_args.args[1],
+            "Should pass the repository to 'execute_task'",
+        )
+        self.assertEqual(
+            opts,
+            execute_task_mock.call_args.args[2],
+            "Should pass the options to 'execute_task'",
         )

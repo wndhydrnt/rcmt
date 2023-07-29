@@ -34,6 +34,17 @@ class ReadTaskTest(unittest.TestCase):
             "tests/fixtures/test_run/ReadTaskTest/test_read__backward_compatible_run_var/run.py"
         )
 
+    def test_read__code_exception(self):
+        with self.assertRaises(RuntimeError) as e:
+            read(
+                "tests/fixtures/test_run/ReadTaskTest/test_read__code_exception/task.py"
+            )
+
+        self.assertEqual(
+            "Import failed with KeyError: 'key'",
+            str(e.exception),
+        )
+
 
 class RunTest(unittest.TestCase):
     def test_branch__custom_name_not_altered(self):

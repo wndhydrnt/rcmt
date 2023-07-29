@@ -200,7 +200,9 @@ def execute(opts: Options) -> bool:
         )
 
     db = database.new_database(opts.config.database)
-    tasks, needs_all_repositories = read_tasks(db=db, task_paths=opts.task_paths)
+    tasks, needs_all_repositories, reads_succeeded = read_tasks(
+        db=db, task_paths=opts.task_paths
+    )
     if len(opts.repositories) > 0:
         log.info("Reading repositories passed in from command-line")
         cli_repositories: list[source.Repository] = []
@@ -229,7 +231,7 @@ def execute(opts: Options) -> bool:
         )
 
     repository_count: int = 0
-    success = True
+    success = reads_succeeded
     for repository in repositories:
         repository_count += 1
         for task_ in tasks:
@@ -359,11 +361,18 @@ def list_repositories(
 
 def read_tasks(
     db: database.Database, task_paths: list[str]
-) -> tuple[list[task.Task], bool]:
+) -> tuple[list[task.Task], bool, bool]:
     tasks: list[task.Task] = []
-    needs_all_repositories = False
+    needs_all_repositories: bool = False
+    all_reads_succeed: bool = True
     for task_path in task_paths:
-        task_ = task.read(task_path)
+        try:
+            task_ = task.read(task_path)
+        except RuntimeError as e:
+            log.error(f"Loading task from file failed: {str(e)}", file=task_path)
+            all_reads_succeed = False
+            continue
+
         task_db = db.get_or_create_task(name=task_.name)
         if task_.enabled is False:
             db.update_task(task_.name, task_.checksum)
@@ -375,4 +384,4 @@ def read_tasks(
 
         tasks.append(task_)
 
-    return tasks, needs_all_repositories
+    return tasks, needs_all_repositories, all_reads_succeed
