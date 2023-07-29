@@ -190,7 +190,11 @@ def read(path: str) -> Task:
     assert spec is not None
     new_module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = new_module
-    loader.exec_module(new_module)
+    try:
+        loader.exec_module(new_module)
+    except Exception as e:
+        raise RuntimeError(f"Import failed with {e.__class__.__name__}: {str(e)}")
+
     try:
         task = new_module.task  # type: ignore # because the content of module is not known
     except AttributeError:
