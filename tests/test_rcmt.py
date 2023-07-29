@@ -9,7 +9,7 @@ from rcmt.config import Config
 from rcmt.config import Database as DatabaseConfig
 from rcmt.database import Database, Execution
 from rcmt.matcher import RepoName
-from rcmt.rcmt import Options, RepoRun, RunResult, execute, execute_local, execute_task
+from rcmt.rcmt import Options, RepoRun, RunResult, execute, execute_task
 from rcmt.source import Base
 from rcmt.task import Task
 from rcmt.event import EventListener, PREvent
@@ -126,7 +126,7 @@ class RepoRunTest(unittest.TestCase):
 
         runner.execute(run, repo_mock)
 
-        action_mock.apply.assert_called_once_with(
+        action_mock.assert_called_once_with(
             "/unit/test",
             {
                 "repo_name": "myrepo",
@@ -157,7 +157,7 @@ class RepoRunTest(unittest.TestCase):
         runner.execute(run, repo_mock)
 
         git_mock.commit_changes.assert_called_once_with("/unit/test", "Custom commit")
-        action_mock.apply.assert_called_once_with(
+        action_mock.assert_called_once_with(
             "/unit/test",
             {
                 "repo_name": "myrepo",
@@ -206,7 +206,7 @@ class RepoRunTest(unittest.TestCase):
 
         runner.execute(run, repo_mock)
 
-        action_mock.apply.assert_called_once_with(
+        action_mock.assert_called_once_with(
             "/unit/test",
             {
                 "repo_name": "myrepo",
@@ -404,7 +404,7 @@ class RepoRunTest(unittest.TestCase):
         runner.execute(run, repo_mock)
 
         git_mock.commit_changes.assert_called_once_with("/unit/test", "Custom commit")
-        action_mock.apply.assert_called_once_with(
+        action_mock.assert_called_once_with(
             "/unit/test",
             {
                 "repo_name": "myrepo",
@@ -458,43 +458,21 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.create_pull_request.assert_not_called()
 
 
-class LocalTest(unittest.TestCase):
-    @unittest.mock.patch("rcmt.task.read")
-    def test_execute_local(self, task_read_mock):
-        opts = Options(cfg=Config())
-        opts.task_paths = ["/tmp/run.py"]
-        opts.encoding_registry = encoding.Registry()
-        run = Task(name="local")
-        action_mock = unittest.mock.Mock(spec=action.Action)
-        run.add_action(action_mock)
-        task_read_mock.return_value = run
-
-        execute_local("/tmp/repository", "github.com/wndhydrnt/rcmt", opts)
-
-        task_read_mock.assert_called_with("/tmp/run.py")
-        action_mock.apply.assert_called_once_with(
-            "/tmp/repository",
-            {
-                "repo_source": "github.com",
-                "repo_project": "wndhydrnt",
-                "repo_name": "rcmt",
-            },
-        )
-
-
 class ExecuteTaskTest(unittest.TestCase):
     @unittest.mock.patch("rcmt.rcmt.RepoRun")
     def test_execute_run__successful(self, repo_run_class):
         repo_run = unittest.mock.Mock(spec=RepoRun)
         repo_run_class.return_value = repo_run
         task = unittest.mock.Mock(spec=Task)
+        task.has_reached_change_limit.return_value = False
         task.match.return_value = True
         task.name = "test"
         task.change_limit = None
+        task.changes_total = 0
         repository = unittest.mock.Mock(spec=source.Repository)
         opts = Options(cfg=Config())
 
-        result = execute_task(task_=task, repos=[repository], opts=opts)
+        result = execute_task(task_=task, repo=repository, opts=opts)
 
         self.assertTrue(result)
         repo_run.execute.assert_called_once_with(task, repository)
@@ -503,13 +481,14 @@ class ExecuteTaskTest(unittest.TestCase):
     def test_execute_run__does_not_match(self, repo_run_class):
         repo_run = unittest.mock.Mock(spec=RepoRun)
         repo_run_class.return_value = repo_run
-        run = unittest.mock.Mock(spec=Task)
-        run.match.return_value = False
-        run.name = "test"
+        task = unittest.mock.Mock(spec=Task)
+        task.has_reached_change_limit.return_value = False
+        task.match.return_value = False
+        task.name = "test"
         repository = unittest.mock.Mock(spec=source.Repository)
         opts = Options(cfg=Config())
 
-        result = execute_task(task_=run, repos=[repository], opts=opts)
+        result = execute_task(task_=task, repo=repository, opts=opts)
 
         self.assertTrue(result)
         repo_run.execute.not_called()
@@ -525,7 +504,7 @@ class ExecuteTaskTest(unittest.TestCase):
         repository = unittest.mock.Mock(spec=source.Repository)
         opts = Options(cfg=Config())
 
-        result = execute_task(task_=run, repos=[repository], opts=opts)
+        result = execute_task(task_=run, repo=repository, opts=opts)
 
         self.assertFalse(result)
 
@@ -539,7 +518,7 @@ class ExecuteTaskTest(unittest.TestCase):
         repository = unittest.mock.Mock(spec=source.Repository)
         opts = Options(cfg=Config())
 
-        result = execute_task(task_=run, repos=[repository], opts=opts)
+        result = execute_task(task_=run, repo=repository, opts=opts)
 
         self.assertFalse(result)
 
@@ -548,19 +527,21 @@ class ExecuteTaskTest(unittest.TestCase):
         repo_run = unittest.mock.Mock(spec=RepoRun)
         repo_run_class.return_value = repo_run
         repo_run.execute.return_value = RunResult.PR_CREATED
-        task = unittest.mock.Mock(spec=Task)
-        task.match.return_value = True
-        task.name = "test"
-        task.change_limit = 1
+        task = Task(name="unittest", change_limit=1)
+
+        def return_true(*args, **kwargs) -> bool:
+            return True
+
+        task.match = return_true
         repository_one = unittest.mock.Mock(spec=source.Repository)
         repository_two = unittest.mock.Mock(spec=source.Repository)
         opts = Options(cfg=Config())
 
-        result = execute_task(
-            task_=task, repos=[repository_one, repository_two], opts=opts
-        )
+        result_one = execute_task(task_=task, repo=repository_one, opts=opts)
+        result_two = execute_task(task_=task, repo=repository_two, opts=opts)
 
-        self.assertTrue(result)
+        self.assertTrue(result_one)
+        self.assertTrue(result_two)
         repo_run.execute.assert_called_once_with(task, repository_one)
 
 
@@ -632,8 +613,8 @@ class ExecuteTest(unittest.TestCase):
             Task,
             "Should pass the Run to 'execute_run'",
         )
-        self.assertListEqual(
-            [repo_mock],
+        self.assertEqual(
+            repo_mock,
             execute_task_mock.call_args.args[1],
             "Should pass the repositories to 'execute_run'",
         )
@@ -719,8 +700,8 @@ class ExecuteTest(unittest.TestCase):
             Task,
             "Should pass the Run to 'execute_run'",
         )
-        self.assertListEqual(
-            [repo_mock],
+        self.assertEqual(
+            repo_mock,
             execute_task_mock.call_args.args[1],
             "Should pass the repositories to 'execute_run'",
         )
@@ -770,10 +751,10 @@ class ExecuteTest(unittest.TestCase):
             Task,
             "Should pass the Run to 'execute_run'",
         )
-        self.assertListEqual(
-            [repo_mock],
+        self.assertEqual(
+            repo_mock,
             execute_task_mock.call_args.args[1],
-            "Should pass the repositories to 'execute_run'",
+            "Should pass the repositories to 'execute_task'",
         )
         self.assertEqual(
             opts,
@@ -853,4 +834,61 @@ class ExecuteTest(unittest.TestCase):
         self.assertEqual(
             str(ee.exception),
             "No Source has been configured. Configure access credentials for GitHub or GitLab.",
+        )
+
+    @unittest.mock.patch("rcmt.database.new_database")
+    @unittest.mock.patch("rcmt.rcmt.execute_task")
+    def test_execute__repository_from_opts(
+        self,
+        execute_task_mock: unittest.mock.MagicMock,
+        new_database_mock: unittest.mock.MagicMock,
+    ) -> None:
+        new_database_mock.return_value = self.db
+        source_mock = unittest.mock.Mock(spec=Base)
+        repo_mock = RepositoryMock(
+            name="unit-test", project="wndhydrnt", src="github.com", has_file=False
+        )
+        source_mock.create_from_name.return_value = repo_mock
+
+        opts = Options(Config())
+        opts.task_paths = ["tests/fixtures/test_rcmt/ExecuteTest/task.py"]
+        opts.repositories = ["github.com/wndhydrnt/unit-test"]
+        opts.sources = {"mock": source_mock}
+
+        execute_task_mock.return_value = True
+
+        result = execute(opts)
+
+        self.assertTrue(result, msg="Should be successful")
+        source_mock.create_from_name.assert_called_once_with(
+            name="github.com/wndhydrnt/unit-test"
+        )
+        source_mock.list_repositories.assert_not_called()
+        run_db = self.db.get_or_create_task(name="unit-test")
+        self.assertEqual(
+            run_db.checksum,
+            "e96d87b82e15adb13ef63d6559b7ce85",
+            msg="Should write the checksum because the Run was successfully executed",
+        )
+        execution_db = self.db.get_last_execution()
+        self.assertIsNotNone(execution_db, msg="Should write the last execution")
+        self.assertEqual(
+            execute_task_mock.call_count,
+            1,
+            "Should execute a Run only once because one repository has been returned",
+        )
+        self.assertIsInstance(
+            execute_task_mock.call_args.args[0],
+            Task,
+            "Should pass the Run to 'execute_run'",
+        )
+        self.assertEqual(
+            repo_mock,
+            execute_task_mock.call_args.args[1],
+            "Should pass the repositories to 'execute_run'",
+        )
+        self.assertEqual(
+            opts,
+            execute_task_mock.call_args.args[2],
+            "Should pass the options to 'execute_run'",
         )

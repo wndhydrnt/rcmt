@@ -1,4 +1,5 @@
 import datetime
+import types
 import unittest
 import unittest.mock
 
@@ -213,6 +214,33 @@ class GithubRepositoryTest(unittest.TestCase):
 
 
 class GithubTest(unittest.TestCase):
+    def test_create_from_name__returns_repository(self):
+        repo_mock = unittest.mock.Mock(spec=Repository)
+        client_mock = unittest.mock.Mock(spec=github.Github)
+        client_mock.get_repo.return_value = repo_mock
+        repo_name = "github.com/wndhydrnt/rcmt"
+
+        gh = Github("access_token", "http://localhost")
+        gh.client = client_mock
+        result = gh.create_from_name(repo_name)
+
+        self.assertIsInstance(result, GithubRepository)
+        client_mock.get_repo.assert_called_once_with(
+            full_name_or_id="wndhydrnt/rcmt", lazy=False
+        )
+
+    def test_create_from_name__no_repository_found(self):
+        client_mock = unittest.mock.Mock(spec=github.Github)
+        client_mock.get_repo.side_effect = github.UnknownObjectException(
+            data=None, headers=None, status=404
+        )
+
+        gh = Github("access_token", "http://localhost")
+        gh.client = client_mock
+        result = gh.create_from_name("github.com/wndhydrnt/rcmt")
+
+        self.assertIsNone(result)
+
     def test_list_repositories(self):
         repo_mock = unittest.mock.Mock(spec=Repository)
         repo_mock.updated_at = datetime.datetime.now()
@@ -225,9 +253,11 @@ class GithubTest(unittest.TestCase):
         gh.client = client_mock
         result = gh.list_repositories(since=datetime.datetime.fromtimestamp(0))
 
-        self.assertEqual(1, len(result))
-        self.assertIsInstance(result[0], GithubRepository)
-        gh_repo = result[0]
+        self.assertIsInstance(result, types.GeneratorType)
+        result_list = list(result)
+        self.assertEqual(1, len(result_list))
+        self.assertIsInstance(result_list[0], GithubRepository)
+        gh_repo = result_list[0]
         if isinstance(gh_repo, GithubRepository):
             self.assertEqual(gh_repo.access_token, "access_token")
             self.assertEqual(gh_repo.repo, repo_mock)
@@ -251,9 +281,11 @@ class GithubTest(unittest.TestCase):
             since=(datetime.datetime.now() - datetime.timedelta(days=1))
         )
 
-        self.assertEqual(1, len(result))
-        self.assertIsInstance(result[0], GithubRepository)
-        gh_repo = result[0]
+        self.assertIsInstance(result, types.GeneratorType)
+        result_list = list(result)
+        self.assertEqual(1, len(result_list))
+        self.assertIsInstance(result_list[0], GithubRepository)
+        gh_repo = result_list[0]
         if isinstance(gh_repo, GithubRepository):
             self.assertEqual(gh_repo.access_token, "access_token")
             self.assertEqual(gh_repo.repo, repo_mock_updated)

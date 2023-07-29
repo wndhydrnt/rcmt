@@ -52,6 +52,7 @@ class Config(pydantic.BaseSettings):
     gitlab: Gitlab = Gitlab()
     # Add _ because json is a reserved field of pydantic
     json_: Json = Field(alias="json", default=Json(), env="json")
+    log_format: Optional[str] = None
     log_level: str = "info"
     pr_title_prefix: str = "rcmt:"
     pr_title_body: str = "apply matcher {matcher_name}"

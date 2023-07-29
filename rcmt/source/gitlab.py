@@ -2,7 +2,7 @@ import datetime
 import fnmatch
 import io
 import os.path
-from typing import Any, Generator, Optional, TextIO, Union
+from typing import Any, Generator, Iterator, Optional, TextIO, Union
 from urllib.parse import urlparse
 
 import gitlab
@@ -94,14 +94,13 @@ class GitlabRepository(Repository):
 
     def has_file(self, path: str) -> bool:
         directory = os.path.dirname(path)
-        file = os.path.basename(path)
         try:
             tree = self._project.repository_tree(path=directory, iterator=True)
             for entry in tree:
                 if entry["type"] != "blob":
                     continue
 
-                if fnmatch.fnmatch(entry["path"], file):
+                if fnmatch.fnmatch(entry["path"], path):
                     return True
         except gitlab.GitlabGetError as e:
             if e.response_code == 404:
@@ -193,6 +192,20 @@ class Gitlab(Base):
 
         SECRET_MASKER.add_secret(private_token)
 
+    def create_from_name(self, name: str) -> Optional[Repository]:
+        if name.startswith(self.url) is False:
+            return None
+
+        name_without_host = name.replace(f"{self.url}/", "")
+        try:
+            p = self.client.projects.get(id=name_without_host)
+        except gitlab.GitlabGetError as e:
+            log.debug("Unable to get project", name=name, status_code=e.response_code)
+            return None
+
+        token = self.client.private_token or ""
+        return GitlabRepository(project=p, token=token, url=self.url)
+
     def list_repositories_with_open_pull_requests(
         self,
     ) -> Generator[Repository, None, None]:
@@ -205,7 +218,7 @@ class Gitlab(Base):
             return
 
         merge_requests = self.client.mergerequests.list(
-            author_id=user.attributes["id"], state="opened"
+            author_id=user.attributes["id"], iterator=True, state="opened"
         )
         seen_project_ids: list[int] = []
         for mr in merge_requests:
@@ -219,14 +232,17 @@ class Gitlab(Base):
             )
             yield repository
 
-    def list_repositories(self, since: datetime.datetime) -> list[Repository]:
+    def list_repositories(self, since: datetime.datetime) -> Iterator[Repository]:
         log.debug("start fetching repositories")
         projects = self.client.projects.list(
-            all=True, archived=False, min_access_level=30, last_activity_after=since
+            archived=False,
+            last_activity_after=since,
+            iterator=True,
+            min_access_level=30,
         )
-        repositories: list[Repository] = []
         for p in projects:
-            repositories.append(GitlabRepository(project=p, token=self.client.private_token, url=self.url))  # type: ignore
+            yield GitlabRepository(
+                project=p, token=self.client.private_token, url=self.url  # type: ignore
+            )
 
         log.debug("finished fetching repositories")
-        return repositories

@@ -1,12 +1,26 @@
 import re
 
 from rcmt import source
+from rcmt.typing import Matcher
 
 
 class Base:
     """
     Base class that describes the methods of a Matcher.
     """
+
+    def __call__(self, repo: source.Repository) -> bool:
+        return self.match(repo)
+
+    def __repr__(self) -> str:
+        args: list[str] = []
+        for k, v in self.__dict__.items():
+            if k.startswith("_") is True:
+                continue
+
+            args.append(f"{k}={v}")
+
+        return f'{self.__class__.__name__}({", ".join(args)})'
 
     def match(self, repo: source.Repository) -> bool:
         """
@@ -32,6 +46,9 @@ class FileExists(Base):
     def __init__(self, path: str):
         self.path = path
 
+    def __repr__(self):
+        return f"FileExists(path={self.path})"
+
     def match(self, repo: source.Repository) -> bool:
         return repo.has_file(self.path)
 
@@ -50,7 +67,12 @@ class LineInFile(Base):
 
     def __init__(self, path: str, search: str):
         self.path = path
+        self._search = search
+
         self.regex = re.compile(search)
+
+    def __repr__(self):
+        return f"LineInFile(path={self.path}, search={self._search})"
 
     def match(self, repo: source.Repository) -> bool:
         try:
@@ -72,7 +94,11 @@ class RepoName(Base):
     """
 
     def __init__(self, search: str):
+        self._search = search
         self.regex = re.compile(search)
+
+    def __repr__(self):
+        return f"RepoName(search={self._search})"
 
     def match(self, repo: source.Repository) -> bool:
         if self.regex.match(str(repo)) is None:
@@ -90,15 +116,22 @@ class Or(Base):
     .. versionadded:: 0.9.0
     """
 
-    def __init__(self, *args: Base):
+    def __init__(self, *args: Matcher):
         if len(args) < 1:
             raise RuntimeError("Matcher Or expects at least one argument")
 
-        self.matchers: tuple[Base, ...] = args
+        self.matchers: tuple[Matcher, ...] = args
+
+    def __repr__(self) -> str:
+        matchers_repr: list[str] = []
+        for m in self.matchers:
+            matchers_repr.append(str(m))
+
+        return f'Or(matchers=[{", ".join(matchers_repr)}])'
 
     def match(self, repo: source.Repository) -> bool:
         for m in self.matchers:
-            if m.match(repo) is True:
+            if m(repo) is True:
                 return True
 
         return False
@@ -113,15 +146,22 @@ class And(Base):
     .. versionadded:: 0.14.0
     """
 
-    def __init__(self, *args: Base):
+    def __init__(self, *args: Matcher):
         if len(args) < 1:
             raise RuntimeError("Matcher And expects at least one argument")
 
-        self.matchers: tuple[Base, ...] = args
+        self.matchers: tuple[Matcher, ...] = args
+
+    def __repr__(self) -> str:
+        matchers_repr: list[str] = []
+        for m in self.matchers:
+            matchers_repr.append(str(m))
+
+        return f'And(matchers=[{", ".join(matchers_repr)}])'
 
     def match(self, repo: source.Repository) -> bool:
         for m in self.matchers:
-            if m.match(repo) is False:
+            if m(repo) is False:
                 return False
 
         return True
@@ -136,8 +176,11 @@ class Not(Base):
     .. versionadded:: 0.14.0
     """
 
-    def __init__(self, matcher: Base):
-        self.matcher: Base = matcher
+    def __init__(self, matcher: Matcher):
+        self.matcher = matcher
+
+    def __repr__(self):
+        return f"Not(matcher={str(self.matcher)})"
 
     def match(self, repo: source.Repository) -> bool:
-        return not self.matcher.match(repo)
+        return not self.matcher(repo)

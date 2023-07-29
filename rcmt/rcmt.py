@@ -1,29 +1,11 @@
 import datetime
-import logging
-import sys
 from enum import Enum
-from typing import Optional
 from rcmt.event import PREvent
+from typing import Iterator, Optional
 
 import structlog
 
 from . import config, database, encoding, git, source, task
-from .log import SECRET_MASKER
-from .source.local import Local
-
-structlog.configure(
-    processors=[
-        structlog.processors.add_log_level,
-        SECRET_MASKER.process_event,
-        structlog.processors.StackInfoRenderer(),
-        structlog.dev.set_exc_info,
-        structlog.processors.TimeStamper(fmt="%Y-%m-%d %H:%M.%S", utc=False),
-        structlog.dev.ConsoleRenderer(
-            colors=sys.stdout is not None and sys.stdout.isatty()
-        ),
-    ],
-    wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
-)
 
 log: structlog.stdlib.BoundLogger = structlog.get_logger()
 
@@ -33,6 +15,7 @@ class Options:
         self.config = cfg
         self.encoding_registry: encoding.Registry = encoding.Registry()
         self.task_paths: list[str] = []
+        self.repositories: list[str] = []
         self.sources: dict[str, source.Base] = {}
 
 
@@ -214,71 +197,69 @@ def apply_actions(
     for a in task_.actions:
         log.debug(
             "Applying action from task",
-            action=a.__class__.__name__,
+            action=str(a),
             task=task_.name,
             repo=str(repo),
         )
-        a.apply(work_dir, tpl_mapping)
+        a(work_dir, tpl_mapping)
 
 
 def execute(opts: Options) -> bool:
-    log_level = logging.getLevelName(opts.config.log_level.upper())
-    structlog.configure(
-        wrapper_class=structlog.make_filtering_bound_logger(log_level),
-    )
     if len(opts.sources) < 1:
         raise RuntimeError(
             "No Source has been configured. Configure access credentials for GitHub or GitLab."
         )
 
     db = database.new_database(opts.config.database)
-    tasks: list[task.Task] = []
-    needs_all_repositories = False
-    for task_path in opts.task_paths:
-        task_ = task.read(task_path)
-        task_db = db.get_or_create_task(name=task_.name)
-        if task_.enabled is False:
-            db.update_task(task_.name, task_.checksum)
-            log.info("Task disabled", task=task_.name)
-            continue
+    tasks, needs_all_repositories = read_tasks(db=db, task_paths=opts.task_paths)
+    if len(opts.repositories) > 0:
+        log.info("Reading repositories passed in from command-line")
+        cli_repositories: list[source.Repository] = []
+        for repository_name in opts.repositories:
+            for s in opts.sources.values():
+                repository = s.create_from_name(name=repository_name)
+                if repository is not None:
+                    cli_repositories.append(repository)
 
-        if task_.checksum != task_db.checksum:
-            needs_all_repositories = True
+        repositories: Iterator[source.Repository] = (
+            repository for repository in cli_repositories
+        )
 
-        tasks.append(task_)
-
-    execution = db.get_last_execution()
-    if needs_all_repositories is True or execution.executed_at is None:
-        since = datetime.datetime.fromtimestamp(0)
     else:
-        since = execution.executed_at
+        execution = db.get_last_execution()
+        if needs_all_repositories is True or execution.executed_at is None:
+            since = datetime.datetime.fromtimestamp(0)
+        else:
+            since = execution.executed_at
 
-    log.debug("Searching for updated repositories", since=str(since))
-    repositories: list[source.Repository] = []
-    for s in opts.sources.values():
-        known_repos: list[str] = []
-        for repository in s.list_repositories(since=since):
-            known_repos.append(str(repository))
-            repositories.append(repository)
+        log.debug("Searching for updated repositories", since=str(since))
+        repositories = list_repositories(
+            all_repositories=needs_all_repositories,
+            since=since,
+            sources=list(opts.sources.values()),
+        )
 
-        if needs_all_repositories is False:
-            log.debug("Listing repositories with open pull requests")
-            for repository in s.list_repositories_with_open_pull_requests():
-                if str(repository) in known_repos:
-                    continue
-
-                known_repos.append(str(repository))
-                repositories.append(repository)
-
-    log.info("Repositories returned by sources", count=len(repositories))
+    repository_count: int = 0
     success = True
-    if len(repositories) > 0:
+    for repository in repositories:
+        repository_count += 1
         for task_ in tasks:
-            task_success = execute_task(task_, repositories, opts)
-            if task_success is True:
-                db.update_task(task_.name, task_.checksum)
-            else:
+            task_success = execute_task(task_, repository, opts)
+            if task_success is False:
+                task_.failure_count += 1
                 success = False
+
+    log.info("Finished processing of repositories", repository_count=repository_count)
+
+    if repository_count > 0:
+        for task_ in tasks:
+            if task_.failure_count == 0:
+                # Only update the checksum if the task did not fail.
+                # Without an updated checksum, on the next run, rcmt ensures that all
+                # repositories are visited by the task again.
+                # This logic guarantees that, if a new task fails, it is able to visit
+                # the failed repositories again.
+                db.update_task(task_.name, task_.checksum)
 
     if success is False:
         log.error("Errors during execution - check previous log messages")
@@ -289,32 +270,9 @@ def execute(opts: Options) -> bool:
     return success
 
 
-def execute_local(directory: str, repository: str, opts: Options) -> None:
-    log_level = logging.getLevelName(opts.config.log_level.upper())
-    structlog.configure(
-        wrapper_class=structlog.make_filtering_bound_logger(log_level),
-    )
-    if len(opts.task_paths) == 0:
-        log.warning("No path to a task file supplied")
-        return
-    repo_host = ""
-    repo_project = ""
-    repo_name = ""
-    if repository != "":
-        parts = repository.split("/")
-        repo_host = parts[0]
-        repo_project = "/".join(parts[1:-1])
-        repo_name = parts[-1]
-
-    matcher = task.read(opts.task_paths[0])
-    repo = Local(repo_host, repo_project, repo_name)
-    tpl_mapping: dict[str, str] = create_template_mapping(repo)
-    apply_actions(repo, matcher, tpl_mapping, directory)
-
-
 def execute_task(
     task_: task.Task,
-    repos: list[source.Repository],
+    repo: source.Repository,
     opts: Options,
 ) -> bool:
     gitc = git.Git(
@@ -326,31 +284,29 @@ def execute_task(
     )
     runner = RepoRun(gitc, opts)
     success = True
-    changes_total: int = 0
-    for repo in repos:
-        try:
-            if task_.match(repo) is False:
-                log.debug(
-                    "Repository does not match", repository=str(repo), task=task_.name
-                )
-                continue
+    try:
+        if task_.has_reached_change_limit():
+            log.info(
+                "Limit of changes reached",
+                limit=task_.change_limit,
+                task=task_.name,
+            )
+            return success
 
-            log.info("Matched repository", repository=str(repo), task=task_.name)
-            result: RunResult = runner.execute(task_, repo)
-            if result != RunResult.NO_CHANGES:
-                changes_total += 1
+        if task_.match(repo) is False:
+            log.debug(
+                "Repository does not match", repository=str(repo), task=task_.name
+            )
+            return success
 
-            if task_.change_limit is not None and changes_total >= task_.change_limit:
-                log.info(
-                    "Limit of changes reached",
-                    limit=task_.change_limit,
-                    task=task_.name,
-                )
-                return success
+        log.info("Matched repository", repository=str(repo), task=task_.name)
+        result: RunResult = runner.execute(task_, repo)
+        if result != RunResult.NO_CHANGES:
+            task_.changes_total += 1
 
-        except Exception:
-            log.exception("Task failed", repository=str(repo), task=task_.name)
-            success = False
+    except Exception:
+        log.exception("Task failed", repository=str(repo), task=task_.name)
+        success = False
 
     return success
 
@@ -389,3 +345,45 @@ def create_template_mapping(repo: source.Repository) -> dict[str, str]:
         "repo_project": repo.project,
         "repo_source": repo.source,
     }
+
+
+def list_repositories(
+    all_repositories: bool,
+    since: datetime.datetime,
+    sources: list[source.Base],
+) -> Iterator[source.Repository]:
+    known_repos: list[str] = []
+    for s in sources:
+        for repository in s.list_repositories(since=since):
+            known_repos.append(str(repository))
+            yield repository
+
+        if all_repositories is False:
+            log.debug("Listing repositories with open pull requests")
+            for repository in s.list_repositories_with_open_pull_requests():
+                if str(repository) in known_repos:
+                    continue
+
+                known_repos.append(str(repository))
+                yield repository
+
+
+def read_tasks(
+    db: database.Database, task_paths: list[str]
+) -> tuple[list[task.Task], bool]:
+    tasks: list[task.Task] = []
+    needs_all_repositories = False
+    for task_path in task_paths:
+        task_ = task.read(task_path)
+        task_db = db.get_or_create_task(name=task_.name)
+        if task_.enabled is False:
+            db.update_task(task_.name, task_.checksum)
+            log.info("Task disabled", task=task_.name)
+            continue
+
+        if task_.checksum != task_db.checksum:
+            needs_all_repositories = True
+
+        tasks.append(task_)
+
+    return tasks, needs_all_repositories

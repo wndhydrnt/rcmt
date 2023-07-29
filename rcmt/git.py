@@ -59,6 +59,10 @@ class Git:
             )
         else:
             git_repo = git.Repo(path=checkout_dir)
+            self.restore(git_repo)
+
+        if self.validate_branch_name(git_repo) is False:
+            raise RuntimeError(f"Branch name '{self.branch_name}' is not valid")
 
         git_repo.config_writer().set_value("user", "email", self.user_email).release()
         git_repo.config_writer().set_value("user", "name", self.user_name).release()
@@ -131,6 +135,16 @@ class Git:
     def push(self, repo_dir):
         git_repo = git.Repo(path=repo_dir)
         git_repo.git.push("origin", self.branch_name, force=True, set_upstream=True)
+
+    def restore(self, repo: git.Repo) -> None:
+        repo.git.restore(".")
+
+    def validate_branch_name(self, repo: git.Repo) -> bool:
+        try:
+            repo.git.check_ref_format(f"refs/heads/{self.branch_name}")
+            return True
+        except GitCommandError:
+            return False
 
 
 def branch_exists_local(name: str, repo: git.Repo) -> bool:

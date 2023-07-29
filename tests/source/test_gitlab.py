@@ -1,4 +1,5 @@
 import datetime
+import types
 import unittest
 import unittest.mock
 
@@ -80,6 +81,21 @@ class GitlabRepositoryTest(unittest.TestCase):
         self.assertTrue(result)
         project.repository_tree.assert_called_once_with(path="", iterator=True)
 
+    def test_has_file__nested(self):
+        project = unittest.mock.Mock(spec=Project)
+        project.default_branch = "main"
+        project.repository_tree.return_value = [
+            {"path": "data/config/test.json", "type": "blob"}
+        ]
+
+        repo = GitlabRepository(project=project, token="", url="")
+        result = repo.has_file("data/config/test.json")
+
+        self.assertTrue(result)
+        project.repository_tree.assert_called_once_with(
+            path="data/config", iterator=True
+        )
+
     def test_has_file__file_does_not_exist(self):
         project = unittest.mock.Mock(spec=Project)
         project.default_branch = "main"
@@ -95,7 +111,7 @@ class GitlabRepositoryTest(unittest.TestCase):
         project = unittest.mock.Mock(spec=Project)
         project.default_branch = "main"
         project.repository_tree.return_value = [
-            {"path": "production.json", "type": "blob"}
+            {"path": "config/production.json", "type": "blob"}
         ]
 
         repo = GitlabRepository(project=project, token="", url="")
@@ -248,6 +264,48 @@ class GitlabRepositoryTest(unittest.TestCase):
 
 
 class GitlabTest(unittest.TestCase):
+    def test_create_from_name__return_repository(self):
+        project_mock = unittest.mock.Mock(spec=Project)
+        projects_mock = unittest.mock.Mock(spec=ProjectManager)
+        projects_mock.get.return_value = project_mock
+        client_mock = unittest.mock.Mock(spec=gitlab.Gitlab)
+        client_mock.private_token = "private_token"
+        client_mock.projects = projects_mock
+
+        gl = Gitlab(url="http://localhost", private_token=client_mock.private_token)
+        gl.client = client_mock
+        result = gl.create_from_name("localhost/group/subgroup/project")
+
+        self.assertIsInstance(result, GitlabRepository)
+        projects_mock.get.assert_called_once_with(id="group/subgroup/project")
+
+    def test_create_from_name__not_matching_host(self):
+        projects_mock = unittest.mock.Mock(spec=ProjectManager)
+        client_mock = unittest.mock.Mock(spec=gitlab.Gitlab)
+        client_mock.private_token = "private_token"
+        client_mock.projects = projects_mock
+
+        gl = Gitlab(url="http://localhost", private_token=client_mock.private_token)
+        gl.client = client_mock
+        result = gl.create_from_name("other/group/project")
+
+        self.assertIsNone(result)
+        projects_mock.get.assert_not_called()
+
+    def test_create_from_name__project_not_found(self):
+        projects_mock = unittest.mock.Mock(spec=ProjectManager)
+        projects_mock.get.side_effect = gitlab.GitlabGetError
+        client_mock = unittest.mock.Mock(spec=gitlab.Gitlab)
+        client_mock.private_token = "private_token"
+        client_mock.projects = projects_mock
+
+        gl = Gitlab(url="http://localhost", private_token=client_mock.private_token)
+        gl.client = client_mock
+        result = gl.create_from_name("localhost/group/subgroup/project")
+
+        self.assertIsNone(result)
+        projects_mock.get.assert_called_once_with(id="group/subgroup/project")
+
     def test_list_repositories(self):
         now = datetime.datetime.now()
         project_mock = unittest.mock.Mock(spec=Project)
@@ -261,16 +319,18 @@ class GitlabTest(unittest.TestCase):
         gl.client = client_mock
         result = gl.list_repositories(since=now)
 
-        self.assertEqual(1, len(result))
-        self.assertIsInstance(result[0], GitlabRepository)
-        gl_repo = result[0]
+        self.assertIsInstance(result, types.GeneratorType)
+        result_list = list(result)
+        self.assertEqual(1, len(result_list))
+        self.assertIsInstance(result_list[0], GitlabRepository)
+        gl_repo = result_list[0]
         if isinstance(gl_repo, GitlabRepository):
             self.assertEqual(gl_repo._project, project_mock)
             self.assertEqual(gl_repo.token, client_mock.private_token)
             self.assertEqual(gl_repo.url, "localhost")
 
         projects_mock.list.assert_called_once_with(
-            all=True, archived=False, min_access_level=30, last_activity_after=now
+            archived=False, last_activity_after=now, iterator=True, min_access_level=30
         )
 
     def test_list_repositories_with_open_pull_requests(self):
@@ -314,5 +374,7 @@ class GitlabTest(unittest.TestCase):
             self.assertEqual(gl_repo.token, client_mock.private_token)
             self.assertEqual(gl_repo.url, "localhost")
 
-        mergerequests_mock.list.assert_called_once_with(author_id=123, state="opened")
+        mergerequests_mock.list.assert_called_once_with(
+            author_id=123, iterator=True, state="opened"
+        )
         projects_mock.get.assert_called_once_with(id=456)

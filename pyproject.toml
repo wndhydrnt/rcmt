@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "rcmt"
-version = "0.18.0"
+version = "0.20.1"
 description = ""
 license = "LGPL-3.0-only"
 authors = [ "Markus Meyer <hydrantanderwand@gmail.com>",]
@@ -56,6 +56,7 @@ optional = true
 Sphinx = "^6.2.1"
 sphinx-rtd-theme = "^1.2.0"
 sphinx-autodoc-typehints = "^1.19.2"
+sphinx-click = "^4.4.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "23.3.0"

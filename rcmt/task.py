@@ -6,13 +6,14 @@ import os.path
 import random
 import string
 import sys
-from typing import Optional
+from typing import Callable, Optional
 
 from slugify import slugify
 
-from rcmt import action, matcher, source
+from rcmt import source
 from rcmt.fs import FileProxy
 from rcmt.event import EventListener
+from rcmt.typing import Action, Matcher
 
 
 class Task:
@@ -94,10 +95,12 @@ class Task:
         self.pr_title = pr_title
         self.event_listener = event_listener
 
-        self.actions: list[action.Action] = []
+        self.actions: list[Action] = []
+        self.changes_total: int = 0
         self.checksum: str = ""
+        self.failure_count: int = 0
         self.file_proxies: list[FileProxy] = []
-        self.matchers: list[matcher.Base] = []
+        self.matchers: list[Matcher] = []
 
     def __enter__(self):
         return self
@@ -105,7 +108,7 @@ class Task:
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
-    def add_action(self, a: action.Action) -> None:
+    def add_action(self, a: Callable[[str, dict], None]) -> None:
         """
         Add an Action to apply to every matching repository.
 
@@ -113,7 +116,7 @@ class Task:
         """
         self.actions.append(a)
 
-    def add_matcher(self, m: matcher.Base) -> None:
+    def add_matcher(self, m: Callable[[source.Repository], bool]) -> None:
         """
         Add a Matcher that matches repositories.
 
@@ -123,9 +126,15 @@ class Task:
 
     def branch(self, prefix: str) -> str:
         if self.branch_name != "":
-            return slugify(self.branch_name)
+            return self.branch_name
 
         return f"{prefix}{slugify(self.name)}"
+
+    def has_reached_change_limit(self) -> bool:
+        if self.change_limit is None:
+            return False
+
+        return self.changes_total >= self.change_limit
 
     def load_file(self, path: str) -> FileProxy:
         """
@@ -140,7 +149,7 @@ class Task:
 
     def match(self, repo: source.Repository) -> bool:
         for m in self.matchers:
-            if m.match(repo) is False:
+            if m(repo) is False:
                 return False
 
         return True

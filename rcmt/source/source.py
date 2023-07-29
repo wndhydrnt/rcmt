@@ -1,6 +1,6 @@
 import datetime
 import urllib.parse
-from typing import Any, Generator, Optional, TextIO, Union
+from typing import Any, Generator, Iterator, Optional, TextIO, Union
 
 import humanize
 
@@ -112,7 +112,7 @@ class Repository:
     """
 
     def __str__(self):
-        return f"{self.source}/{self.project}/{self.name}"
+        return self.full_name
 
     @property
     def base_branch(self) -> str:
@@ -187,6 +187,14 @@ class Repository:
         raise NotImplementedError(
             "class does not implement Repository.has_open_pull_request()"
         )
+
+    @property
+    def full_name(self) -> str:
+        """
+        :return: Full name of the repository.
+        :rtype: str
+        """
+        return f"{self.source}/{self.project}/{self.name}"
 
     def get_file(self, path: str) -> TextIO:
         raise NotImplementedError("class does not implement Repository.has_file()")
@@ -320,6 +328,16 @@ class Base:
 
     """
 
+    def create_from_name(self, name: str) -> Optional[Repository]:
+        """
+        Crate an instance of Repository from the name of a repository.
+
+        :param name: Name of the repository.
+        :return: An instance of Repository.
+        :rtype: rcmt.source.Repository
+        """
+        raise NotImplementedError("class does not implement Base.create_from_name()")
+
     def list_repositories_with_open_pull_requests(
         self,
     ) -> Generator[Repository, None, None]:
@@ -327,7 +345,7 @@ class Base:
             "class does not implement Base.list_open_pull_requests()"
         )
 
-    def list_repositories(self, since: datetime.datetime) -> list[Repository]:
+    def list_repositories(self, since: datetime.datetime) -> Iterator[Repository]:
         """
         :param since: Date and time of the last run of rcmt to find only those repositories that have received and update since.
 

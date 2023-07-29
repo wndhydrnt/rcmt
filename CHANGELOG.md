@@ -1,5 +1,46 @@
 # Changelog
 
+## [0.20.1](https://github.com/wndhydrnt/rcmt/compare/v0.20.0...v0.20.1) (2023-06-26)
+
+
+### Bug Fixes
+
+* FileExists Matcher with nested search does not work for GitLab repositories ([#329](https://github.com/wndhydrnt/rcmt/issues/329)) ([975cd04](https://github.com/wndhydrnt/rcmt/commit/975cd04912fd8d5c9d58814f83f79d29ae49e009))
+
+## [0.20.0](https://github.com/wndhydrnt/rcmt/compare/v0.19.1...v0.20.0) (2023-06-22)
+
+
+### Features
+
+* Add command "validate" ([#326](https://github.com/wndhydrnt/rcmt/issues/326)) ([a59238d](https://github.com/wndhydrnt/rcmt/commit/a59238d4b23efa8f5cb14dbeb77add2a86d6eb30))
+* Add property "full_name" to source.Repository ([#327](https://github.com/wndhydrnt/rcmt/issues/327)) ([84f41c3](https://github.com/wndhydrnt/rcmt/commit/84f41c3923562171bf8e3e7838fe6af6c2ef6aba))
+* Default representation of Matcher classes ([#328](https://github.com/wndhydrnt/rcmt/issues/328)) ([560896d](https://github.com/wndhydrnt/rcmt/commit/560896d5c54ec4ced75d0b8c2af693b85e30bb11))
+* Support writing logs as JSON ([#324](https://github.com/wndhydrnt/rcmt/issues/324)) ([cdf89de](https://github.com/wndhydrnt/rcmt/commit/cdf89de11761575965321308849dd0ddd7d8d89a))
+
+## [0.19.1](https://github.com/wndhydrnt/rcmt/compare/v0.19.0...v0.19.1) (2023-06-16)
+
+
+### Bug Fixes
+
+* Fix wrong git command to validate branch name ([#322](https://github.com/wndhydrnt/rcmt/issues/322)) ([fadacfe](https://github.com/wndhydrnt/rcmt/commit/fadacfeecd2a2fd7052b61267997500f9201d7af))
+
+## [0.19.0](https://github.com/wndhydrnt/rcmt/compare/v0.18.0...v0.19.0) (2023-06-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* Do not slugify custom branch names ([#321](https://github.com/wndhydrnt/rcmt/issues/321))
+* Replace command "local" with "verify" ([#319](https://github.com/wndhydrnt/rcmt/issues/319))
+
+### Features
+
+* Replace command "local" with "verify" ([#319](https://github.com/wndhydrnt/rcmt/issues/319)) ([3ab7f87](https://github.com/wndhydrnt/rcmt/commit/3ab7f87457c895489dd8257ddcd6543fabafed3d))
+
+
+### Bug Fixes
+
+* Do not slugify custom branch names ([#321](https://github.com/wndhydrnt/rcmt/issues/321)) ([8e0ebe0](https://github.com/wndhydrnt/rcmt/commit/8e0ebe0119148759ebaf2128bd4c9f301b8734ec))
+
 ## [0.18.0](https://github.com/wndhydrnt/rcmt/compare/v0.17.1...v0.18.0) (2023-06-07)
 
 
