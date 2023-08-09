@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.21.0](https://github.com/wndhydrnt/rcmt/compare/v0.20.1...v0.21.0) (2023-08-09)
+
+
+### Features
+
+* Add argument "repository" to command "run" ([#333](https://github.com/wndhydrnt/rcmt/issues/333)) ([608bf53](https://github.com/wndhydrnt/rcmt/commit/608bf53a8458ed76846254788782707f25fe02bd))
+* Let Task accept callables as Actions and Matchers ([#335](https://github.com/wndhydrnt/rcmt/issues/335)) ([f400793](https://github.com/wndhydrnt/rcmt/commit/f400793fb6198a98892baf65b2bf419a206482ff))
+
+
+### Bug Fixes
+
+* Continue execution if Task causes exception ([#339](https://github.com/wndhydrnt/rcmt/issues/339)) ([bf2de85](https://github.com/wndhydrnt/rcmt/commit/bf2de85dbcbf4c26bb85d9dad1f1422551973a64))
+
 ## [0.20.1](https://github.com/wndhydrnt/rcmt/compare/v0.20.0...v0.20.1) (2023-06-26)
 
 
