@@ -24,8 +24,10 @@ def execute(directory: str, opts: Options, out: TextIO, repo_name: str) -> None:
         return
 
     for task_path in opts.task_paths:
+        task.read(task_path)
+
+    for t in task.registry.tasks:
         result: bool = True
-        t = task.read(task_path)
         for m in t.matchers:
             if m(repository) is True:
                 print(f"✅ Matcher {str(m)} matches", file=out)

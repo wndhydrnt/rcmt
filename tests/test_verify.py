@@ -1,18 +1,25 @@
 import unittest
 import unittest.mock
 
-from rcmt import Task, action, encoding, matcher
+from rcmt import Task, action, encoding, matcher, register_task
 from rcmt.config import Config
 from rcmt.git import Git
 from rcmt.rcmt import Options
 from rcmt.source import source
+from rcmt.task import registry
 from rcmt.verify import execute
 
 
 class ExecuteTest(unittest.TestCase):
+    def setUp(self) -> None:
+        registry.task_path = None
+        registry.tasks = []
+
     @unittest.mock.patch("rcmt.task.read")
     @unittest.mock.patch("rcmt.git.Git")
     def test_execute(self, git_class_mock, task_read_mock):
+        task_read_mock.return_value = None
+
         opts = Options(cfg=Config())
         opts.task_paths = ["/tmp/run.py"]
         opts.encoding_registry = encoding.Registry()
@@ -32,7 +39,7 @@ class ExecuteTest(unittest.TestCase):
         task.add_matcher(matcher_mock)
         action_mock = unittest.mock.Mock(spec=action.Action)
         task.add_action(action_mock)
-        task_read_mock.return_value = task
+        registry.tasks.append(task)
 
         git_mock = unittest.mock.Mock(spec=Git)
         checkout_dir = "/tmp/repository/github.com/wndhydrnt/rcmt"
