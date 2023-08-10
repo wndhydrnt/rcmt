@@ -13,7 +13,7 @@ from rcmt.database import Database, Execution, Run
 from rcmt.matcher import RepoName
 from rcmt.rcmt import Options, RepoRun, RunResult, execute, execute_task
 from rcmt.source import Base
-from rcmt.task import Task
+from rcmt.task import Task, registry
 
 
 class RepositoryMock(source.Repository):
@@ -510,6 +510,8 @@ class ExecuteTaskTest(unittest.TestCase):
 class ExecuteTest(unittest.TestCase):
     def setUp(self) -> None:
         self.db: Database = database.new_database(DatabaseConfig())
+        registry.task_path = None
+        registry.tasks = []
 
     @unittest.mock.patch("rcmt.database.new_database")
     @unittest.mock.patch("rcmt.rcmt.execute_task")

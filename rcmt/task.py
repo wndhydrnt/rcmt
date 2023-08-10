@@ -15,6 +15,48 @@ from rcmt.fs import FileProxy
 from rcmt.typing import Action, Matcher
 
 
+class TaskRegistry:
+    """
+    TaskRegistry stores all loaded Tasks and performs checksum calculation of a Task
+    on registration.
+
+    It is used as a singleton, which Tasks call in the __exit__ method of their context
+    manager ("with" statement).
+    """
+
+    def __init__(self):
+        self.task_path: Optional[str] = None
+        self.tasks: list[Task] = []
+
+    def register(self, task: "Task"):
+        if self.task_path is None:
+            raise RuntimeError("Task path must be set during task registration")
+
+        for t in self.tasks:
+            if t.name == task.name:
+                raise RuntimeError(f"Task '{task.name}' already registered")
+
+        checksum = hashlib.md5()
+        with open(self.task_path) as f:
+            while True:
+                line = f.readline()
+                if line == "":
+                    break
+
+                checksum.update(line.encode("utf-8"))
+
+        task.checksum = checksum.hexdigest()
+        task.set_path(os.path.dirname(self.task_path))
+        self.tasks.append(task)
+
+
+registry = TaskRegistry()
+
+
+def register_task(task: "Task") -> None:
+    registry.register(task)
+
+
 class Task:
     """
     A Task connects Actions with repositories. rcmt reads the Task, finds matching
@@ -102,7 +144,11 @@ class Task:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
+        # Do not register if an exception occurred
+        if exc_val is not None:
+            return
+
+        register_task(task=self)
 
     def add_action(self, a: Callable[[str, dict], None]) -> None:
         """
@@ -173,16 +219,7 @@ class Run(Task):
     pass
 
 
-def read(path: str) -> Task:
-    checksum = hashlib.md5()
-    with open(path) as f:
-        while True:
-            line = f.readline()
-            if line == "":
-                break
-
-            checksum.update(line.encode("utf-8"))
-
+def read(path: str) -> None:
     rndm = "".join(random.choice(string.ascii_lowercase) for _ in range(8))
     mod_name = f"rcmt_task_{rndm}"
     loader = importlib.machinery.SourceFileLoader(mod_name, path)
@@ -191,24 +228,9 @@ def read(path: str) -> Task:
     new_module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = new_module
     try:
+        registry.task_path = path
         loader.exec_module(new_module)
     except Exception as e:
         raise RuntimeError(f"Import failed with {e.__class__.__name__}: {str(e)}")
-
-    try:
-        task = new_module.task  # type: ignore # because the content of module is not known
-    except AttributeError:
-        try:
-            # Accept variable "run" for backward compatibility with versions <= 0.15.3
-            task = new_module.run  # type: ignore # because the content of module is not known
-        except AttributeError:
-            raise RuntimeError(f"Task file {path} does not define variable 'task'")
-
-    if not isinstance(task, Task):
-        raise RuntimeError(
-            f"Task file {path} defines variable 'task' but is not of type Task"
-        )
-
-    task.set_path(os.path.dirname(path))
-    task.checksum = checksum.hexdigest()
-    return task  # type: ignore # because the content of module is not known
+    finally:
+        registry.task_path = None
