@@ -50,6 +50,13 @@ class Git:
         return len(git_repo.index.diff(None)) > 0 or len(git_repo.untracked_files) > 0
 
     def prepare(self, repo: source.Repository) -> str:
+        """
+        1. Clone repository
+        2. Checkout base branch
+        3. Update base branch
+        4. Create task branch
+        5. Reset task branch to base branch
+        """
         checkout_dir = self.checkout_dir(repo)
         if os.path.exists(checkout_dir) is False:
             log.debug("Cloning repository", url=repo.clone_url, repo=str(repo))
