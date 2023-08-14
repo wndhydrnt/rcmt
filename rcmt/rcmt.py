@@ -65,7 +65,7 @@ class RepoRun:
             )
             return RunResult.NO_CHANGES
 
-        work_dir = self.git.prepare(repo)
+        work_dir, has_conflict = self.git.prepare(repo)
         tpl_mapping = create_template_mapping(repo)
         apply_actions(repo, matcher, tpl_mapping, work_dir)
         has_local_changes = self.git.has_changes_local(work_dir)
@@ -101,9 +101,12 @@ class RepoRun:
 
             return RunResult.NO_CHANGES
 
-        has_changes = has_local_changes and self.git.has_changes_origin(
-            branch=self.git.branch_name, repo_dir=work_dir
-        )
+        has_changes = (
+            has_local_changes
+            and self.git.has_changes_origin(
+                branch=self.git.branch_name, repo_dir=work_dir
+            )
+        ) or has_conflict
         if has_changes is True:
             if self.opts.config.dry_run:
                 log.warn("DRY RUN: Not pushing changes")

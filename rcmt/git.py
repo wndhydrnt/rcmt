@@ -1,5 +1,5 @@
 import os.path
-from typing import Any, Mapping, Union
+from typing import Any, Mapping, Tuple, Union
 
 import git
 import structlog
@@ -49,7 +49,7 @@ class Git:
         git_repo = git.Repo(path=repo_dir)
         return len(git_repo.index.diff(None)) > 0 or len(git_repo.untracked_files) > 0
 
-    def prepare(self, repo: source.Repository) -> str:
+    def prepare(self, repo: source.Repository) -> Tuple[str, bool]:
         """
         1. Clone repository
         2. Checkout base branch
@@ -99,6 +99,31 @@ class Git:
             else:
                 git_repo.create_head(self.branch_name, remote_branch)
 
+        has_conflict = False
+        if remote_branch is not None:
+            try:
+                # Try to merge. Errors if there is a merge conflict.
+                git_repo.git.merge(self.branch_name, no_ff=True, no_commit=True)
+            except GitCommandError as e:
+                # Exit codes "1" or "2" indicate that a merge is not successful
+                if e.status != 1 and e.status != 2:
+                    raise e
+
+                log.debug(
+                    "Merge conflict with base branch",
+                    base_branch=repo.base_branch,
+                    repo=str(repo),
+                )
+                has_conflict = True
+
+            try:
+                # Abort the merge to not leave the branch in a conflicted state
+                git_repo.git.merge(abort=True)
+            except GitCommandError as e:
+                # "128" is the exit code of the git command if no abort was needed
+                if e.status != 128:
+                    raise e
+
         log.debug("Checking out work branch", branch=self.branch_name, repo=str(repo))
         git_repo.heads[self.branch_name].checkout()
         merge_base = git_repo.git.merge_base(repo.base_branch, self.branch_name)
@@ -107,7 +132,7 @@ class Git:
         log.debug("Rebasing onto work branch", branch=self.branch_name, repo=str(repo))
         git_repo.git.rebase(repo.base_branch)
 
-        return checkout_dir
+        return checkout_dir, has_conflict
 
     def push(self, repo_dir):
         git_repo = git.Repo(path=repo_dir)

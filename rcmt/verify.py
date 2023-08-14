@@ -50,7 +50,7 @@ def execute(directory: str, opts: Options, out: TextIO, repo_name: str) -> None:
         )
 
         print("🏗️  Preparing git clone", file=out)
-        checkout_dir = gitc.prepare(repository)
+        checkout_dir, has_conflict = gitc.prepare(repository)
         tpl_mapping: dict[str, str] = create_template_mapping(repository)
         print("🚜 Applying actions", file=out)
         apply_actions(

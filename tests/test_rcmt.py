@@ -65,12 +65,13 @@ def create_git_mock(
     has_changes_local: bool,
     has_changes_origin: bool,
     has_changes_base: bool = True,
+    has_conflict: bool = False,
 ):
     m = unittest.mock.Mock(spec=git.Git)
     m.branch_name = branch_name
     m.has_changes_local.return_value = has_changes_local
     m.has_changes_origin.side_effect = [has_changes_base, has_changes_origin]
-    m.prepare.return_value = checkout_dir
+    m.prepare.return_value = (checkout_dir, has_conflict)
     return m
 
 
