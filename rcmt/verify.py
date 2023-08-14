@@ -56,7 +56,7 @@ def execute(directory: str, opts: Options, out: TextIO, repo_name: str) -> None:
         apply_actions(
             repo=repository, task_=t, tpl_mapping=tpl_mapping, work_dir=checkout_dir
         )
-        if gitc.has_changes(repo_dir=checkout_dir):
+        if gitc.has_changes_local(repo_dir=checkout_dir):
             print(
                 f"😍 Actions modified files - view changes in {checkout_dir}", file=out
             )

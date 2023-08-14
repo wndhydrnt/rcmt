@@ -68,15 +68,14 @@ class RepoRun:
         work_dir = self.git.prepare(repo)
         tpl_mapping = create_template_mapping(repo)
         apply_actions(repo, matcher, tpl_mapping, work_dir)
-        has_changes = self.git.has_changes(work_dir)
-        if has_changes is True:
-            log.debug("Committing changes", repo=str(repo))
+        has_local_changes = self.git.has_changes_local(work_dir)
+        if has_local_changes is True:
             self.git.commit_changes(work_dir, matcher.commit_msg)
         else:
             log.info("No changes after applying actions", repo=str(repo))
 
         if (
-            self.git.has_changes_base(base_branch=repo.base_branch, repo_dir=work_dir)
+            self.git.has_changes_origin(branch=repo.base_branch, repo_dir=work_dir)
             is False
             and pr_identifier is not None
             and repo.is_pr_open(pr_identifier) is True
@@ -102,6 +101,9 @@ class RepoRun:
 
             return RunResult.NO_CHANGES
 
+        has_changes = has_local_changes and self.git.has_changes_origin(
+            branch=self.git.branch_name, repo_dir=work_dir
+        )
         if has_changes is True:
             if self.opts.config.dry_run:
                 log.warn("DRY RUN: Not pushing changes")

@@ -62,13 +62,14 @@ class RepositoryMock(source.Repository):
 def create_git_mock(
     branch_name: str,
     checkout_dir: str,
-    has_changes: bool,
+    has_changes_local: bool,
+    has_changes_origin: bool,
     has_changes_base: bool = True,
 ):
     m = unittest.mock.Mock(spec=git.Git)
     m.branch_name = branch_name
-    m.has_changes.return_value = has_changes
-    m.has_changes_base.return_value = has_changes_base
+    m.has_changes_local.return_value = has_changes_local
+    m.has_changes_origin.side_effect = [has_changes_base, has_changes_origin]
     m.prepare.return_value = checkout_dir
     return m
 
@@ -77,7 +78,7 @@ class RepoRunTest(unittest.TestCase):
     def test_no_changes(self):
         cfg = config.Config()
         opts = Options(cfg)
-        git_mock = create_git_mock("rcmt", "/unit/test", False)
+        git_mock = create_git_mock("rcmt", "/unit/test", False, False)
         runner = RepoRun(git_mock, opts)
         run = Task(name="testrun")
         run.add_matcher(RepoName("local"))
@@ -106,7 +107,7 @@ class RepoRunTest(unittest.TestCase):
     def test_new_changes(self):
         cfg = config.Config()
         opts = Options(cfg)
-        git_mock = create_git_mock("rcmt", "/unit/test", True)
+        git_mock = create_git_mock("rcmt", "/unit/test", True, True)
         runner = RepoRun(git_mock, opts)
         run = Task(commit_msg="Custom commit", name="testrun")
         run.add_matcher(RepoName("local"))
@@ -146,7 +147,7 @@ class RepoRunTest(unittest.TestCase):
     def test_auto_merge_pr(self):
         cfg = config.Config()
         opts = Options(cfg)
-        git_mock = create_git_mock("rcmt", "/unit/test", False)
+        git_mock = create_git_mock("rcmt", "/unit/test", False, False)
         runner = RepoRun(git_mock, opts)
         run = Task(
             auto_merge=True,
@@ -187,7 +188,7 @@ class RepoRunTest(unittest.TestCase):
     def test_no_merge_closed_pr(self):
         cfg = config.Config()
         opts = Options(cfg)
-        git_mock = create_git_mock("rcmt", "/unit/test", True)
+        git_mock = create_git_mock("rcmt", "/unit/test", True, True)
         runner = RepoRun(git_mock, opts)
         run = Task(name="testmatch", merge_once=True)
         run.add_matcher(RepoName("local"))
@@ -211,7 +212,7 @@ class RepoRunTest(unittest.TestCase):
     def test_no_new_pr_if_merge_once_true(self):
         cfg = config.Config()
         opts = Options(cfg)
-        git_mock = create_git_mock("rcmt", "/unit/test", True)
+        git_mock = create_git_mock("rcmt", "/unit/test", True, True)
         runner = RepoRun(git_mock, opts)
         run = Task(name="testmatch", merge_once=True)
         run.add_matcher(RepoName("local"))
@@ -235,7 +236,7 @@ class RepoRunTest(unittest.TestCase):
     def test_close_pr(self):
         cfg = config.Config()
         opts = Options(cfg)
-        git_mock = create_git_mock("rcmt", "/unit/test", False, False)
+        git_mock = create_git_mock("rcmt", "/unit/test", False, False, False)
         run = Task(name="testmatch")
         repo_mock = unittest.mock.Mock(spec=source.Repository)
         repo_mock.name = "myrepo"
@@ -257,7 +258,7 @@ class RepoRunTest(unittest.TestCase):
     def test_no_changes_no_pr(self):
         cfg = config.Config()
         opts = Options(cfg)
-        git_mock = create_git_mock("rcmt", "/unit/test", False, False)
+        git_mock = create_git_mock("rcmt", "/unit/test", False, False, False)
         run = Task(name="testmatch")
         repo_mock = unittest.mock.Mock(spec=source.Repository)
         repo_mock.name = "myrepo"
@@ -275,7 +276,7 @@ class RepoRunTest(unittest.TestCase):
     def test_update_pull_request(self):
         cfg = config.Config()
         opts = Options(cfg)
-        git_mock = create_git_mock("rcmt", "/unit/test", False, True)
+        git_mock = create_git_mock("rcmt", "/unit/test", False, False, True)
         run = Task(name="testmatch")
         repo_mock = unittest.mock.Mock(spec=source.Repository)
         repo_mock.name = "myrepo"
@@ -303,7 +304,7 @@ class RepoRunTest(unittest.TestCase):
     def test_cannot_merge_pull_request(self):
         cfg = config.Config()
         opts = Options(cfg)
-        git_mock = create_git_mock("rcmt", "/unit/test", False, True)
+        git_mock = create_git_mock("rcmt", "/unit/test", False, False, True)
         run = Task(name="testmatch", auto_merge=True)
         repo_mock = unittest.mock.Mock(spec=source.Repository)
         repo_mock.name = "myrepo"
@@ -325,7 +326,7 @@ class RepoRunTest(unittest.TestCase):
     def test_does_not_delete_branch_if_disabled(self):
         cfg = config.Config()
         opts = Options(cfg)
-        git_mock = create_git_mock("rcmt", "/unit/test", False, True)
+        git_mock = create_git_mock("rcmt", "/unit/test", False, False, True)
         run = Task(name="testmatch", auto_merge=True, delete_branch_after_merge=False)
         repo_mock = unittest.mock.Mock(spec=source.Repository)
         repo_mock.name = "myrepo"
@@ -348,7 +349,7 @@ class RepoRunTest(unittest.TestCase):
     def test_recreate_pr_if_closed(self):
         cfg = config.Config()
         opts = Options(cfg)
-        git_mock = create_git_mock("rcmt", "/unit/test", True)
+        git_mock = create_git_mock("rcmt", "/unit/test", True, True)
         runner = RepoRun(git_mock, opts)
         run = Task(commit_msg="Custom commit", name="testrun")
         run.add_matcher(RepoName("local"))
@@ -389,7 +390,7 @@ class RepoRunTest(unittest.TestCase):
     def test_no_pr_on_change_of_base_branch_and_no_open_pr(self):
         cfg = config.Config()
         opts = Options(cfg)
-        git_mock = create_git_mock("rcmt", "/unit/test", False)
+        git_mock = create_git_mock("rcmt", "/unit/test", False, False)
         runner = RepoRun(git_mock, opts)
         run = Task(
             auto_merge=True,

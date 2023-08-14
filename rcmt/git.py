@@ -34,20 +34,20 @@ class Git:
         git_repo.index.commit(msg)
 
     @staticmethod
-    def has_changes(repo_dir: str) -> bool:
-        git_repo = git.Repo(path=repo_dir)
-        return len(git_repo.index.diff(None)) > 0 or len(git_repo.untracked_files) > 0
-
-    def has_changes_base(self, base_branch: str, repo_dir: str) -> bool:
-        git_repo = git.Repo(path=repo_dir)
-        return len(git_repo.index.diff(f"origin/{base_branch}")) > 0
-
-    def needs_push(self, repo_dir: str) -> bool:
+    def has_changes_origin(branch: str, repo_dir: str) -> bool:
         git_repo = git.Repo(path=repo_dir)
         try:
-            return len(git_repo.index.diff(f"origin/{self.branch_name}")) > 0
+            return len(git_repo.index.diff(f"origin/{branch}")) > 0
         except git.BadName:
+            # git.BadName thrown if "origin/<branch>" does not exist.
+            # That means that this is the first time the Task is executed for this
+            # repository. Always push in this case, thus return True here.
             return True
+
+    @staticmethod
+    def has_changes_local(repo_dir: str) -> bool:
+        git_repo = git.Repo(path=repo_dir)
+        return len(git_repo.index.diff(None)) > 0 or len(git_repo.untracked_files) > 0
 
     def prepare(self, repo: source.Repository) -> str:
         checkout_dir = self.checkout_dir(repo)
@@ -92,43 +92,13 @@ class Git:
             else:
                 git_repo.create_head(self.branch_name, remote_branch)
 
-        has_conflict = False
-        if remote_branch is not None:
-            try:
-                # Try to merge. Errors if there is a merge conflict.
-                git_repo.git.merge(self.branch_name, no_ff=True, no_commit=True)
-            except GitCommandError as e:
-                # Exit codes "1" or "2" indicate that a merge is not successful
-                if e.status != 1 and e.status != 2:
-                    raise e
-
-                log.debug(
-                    "Merge conflict with base branch",
-                    base_branch=repo.base_branch,
-                    repo=str(repo),
-                )
-                has_conflict = True
-
-            try:
-                # Abort the merge to not leave the branch in a conflicted state
-                git_repo.git.merge(abort=True)
-            except GitCommandError as e:
-                # "128" is the exit code of the git command if no abort was needed
-                if e.status != 128:
-                    raise e
-
         log.debug("Checking out work branch", branch=self.branch_name, repo=str(repo))
         git_repo.heads[self.branch_name].checkout()
-        if has_conflict is True or has_base_branch_update is True:
-            merge_base = git_repo.git.merge_base(repo.base_branch, self.branch_name)
-            log.debug(
-                "Resetting to merge base", branch=self.branch_name, repo=str(repo)
-            )
-            git_repo.git.reset(merge_base, hard=True)
-            log.debug(
-                "Rebasing onto work branch", branch=self.branch_name, repo=str(repo)
-            )
-            git_repo.git.rebase(repo.base_branch)
+        merge_base = git_repo.git.merge_base(repo.base_branch, self.branch_name)
+        log.debug("Resetting to merge base", branch=self.branch_name, repo=str(repo))
+        git_repo.git.reset(merge_base, hard=True)
+        log.debug("Rebasing onto work branch", branch=self.branch_name, repo=str(repo))
+        git_repo.git.rebase(repo.base_branch)
 
         return checkout_dir
 
