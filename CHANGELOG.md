@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.21.1](https://github.com/wndhydrnt/rcmt/compare/v0.21.0...v0.21.1) (2023-08-15)
+
+
+### Bug Fixes
+
+* Same change gets pushed multiple times ([#344](https://github.com/wndhydrnt/rcmt/issues/344)) ([e53a1c1](https://github.com/wndhydrnt/rcmt/commit/e53a1c1fa95237ff01059b4753bf071e39ff029a))
+
 ## [0.21.0](https://github.com/wndhydrnt/rcmt/compare/v0.20.1...v0.21.0) (2023-08-09)
 
 
