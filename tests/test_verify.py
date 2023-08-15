@@ -36,7 +36,7 @@ class ExecuteTest(unittest.TestCase):
 
         git_mock = unittest.mock.Mock(spec=Git)
         checkout_dir = "/tmp/repository/github.com/wndhydrnt/rcmt"
-        git_mock.prepare.return_value = checkout_dir
+        git_mock.prepare.return_value = (checkout_dir, False)
         git_class_mock.return_value = git_mock
 
         with open("/dev/null", "w") as f:
