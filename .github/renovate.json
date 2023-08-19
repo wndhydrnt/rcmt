@@ -9,6 +9,7 @@
     },
     {
       "allowedVersions": "<3.11",
+      "automerge": true,
       "matchManagers": ["dockerfile"],
       "matchPackageNames": ["python"]
     }
