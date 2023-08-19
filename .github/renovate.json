@@ -1,0 +1,17 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", "docker:disableMajor"],
+  "packageRules": [
+    {
+      "automerge": true,
+      "matchUpdateTypes": ["minor", "patch"],
+      "minimumReleaseAge": "7 days"
+    },
+    {
+      "allowedVersions": "<3.11",
+      "matchManagers": ["dockerfile"],
+      "matchPackageNames": ["python"]
+    }
+  ],
+  "semanticCommits": "enabled"
+}
