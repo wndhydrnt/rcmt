@@ -17,18 +17,19 @@ from rcmt.typing import Action, Matcher
 
 class TaskRegistry:
     """
-    TaskRegistry stores all loaded Tasks and performs checksum calculation of a Task
-    on registration.
-
-    It is used as a singleton, which Tasks call in the __exit__ method of their context
-    manager ("with" statement).
+    TaskRegistry stores all loaded Tasks.
     """
 
     def __init__(self):
         self.task_path: Optional[str] = None
         self.tasks: list[Task] = []
 
-    def register(self, task: "Task"):
+    def register(self, task: "Task") -> None:
+        """
+        register adds a Task to the registry and performs checksum calculation of it.
+
+        :param task: The Task to register.
+        """
         if self.task_path is None:
             raise RuntimeError("Task path must be set during task registration")
 
@@ -50,6 +51,8 @@ class TaskRegistry:
         self.tasks.append(task)
 
 
+# registry is the single instance of TaskRegistry used by rcmt. Tasks call the instance
+# in the __exit__ method of their context manager ("with" statement).
 registry = TaskRegistry()
 
 
