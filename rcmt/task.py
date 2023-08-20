@@ -26,7 +26,7 @@ class TaskRegistry:
 
     def register(self, task: "Task") -> None:
         """
-        register adds a Task to the registry and performs checksum calculation of it.
+        register adds a Task to the registry and calculates its checksum.
 
         :param task: The Task to register.
         """
