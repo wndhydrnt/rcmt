@@ -372,12 +372,13 @@ def read_tasks(
     all_reads_succeed: bool = True
     for task_path in task_paths:
         try:
-            task_ = task.read(task_path)
+            task.read(task_path)
         except RuntimeError as e:
             log.error(f"Loading task from file failed: {str(e)}", file=task_path)
             all_reads_succeed = False
             continue
 
+    for task_ in task.registry.tasks:
         task_db = db.get_or_create_task(name=task_.name)
         if task_.enabled is False:
             db.update_task(task_.name, task_.checksum)
