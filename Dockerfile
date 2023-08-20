@@ -1,4 +1,4 @@
-FROM python:3.10.5 as build
+FROM python:3.10.12 as build
 WORKDIR /opt
 RUN pip install --no-cache-dir poetry
 COPY poetry.lock pyproject.toml README.md ./
