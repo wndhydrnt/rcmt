@@ -227,6 +227,13 @@ class Gitlab(Base):
 
             seen_project_ids.append(mr.project_id)
             project = self.client.projects.get(id=mr.project_id)
+            if project.archived is True:
+                log.debug(
+                    "ignore project because it has been archived",
+                    project=project.path_with_namespace,
+                )
+                continue
+
             repository = GitlabRepository(
                 project=project, token=self.client.private_token, url=self.url  # type: ignore
             )

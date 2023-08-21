@@ -358,6 +358,7 @@ class GitlabTest(unittest.TestCase):
         client_mock.mergerequests = mergerequests_mock
 
         project_mock = unittest.mock.Mock(spec=Project)
+        project_mock.archived = False
         projects_mock = unittest.mock.Mock(spec=ProjectManager)
         projects_mock.get.return_value = project_mock
         client_mock.projects = projects_mock
@@ -374,6 +375,42 @@ class GitlabTest(unittest.TestCase):
             self.assertEqual(gl_repo.token, client_mock.private_token)
             self.assertEqual(gl_repo.url, "localhost")
 
+        mergerequests_mock.list.assert_called_once_with(
+            author_id=123, iterator=True, state="opened"
+        )
+        projects_mock.get.assert_called_once_with(id=456)
+
+    def test_list_repositories_with_open_pull_requests__archived_repository(self):
+        client_mock = unittest.mock.Mock(spec=gitlab.Gitlab)
+        client_mock.private_token = "private_token"
+        client_mock.user = None
+
+        user_mock = unittest.mock.Mock(spec=CurrentUser)
+        user_mock.attributes = {"id": 123}
+
+        def auth_call():
+            client_mock.user = user_mock
+
+        client_mock.auth = auth_call
+
+        merge_request_mock = unittest.mock.Mock(spec=MergeRequest)
+        merge_request_mock.project_id = 456
+        mergerequests_mock = unittest.mock.Mock(spec=MergeRequestManager)
+        mergerequests_mock.list.return_value = [merge_request_mock]
+        client_mock.mergerequests = mergerequests_mock
+
+        project_mock = unittest.mock.Mock(spec=Project)
+        project_mock.archived = True
+        project_mock.path_with_namespace = "unit/test"
+        projects_mock = unittest.mock.Mock(spec=ProjectManager)
+        projects_mock.get.return_value = project_mock
+        client_mock.projects = projects_mock
+
+        gl = Gitlab(url="http://localhost", private_token=client_mock.private_token)
+        gl.client = client_mock
+        result = list(gl.list_repositories_with_open_pull_requests())
+
+        self.assertEqual(0, len(result))
         mergerequests_mock.list.assert_called_once_with(
             author_id=123, iterator=True, state="opened"
         )
