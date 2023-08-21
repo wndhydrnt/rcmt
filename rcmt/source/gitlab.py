@@ -230,7 +230,7 @@ class Gitlab(Base):
             if project.archived is True:
                 log.debug(
                     "ignore project because it has been archived",
-                    repository=project.path_with_namespace,
+                    project=project.path_with_namespace,
                 )
                 continue
 
