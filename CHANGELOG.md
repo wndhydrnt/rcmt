@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.22.0](https://github.com/wndhydrnt/rcmt/compare/v0.21.1...v0.22.0) (2023-08-21)
+
+
+### Features
+
+* Declare multiple Tasks in one file ([#343](https://github.com/wndhydrnt/rcmt/issues/343)) ([cf31aad](https://github.com/wndhydrnt/rcmt/commit/cf31aad62e2a0eb766582df020e11c43554cba3e))
+
+
+### Bug Fixes
+
+* **deps:** update dependency alembic to v1.11.2 ([#352](https://github.com/wndhydrnt/rcmt/issues/352)) ([3da4ba9](https://github.com/wndhydrnt/rcmt/commit/3da4ba961b58ffffed915674f8211a6e9fa915ad))
+* **deps:** update dependency click to v8.1.6 ([#353](https://github.com/wndhydrnt/rcmt/issues/353)) ([4848d94](https://github.com/wndhydrnt/rcmt/commit/4848d945b92c7acb6c8ccae9ac93e370449a78df))
+* **deps:** update dependency humanize to v4.7.0 ([#363](https://github.com/wndhydrnt/rcmt/issues/363)) ([d3eb887](https://github.com/wndhydrnt/rcmt/commit/d3eb887efbb3bee6fa7bd6956bfde2d7765a97b1))
+* **deps:** update dependency pydantic to v1.10.12 ([#354](https://github.com/wndhydrnt/rcmt/issues/354)) ([c80ec84](https://github.com/wndhydrnt/rcmt/commit/c80ec8445ecd3cd5c5d540074a32efbae548a2b6))
+* **deps:** update dependency python-slugify to v8.0.1 ([#355](https://github.com/wndhydrnt/rcmt/issues/355)) ([7a01918](https://github.com/wndhydrnt/rcmt/commit/7a01918be50918d55f44470e3c40646f4be1260a))
+* **deps:** update dependency pyyaml to v6.0.1 ([#357](https://github.com/wndhydrnt/rcmt/issues/357)) ([c267a6b](https://github.com/wndhydrnt/rcmt/commit/c267a6bcfe4adc6c0f1f430f138bacb417f94289))
+* **deps:** update dependency sqlalchemy to v2.0.19 ([#358](https://github.com/wndhydrnt/rcmt/issues/358)) ([73f03ff](https://github.com/wndhydrnt/rcmt/commit/73f03ff5a903c9d6f6a2efd875ac9a342c79fd3c))
+* **gitlab:** ignore archived project when listing open merge requests ([#375](https://github.com/wndhydrnt/rcmt/issues/375)) ([a124968](https://github.com/wndhydrnt/rcmt/commit/a12496892bcfb600501bfb9146ce483d4719a4ef))
+
 ## [0.21.1](https://github.com/wndhydrnt/rcmt/compare/v0.21.0...v0.21.1) (2023-08-15)
 
 
