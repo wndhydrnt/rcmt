@@ -78,4 +78,4 @@ source = [ ".",]
 
 [tool.poetry.dev-dependencies.coverage]
 extras = [ "toml",]
-version = "5.5"
+version = "7.3.0"
