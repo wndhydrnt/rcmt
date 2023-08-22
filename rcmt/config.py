@@ -5,6 +5,11 @@ from typing import Any, Optional
 import pydantic
 import yaml
 from pydantic.fields import Field
+from pydantic_settings import (
+    BaseSettings,
+    PydanticBaseSettingsSource,
+    SettingsConfigDict,
+)
 
 
 class Database(pydantic.BaseModel):
@@ -44,14 +49,18 @@ class Yaml(pydantic.BaseModel):
     extensions: list[str] = [".yaml", ".yml"]
 
 
-class Config(pydantic.BaseSettings):
+class Config(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_nested_delimiter="__", env_prefix="rcmt_", extra="allow"
+    )
+
     database: Database = Database()
     dry_run: bool = False
     git: Git = Git()
     github: Github = Github()
     gitlab: Gitlab = Gitlab()
     # Add _ because json is a reserved field of pydantic
-    json_: Json = Field(alias="json", default=Json(), env="json")
+    json_: Json = Field(alias="json", default=Json())
     log_format: Optional[str] = None
     log_level: str = "info"
     pr_title_prefix: str = "rcmt:"
@@ -60,10 +69,20 @@ class Config(pydantic.BaseSettings):
     toml: Toml = Toml()
     yaml: Yaml = Yaml()
 
-    class Config:
-        env_nested_delimiter = "__"
-        env_prefix = "rcmt_"
-        extra = pydantic.Extra.allow
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        """
+        Override in order to let environment variables take precedence over other
+        configuration settings by returning `env_settings` first.
+        """
+        return env_settings, init_settings, dotenv_settings, file_secret_settings
 
 
 def read_config_from_file(path: str) -> Config:
