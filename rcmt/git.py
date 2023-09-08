@@ -110,6 +110,12 @@ class Git:
         self.git_repo = git_repo
 
     def prepare_branch(self, branch_name: str) -> bool:
+        """
+        1. Reset any previous changes
+        2. Create branch, if it does not exist
+        3. Detect if a merge conflict exists
+        4. Rebase changes of default branch onto working branch
+        """
         if self.git_repo is None:
             raise RuntimeError(
                 "git repository not initialized - call initialize() first"
