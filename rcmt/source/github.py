@@ -4,6 +4,7 @@ import io
 from typing import Any, Generator, Iterator, Optional, TextIO, Union
 
 import github
+import github.Auth
 import github.PullRequest
 import github.Repository
 import structlog
@@ -165,7 +166,10 @@ class GithubRepository(Repository):
 class Github(Base):
     def __init__(self, access_token: str, base_url: str):
         self.access_token = access_token
-        self.client = github.Github(login_or_token=access_token, base_url=base_url)
+        self.client = github.Github(
+            auth=github.Auth.Token(token=access_token),
+            base_url=base_url,
+        )
 
         SECRET_MASKER.add_secret(access_token)
 
