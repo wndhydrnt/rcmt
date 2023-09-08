@@ -28,10 +28,20 @@ class Git:
         self.git_repo: Optional[git.Repo] = None
 
     def commit_changes(self, msg: str):
+        if self.git_repo is None:
+            raise RuntimeError(
+                "git repository not initialized - call initialize() first"
+            )
+
         self.git_repo.git.add(all=True)
         self.git_repo.index.commit(msg)
 
     def has_changes_origin(self, branch: str) -> bool:
+        if self.git_repo is None:
+            raise RuntimeError(
+                "git repository not initialized - call initialize() first"
+            )
+
         try:
             return len(self.git_repo.index.diff(f"origin/{branch}")) > 0
         except git.BadName:
@@ -41,6 +51,11 @@ class Git:
             return True
 
     def has_changes_local(self) -> bool:
+        if self.git_repo is None:
+            raise RuntimeError(
+                "git repository not initialized - call initialize() first"
+            )
+
         return (
             len(self.git_repo.index.diff(None)) > 0
             or len(self.git_repo.untracked_files) > 0
@@ -158,6 +173,11 @@ class Git:
         return has_conflict
 
     def push(self, branch_name: str):
+        if self.git_repo is None:
+            raise RuntimeError(
+                "git repository not initialized - call initialize() first"
+            )
+
         self.git_repo.git.push("origin", branch_name, force=True, set_upstream=True)
 
     @staticmethod
