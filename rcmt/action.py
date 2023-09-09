@@ -6,7 +6,7 @@ import shutil
 import string
 import subprocess
 import tempfile
-from typing import Union
+from typing import Optional, Union
 
 import mergedeep
 
@@ -262,15 +262,18 @@ class DeleteKey(Action, EncodingAware):
         return data
 
 
-class Exec(GlobMixin, Action):
+class Exec(Action):
     """
-    Exec calls an executable and passes matching files in a repository to it. The
-    executable can then modify each file.
+    Exec calls an executable with the given arguments. The executable can then modify
+    files. A common use case are code formatters such as black, prettier or "go fmt".
 
-    The executable should expect the path of a file as its only positional argument.
+    The current working directory is set to the checkout of a repository.
 
-    :param exec_path: Path to the executable.
-    :param selector: Glob selector to find the files to modify.
+    This Action expects the executable it calls to have been installed already. It does
+    not install the executable.
+
+    :param executable: Path to the executable.
+    :param args: List of arguments to pass to the executable.
     :param timeout: Maximum runtime of the executable, in seconds.
 
     **Example**
@@ -278,25 +281,30 @@ class Exec(GlobMixin, Action):
     .. code-block:: python
 
        # Find all Python files in a repository recursively and pass each path to /opt/the-binary.
-       Exec(exec_path="/opt/the-binary", selector="**/*.py")
+       Exec(executable="black", args=["--line-length", "120", "."])
     """
 
-    def __init__(self, exec_path: str, selector: str, timeout: int = 120):
-        super(Exec, self).__init__(selector)
-
-        self.exec_path = exec_path
+    def __init__(
+        self,
+        executable: str,
+        args: Optional[list[str]] = None,
+        timeout: int = 120,
+    ):
+        self.args: list[str] = args if args else []
+        self.executable = executable
         self.timeout = timeout
 
-    def process_file(self, path: str, tpl_data: dict):
+    def apply(self, repo_path: str, tpl_data: dict) -> None:
         result = subprocess.run(
-            args=[self.exec_path, path],
+            args=[self.executable] + self.args,
             capture_output=True,
-            shell=True,
+            cwd=repo_path,
+            shell=False,
             timeout=self.timeout,
         )
         if result.returncode > 0:
             raise RuntimeError(
-                f"""Exec action call to {self.exec_path} failed.
+                f"""Exec action call to {self.executable} failed.
     stdout: {result.stdout.decode('utf-8')}
     stderr: {result.stderr.decode('utf-8')}"""
             )
