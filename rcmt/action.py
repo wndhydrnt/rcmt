@@ -6,7 +6,7 @@ import shutil
 import string
 import subprocess
 import tempfile
-from typing import Optional, Sequence, Union
+from typing import Optional, Union
 
 import mergedeep
 
