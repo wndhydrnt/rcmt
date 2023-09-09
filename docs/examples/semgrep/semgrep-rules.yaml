@@ -1,0 +1,8 @@
+rules:
+  - id: use-sys.exit
+    pattern: exit($...X)
+    message: Use sys.exit() instead of exit()
+    languages:
+      - python
+    severity: INFO
+    fix: sys.exit($...X)
