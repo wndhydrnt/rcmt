@@ -66,7 +66,7 @@ class Git:
             )
         else:
             git_repo = git.Repo(path=checkout_dir)
-            self.restore(git_repo)
+            self.reset(git_repo)
 
         if self.validate_branch_name(git_repo) is False:
             raise RuntimeError(f"Branch name '{self.branch_name}' is not valid")
@@ -138,8 +138,9 @@ class Git:
         git_repo = git.Repo(path=repo_dir)
         git_repo.git.push("origin", self.branch_name, force=True, set_upstream=True)
 
-    def restore(self, repo: git.Repo) -> None:
-        repo.git.restore(".")
+    @staticmethod
+    def reset(repo: git.Repo) -> None:
+        repo.git.reset("HEAD", hard=True)
 
     def validate_branch_name(self, repo: git.Repo) -> bool:
         try:
