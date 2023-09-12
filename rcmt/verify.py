@@ -1,3 +1,4 @@
+import os.path
 from typing import Optional, TextIO
 
 import structlog
@@ -43,22 +44,30 @@ def execute(directory: str, opts: Options, out: TextIO, repo_name: str) -> None:
             return
 
         print("---")
-        gitc = rcmt.git.Git(
-            t.branch(opts.config.git.branch_prefix),
-            opts.config.git.clone_options,
+        checkout_dir = os.path.join(
             directory,
-            opts.config.git.user_name,
-            opts.config.git.user_email,
+            repository.source,
+            repository.project,
+            repository.name,
+        )
+        gitc = rcmt.git.Git(
+            base_branch=repository.base_branch,
+            checkout_dir=checkout_dir,
+            clone_opts=opts.config.git.clone_options,
+            repository_name=str(repository),
+            user_email=opts.config.git.user_email,
+            user_name=opts.config.git.user_name,
         )
 
         print("🏗️  Preparing git clone", file=out)
-        checkout_dir, has_conflict = gitc.prepare(repository)
+        gitc.initialize(clone_url=repository.clone_url)
+        gitc.prepare_branch(branch_name=t.branch(opts.config.git.branch_prefix))
         tpl_mapping: dict[str, str] = create_template_mapping(repository)
         print("🚜 Applying actions", file=out)
         apply_actions(
             repo=repository, task_=t, tpl_mapping=tpl_mapping, work_dir=checkout_dir
         )
-        if gitc.has_changes_local(repo_dir=checkout_dir):
+        if gitc.has_changes_local():
             print(
                 f"😍 Actions modified files - view changes in {checkout_dir}", file=out
             )

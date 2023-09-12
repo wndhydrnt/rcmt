@@ -1,4 +1,5 @@
 import datetime
+import os.path
 from enum import Enum
 from typing import Iterator, Optional
 
@@ -39,8 +40,13 @@ class RepoRun:
         self.git = g
         self.opts = opts
 
-    def execute(self, matcher: task.Task, repo: source.Repository) -> RunResult:
-        pr_identifier = repo.find_pull_request(self.git.branch_name)
+    def execute(
+        self,
+        branch_name: str,
+        matcher: task.Task,
+        repo: source.Repository,
+    ) -> RunResult:
+        pr_identifier = repo.find_pull_request(branch_name)
         if (
             pr_identifier is not None
             and repo.is_pr_closed(pr_identifier) is True
@@ -48,7 +54,7 @@ class RepoRun:
         ):
             log.info(
                 "Existing PR has been closed",
-                branch=self.git.branch_name,
+                branch=branch_name,
                 repo=str(repo),
             )
             return RunResult.NO_CHANGES
@@ -60,23 +66,27 @@ class RepoRun:
         ):
             log.info(
                 "Existing PR has been merged",
-                branch=self.git.branch_name,
+                branch=branch_name,
                 repo=str(repo),
             )
             return RunResult.NO_CHANGES
 
-        work_dir, has_conflict = self.git.prepare(repo)
+        has_conflict = self.git.prepare_branch(branch_name)
         tpl_mapping = create_template_mapping(repo)
-        apply_actions(repo, matcher, tpl_mapping, work_dir)
-        has_local_changes = self.git.has_changes_local(work_dir)
+        apply_actions(
+            repo=repo,
+            task_=matcher,
+            tpl_mapping=tpl_mapping,
+            work_dir=self.git.checkout_dir,
+        )
+        has_local_changes = self.git.has_changes_local()
         if has_local_changes is True:
-            self.git.commit_changes(work_dir, matcher.commit_msg)
+            self.git.commit_changes(matcher.commit_msg)
         else:
             log.info("No changes after applying actions", repo=str(repo))
 
         if (
-            self.git.has_changes_origin(branch=repo.base_branch, repo_dir=work_dir)
-            is False
+            self.git.has_changes_origin(branch=repo.base_branch) is False
             and pr_identifier is not None
             and repo.is_pr_open(pr_identifier) is True
         ):
@@ -94,7 +104,7 @@ class RepoRun:
                 )
                 log.info(
                     "Deleting source branch because base branch contains all changes",
-                    branch=self.git.branch_name,
+                    branch=branch_name,
                     repo=str(repo),
                 )
                 repo.delete_branch(pr_identifier)
@@ -102,17 +112,14 @@ class RepoRun:
             return RunResult.NO_CHANGES
 
         has_changes = (
-            has_local_changes
-            and self.git.has_changes_origin(
-                branch=self.git.branch_name, repo_dir=work_dir
-            )
+            has_local_changes and self.git.has_changes_origin(branch=branch_name)
         ) or has_conflict
         if has_changes is True:
             if self.opts.config.dry_run:
                 log.warn("DRY RUN: Not pushing changes")
             else:
                 log.debug("Pushing changes", repo=str(repo))
-                self.git.push(work_dir)
+                self.git.push(branch_name)
 
         pr = source.PullRequest(
             matcher.auto_merge,
@@ -134,7 +141,7 @@ class RepoRun:
                 log.warn("DRY RUN: Not creating pull request")
             else:
                 log.info("Create pull request", repo=str(repo))
-                repo.create_pull_request(self.git.branch_name, pr)
+                repo.create_pull_request(branch_name, pr)
 
             return RunResult.PR_CREATED
 
@@ -168,7 +175,7 @@ class RepoRun:
                 if matcher.delete_branch_after_merge:
                     log.info(
                         "Deleting source branch",
-                        branch=self.git.branch_name,
+                        branch=branch_name,
                         repo=str(repo),
                     )
                     repo.delete_branch(pr_identifier)
@@ -239,8 +246,24 @@ def execute(opts: Options) -> bool:
     success = reads_succeeded
     for repository in repositories:
         repository_count += 1
+        checkout_dir = os.path.join(
+            opts.config.git.data_dir,
+            repository.source,
+            repository.project,
+            repository.name,
+        )
+        gitc = git.Git(
+            base_branch=repository.base_branch,
+            checkout_dir=checkout_dir,
+            clone_opts=opts.config.git.clone_options,
+            repository_name=str(repository),
+            user_name=opts.config.git.user_name,
+            user_email=opts.config.git.user_email,
+        )
         for task_ in tasks:
-            task_success = execute_task(task_, repository, opts)
+            task_success = execute_task(
+                gitc=gitc, task_=task_, repo=repository, opts=opts
+            )
             if task_success is False:
                 task_.failure_count += 1
                 success = False
@@ -267,17 +290,11 @@ def execute(opts: Options) -> bool:
 
 
 def execute_task(
+    gitc: git.Git,
     task_: task.Task,
     repo: source.Repository,
     opts: Options,
 ) -> bool:
-    gitc = git.Git(
-        task_.branch(opts.config.git.branch_prefix),
-        opts.config.git.clone_options,
-        opts.config.git.data_dir,
-        opts.config.git.user_name,
-        opts.config.git.user_email,
-    )
     runner = RepoRun(gitc, opts)
     success = True
     try:
@@ -296,7 +313,11 @@ def execute_task(
             return success
 
         log.info("Matched repository", repository=str(repo), task=task_.name)
-        result: RunResult = runner.execute(task_, repo)
+        gitc.initialize(clone_url=repo.clone_url)
+        branch_name = task_.branch(opts.config.git.branch_prefix)
+        result: RunResult = runner.execute(
+            branch_name=branch_name, matcher=task_, repo=repo
+        )
         if result != RunResult.NO_CHANGES:
             task_.changes_total += 1
 
