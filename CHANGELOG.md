@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.23.0](https://github.com/wndhydrnt/rcmt/compare/v0.22.0...v0.23.0) (2023-09-12)
+
+
+### Features
+
+* **action:** add experimental support for semgrep ([#389](https://github.com/wndhydrnt/rcmt/issues/389)) ([d1f3308](https://github.com/wndhydrnt/rcmt/commit/d1f33085c027e4706e1a697d7a013ad9823b0451))
+* **action:** let exec action pass arguments to executable ([#390](https://github.com/wndhydrnt/rcmt/issues/390)) ([8450d02](https://github.com/wndhydrnt/rcmt/commit/8450d02f04e68c3f572eacf9ceeb128285a064bd))
+
+
+### Bug Fixes
+
+* **deps:** update dependency alembic to v1.12.0 ([#384](https://github.com/wndhydrnt/rcmt/issues/384)) ([aae4eeb](https://github.com/wndhydrnt/rcmt/commit/aae4eebee059a33b56adace41be26f9e956d8b27))
+* **deps:** update dependency gitpython to v3.1.33 ([#385](https://github.com/wndhydrnt/rcmt/issues/385)) ([41ed4d4](https://github.com/wndhydrnt/rcmt/commit/41ed4d421720cc7603b882ee47dcfb334cf0b3f1))
+* **deps:** update dependency pydantic to v2 ([#378](https://github.com/wndhydrnt/rcmt/issues/378)) ([a46a0f3](https://github.com/wndhydrnt/rcmt/commit/a46a0f331e3972390f7f8967d7ecc8157c06355c))
+* **deps:** update dependency pydantic to v2.3.0 ([#381](https://github.com/wndhydrnt/rcmt/issues/381)) ([137b155](https://github.com/wndhydrnt/rcmt/commit/137b155fbe3a0e25ba7e48b6397e3df528f5eab1))
+* **deps:** update dependency pygithub to v1.59.1 ([#364](https://github.com/wndhydrnt/rcmt/issues/364)) ([adb15f8](https://github.com/wndhydrnt/rcmt/commit/adb15f854ff17382652ef8255ec3c7267fbd6288))
+* **deps:** update dependency python-gitlab to v3.15.0 ([#365](https://github.com/wndhydrnt/rcmt/issues/365)) ([76513f3](https://github.com/wndhydrnt/rcmt/commit/76513f3507ce77155257c103704f41f05f7d8565))
+* **deps:** update dependency structlog to v23 ([#373](https://github.com/wndhydrnt/rcmt/issues/373)) ([31836ec](https://github.com/wndhydrnt/rcmt/commit/31836eccf17f35211c18be6dc65b8c24f9201e82))
+* **git:** changes in branch not always removed ([#394](https://github.com/wndhydrnt/rcmt/issues/394)) ([d744c4c](https://github.com/wndhydrnt/rcmt/commit/d744c4c7470fc6dfbfd0017726fcaaef22cd9c04))
+
 ## [0.22.0](https://github.com/wndhydrnt/rcmt/compare/v0.21.1...v0.22.0) (2023-08-21)
 
 
