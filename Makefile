@@ -21,6 +21,7 @@ publish:
 
 .PHONY: docs
 docs:
+	mkdir -p ./docs/_static
 	rm -rf ./docs/_build
 	cd docs/ && poetry run make html SPHINXOPTS="-W"
 
