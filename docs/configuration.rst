@@ -47,8 +47,8 @@ requests. Defaults to ``false``.
 ``branch_prefix``
 """""""""""""""""
 
-Prefix of git branches that rcmt creates. Not used if a Matcher defines its own
-:ref:`branch_name <matcher/branch_name>`. Defaults to ``rcmt/``.
+Prefix of git branches that rcmt creates. Not used if a Task defines its own
+``branch_name``. Defaults to ``rcmt/``.
 
 ``clone_options``
 """""""""""""""""
@@ -152,7 +152,7 @@ rcmt prefixes every Pull Request title with this string. Defaults to ``rcmt:``.
 rcmt uses this string to set the title of each Pull Request. Defaults to
 ``apply matcher {matcher_name}``.
 
-``matcher_name`` is a variable referencing the name of a :doc:`Matcher <matcher>`. No
+``matcher_name`` is a variable referencing the name of a :doc:`Task <task>`. No
 other variables are supported.
 
 .. _configuration/pr_title_suffix:
