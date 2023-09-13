@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.1](https://github.com/wndhydrnt/rcmt/compare/v0.23.0...v0.23.1) (2023-09-13)
+
+
+### Bug Fixes
+
+* **docs:** empty pages after upgrade of sphinx ([#396](https://github.com/wndhydrnt/rcmt/issues/396)) ([4434097](https://github.com/wndhydrnt/rcmt/commit/443409739e4f97971e8edb25552beaf12746e730))
+
 ## [0.23.0](https://github.com/wndhydrnt/rcmt/compare/v0.22.0...v0.23.0) (2023-09-12)
 
 
