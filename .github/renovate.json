@@ -12,6 +12,12 @@
       "automerge": true,
       "matchManagers": ["dockerfile"],
       "matchPackageNames": ["python"]
+    },
+    {
+      "allowedVersions": "<=7.2.4",
+      "description": "Prevent upgrades until https://github.com/sphinx-doc/sphinx/issues/11662 has been resolved",
+      "matchManagers": ["poetry"],
+      "matchPackageNames": ["Sphinx"]
     }
   ],
   "semanticCommits": "enabled"
