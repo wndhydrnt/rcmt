@@ -10,8 +10,8 @@ with Task(name="python-defaults") as task:
     # The Own action creates a file and ensures that its content stays the same.
     task.add_action(
         Own(
-            # Load the content to write from a file. The path to the file is relative to
-            # task.py.
+            # Load the content to write from a file.
+            # The path to the file is relative to task.py.
             content=task.load_file(".flake8"),
             # Path to the target where rcmt writes the content of source.
             # This is relative to the root path of a repository.

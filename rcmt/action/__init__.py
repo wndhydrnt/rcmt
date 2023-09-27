@@ -15,9 +15,7 @@ from rcmt.fs import FileProxy, read_file_or_str
 
 
 class Action:
-    """
-    Action is the abstract class that defines the interface each action implements.
-    """
+    """Action is the abstract class that defines the interface each action implements."""
 
     def __call__(self, repo_path: str, tpl_data: dict) -> None:
         return self.apply(repo_path=repo_path, tpl_data=tpl_data)
@@ -26,27 +24,28 @@ class Action:
         return self.__class__.__name__
 
     def apply(self, repo_path: str, tpl_data: dict) -> None:
-        """
-        apply modifies files in the clone of a repository.
+        """apply modifies files in the clone of a repository.
 
-        :param repo_path: The absolute path to the file in a repository to modify.
-        :param tpl_data: The content of the file from an Action, already populated with
-                         template data.
-        :return: None
+        Args:
+            repo_path: The absolute path to the file in a repository to modify.
+            tpl_data: The content of the file from an Action, already populated with
+                      template data.
 
-        .. versionchanged:: 0.5.0
-           Parameter ``pkg_path`` removed.
+        Changes:
+            - 0.5.0: Parameter `pkg_path` removed.
         """
         raise NotImplementedError("class does not implement Action.apply()")
 
 
 class GlobMixin:
-    """
-    GlobMixin simplifies working with glob selectors.
+    """GlobMixin simplifies working with glob selectors.
 
-    Classes that extend GlobMixin do not need to implement calls to ``glob`` from stdlib.
-    Instead, a class implements ``process_file()`` to process each file that matches the
+    Classes that extend GlobMixin do not need to implement calls to `glob` from stdlib.
+    Instead, a class implements `process_file()` to process each file that matches the
     glob selector.
+
+    Args:
+        selector: A glob selector.
     """
 
     def __init__(self, selector: str):
@@ -62,17 +61,16 @@ class GlobMixin:
 
 
 class Absent(Action):
-    """
-    Deletes a file or directory.
+    """Deletes a file or directory.
 
-    :param target: Path to the file or directory to delete.
+    Args:
+        target: Path to the file or directory to delete.
 
-    **Example**
-
-    .. code-block:: python
-
-       # Delete the file config.yaml at the root of a repository.
-       Absent(target="config.yaml")
+    Example:
+        ```python
+        # Delete the file config.yaml at the root of a repository.
+        Absent(target="config.yaml")
+        ```
     """
 
     def __init__(self, target: str):
@@ -89,24 +87,24 @@ class Absent(Action):
 
 
 class Own(Action):
-    """
-    Own ensures that a file in a repository stays the same.
+    """Own ensures that a file in a repository stays the same.
 
-    It always overwrites the data in the file with the data from this Action.
+    It overwrites the content of the file with the data passed to this Action.
 
-    :param content: Content of the file to write.
-    :param target: Path to the file in a repository to own.
+    Args:
+        content: Content of the file to write.
+        target: Path to the file in a repository to own.
 
-    **Example**
+    Example:
+        ```python
+        # Ensure that .flake8 looks the same across all repositories.
+        content = "[flake8]\\nmax-line-length = 88\\nextend-ignore = E203"
+        Own(content=content, target=".flake8")
+        ```
 
-    .. code-block:: python
+    Changes:
+        0.5.0: Parameter `content` added. Parameter `source` removed.
 
-       # Ensure that .flake8 looks the same across all repositories.
-       content = "[flake8]\\nmax-line-length = 88\\nextend-ignore = E203"
-       Own(content=content, target=".flake8")
-
-    .. versionchanged:: 0.5.0
-       Parameter ``content`` added. Parameter ``source`` removed.
     """
 
     def __init__(self, content: Union[str, FileProxy], target: str):
@@ -121,23 +119,23 @@ class Own(Action):
 
 
 class Seed(Own):
-    """
-    Seed ensures that a file in a repository is present.
+    """Seed ensures that a file in a repository is present.
 
     It does not modify the file again if the file is present in a repository.
 
-    :param target: Path to the file in a repository to seed.
-    :param source: A string or path to a file that contain the content to seed.
+    Args:
+        content: Path to the file in a repository to seed.
+        target: A string or path to a file that contain the content to seed.
 
-    **Example**
+    Example:
+        ```python
+        # Ensure that the default Makefile is present.
+        Seed(content="foo:\n\t# foo", target="Makefile")
+        ```
 
-    .. code-block:: python
+    Changes:
+        0.5.0: Parameter `content` added. Parameter `source` removed.
 
-       # Ensure that the default Makefile is present.
-       Seed(content="foo:\n\t# foo", target="Makefile")
-
-    .. versionchanged:: 0.5.0
-       Parameter ``content`` added. Parameter ``source`` removed.
     """
 
     def apply(self, repo_path: str, tpl_data: dict) -> None:
@@ -162,27 +160,26 @@ class EncodingAware:
 
 
 class Merge(Action, EncodingAware):
-    """
-    Merge merges the content of a file in a repository with the content set in this
+    """Merge merges the content of a file in a repository with the content set in this
     Action.
 
     It supports merging of various file formats through :doc:`encoding`.
 
-    :param selector: Glob selector to find the files to merge.
-    :param source: Path to the file that contains the source data.
-    :param merge_strategy: Strategy to use when merging data. ``replace`` replaces a
-                           key if it already exists. ``additive`` combines collections,
-                           e.g. ``list`` or ``set``.
+    Args:
+        content: The raw content to merge.
+        selector: Glob selector to find the files to merge.
+        merge_strategy: Strategy to use when merging data. `replace` replaces a key
+                        if it already exists. `additive` combines collections, e.g.
+                        `list` or `set`.
 
-    **Example**
+    Example:
+        ```python
+        # Ensure that pyproject.toml contains specific keys.
+        Merge(selector="pyproject.toml", source="pyproject.toml")
+        ```
 
-    .. code-block:: python
-
-       # Ensure that pyproject.toml contains specific keys.
-       Merge(selector="pyproject.toml", source="pyproject.toml")
-
-    .. versionchanged:: 0.5.0
-       Parameter ``content`` added. Parameter ``source`` removed.
+    Changes:
+        0.5.0: Parameter `content` added. Parameter `source` removed.
     """
 
     def __init__(
@@ -215,18 +212,17 @@ class Merge(Action, EncodingAware):
 
 
 class DeleteKey(Action, EncodingAware):
-    """
-    Delete a key in a file. The file has to be in a format supported by :doc:`encoding`.
+    """Delete a key in a file. The file has to be in a format supported by encoding.
 
-    :param key: Path to the key in the data structure.
-    :param target: Path to the file to modify.
+    Args:
+        key: Path to the key in the data structure.
+        target: Path to the file to modify.
 
-    **Example**
-
-    .. code-block:: python
-
-       # Delete key "bar" in dict "foo" in file config.json.
-       DeleteKey(key="foo.bar", target="config.json")
+    Example:
+        ```python
+        # Delete key "bar" in dict "foo" in file config.json.
+        DeleteKey(key="foo.bar", target="config.json")
+        ```
     """
 
     def __init__(self, key: str, target: str):
@@ -263,8 +259,7 @@ class DeleteKey(Action, EncodingAware):
 
 
 class Exec(Action):
-    """
-    Exec calls an executable with the given arguments. The executable can then modify
+    """Exec calls an executable with the given arguments. The executable can then modify
     files. A common use case are code formatters such as black, prettier or "go fmt".
 
     The current working directory is set to the checkout of a repository.
@@ -272,16 +267,17 @@ class Exec(Action):
     This Action expects the executable it calls to have been installed already. It does
     not install the executable.
 
-    :param executable: Path to the executable.
-    :param args: List of arguments to pass to the executable.
-    :param timeout: Maximum runtime of the executable, in seconds.
+    Args:
+        executable: Path to the executable.
+        args: List of arguments to pass to the executable.
+        timeout: Maximum runtime of the executable, in seconds.
 
-    **Example**
-
-    .. code-block:: python
-
-       # Find all Python files in a repository recursively and pass each path to /opt/the-binary.
-       Exec(executable="black", args=["--line-length", "120", "."])
+    Example:
+        ```python
+        # Let black format all files in the current directory. The current directory is
+        # the checkout of a repository.
+        Exec(executable="black", args=["--line-length", "120", "."])
+        ```
     """
 
     def __init__(
@@ -311,17 +307,17 @@ class Exec(Action):
 
 
 class LineInFile(GlobMixin, Action):
-    """
-    LineInFile ensures that a line exists in a file. It adds the line if it does not exist.
+    """LineInFile ensures that a line exists in a file. It adds the line if it does not
+    exist.
 
-    :param line: Line to search for.
-    :param selector: Glob selector to find the files to modify.
+    Args:
+        line: Line to search for.
+        selector: Glob selector to find the files to modify.
 
-    **Example**
-
-    .. code-block:: python
-
-       LineInFile(line="The Line", selector="file.txt")
+    Example:
+        ```python
+        LineInFile(line="The Line", selector="file.txt")
+        ```
     """
 
     def __init__(self, line: str, selector: str):
@@ -341,23 +337,20 @@ class LineInFile(GlobMixin, Action):
 
 
 class DeleteLineInFile(GlobMixin, Action):
-    """
-    DeleteLineInFile deletes a line in a file if the file contains the line.
+    """DeleteLineInFile deletes a line in a file if the file contains the line.
 
-    :param line: Line to search for. This is a regular expression.
-    :param selector: Glob selector to find the files to modify.
+    Args:
+        line: Line to search for. This is a regular expression.
+        selector: Glob selector to find the files to modify.
 
-    **Example**
+    Example:
+        ```python
+        DeleteLineInFile(line="The Line", selector="file.txt")
+        ```
 
-    .. code-block:: python
-
-       DeleteLineInFile(line="The Line", selector="file.txt")
-
-    .. versionchanged:: 0.5.0
-       Does not wrap parameter ``line`` with ``^`` and ``$`` characters anymore.
-
-    .. versionchanged:: 0.5.0
-       Does not apply ``strip()`` to each line read from a file.
+    Changes:
+        - 0.5.0: Does not wrap parameter `line` with `^` and `$` characters anymore.
+        - 0.5.0: Does not apply `strip()` to each line read of a file.
     """
 
     def __init__(self, line: str, selector: str):
@@ -380,44 +373,37 @@ class DeleteLineInFile(GlobMixin, Action):
 
 
 class ReplaceInLine(GlobMixin, Action):
-    """
-    ReplaceInLine iterates over each line of a file and replaces a string if it matches
-    a regular expression.
+    """ReplaceInLine iterates over each line of a file and replaces a string if it
+    matches a regular expression.
 
-    It uses ``re.sub()``.
+    It uses `re.sub()`.
 
-    :param search: Pattern to search for. This is a regular expression.
-    :param replace: Replacement if ``search`` matches.
-    :param selector: Glob selector to find the files to modify.
-    :param flags: Additional flags passed to ``re.sub()``.
+    Args:
+        search: Pattern to search for. This is a regular expression.
+        replace: Replacement if `search` matches.
+        selector: Glob selector to find the files to modify.
+        flags: Additional flags passed to `re.sub()`.
 
-    **Example**
+    Example:
+        ```python
+        # Turns the line "This is a test." into "This is an example."
+        ReplaceInLine(
+            search="a test",
+            replace=r"an example",
+            selector="file.txt",
+            flags=re.IGNORECASE
+        )
+        ```
 
-    .. code-block:: python
+    Both `search` and `replace` parameters support `Templating`_.
 
-       # Turns the line "This is a test." into "This is an example."
-       ReplaceInLine(
-           search="a test",
-           replace=r"an example",
-           selector="file.txt",
-           flags=re.IGNORECASE
-       )
+    Note:
+        Make sure to escape every `$` in a regular expression with `$$` to avoid errors
+        like `Invalid placeholder in string: line 1, col 43`.
 
-    Both ``search`` and ``replace`` parameters support `Templating`_.
+        ❌ **Don't**: `^github.com/wndhydrnt/rcmt$`
 
-    .. note::
-       Make sure to escape every ``$`` in a regular expression with ``$$`` to avoid
-       errors like ``Invalid placeholder in string: line 1, col 43``.
-
-       **Don't**
-
-       ``^github.com/wndhydrnt/rcmt$``
-
-       **Do**
-
-       ``^github.com/wndhydrnt/rcmt$$``
-
-    .. versionadded:: 0.6.0
+        ✅ **Do**: `^github.com/wndhydrnt/rcmt$$`
     """
 
     def __init__(self, search: str, replace: str, selector: str, flags: int = 0):

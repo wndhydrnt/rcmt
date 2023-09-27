@@ -5,9 +5,7 @@ from rcmt.typing import Matcher
 
 
 class Base:
-    """
-    Base class that describes the methods of a Matcher.
-    """
+    """Base class that describes the methods of a Matcher."""
 
     def __call__(self, repo: source.Repository) -> bool:
         return self.match(repo)
@@ -23,24 +21,35 @@ class Base:
         return f'{self.__class__.__name__}({", ".join(args)})'
 
     def match(self, repo: source.Repository) -> bool:
-        """
-        Indicates if a repository matches.
+        """Indicates if a repository matches.
 
-        :param repo: Repository to check.
-        :return:
+        Args:
+            repo: Repository to check.
+
+        Returns:
+            Whether the repository matches.
         """
         raise NotImplementedError("class does not implement Base.match()")
 
 
 class FileExists(Base):
-    """
-    FileExists matches if the file exists in a repository.
+    """FileExists matches if the file exists in a repository.
 
     The code checks for the existence of a file by calling the API of the Source. This
     prevents useless checkouts of repositories and saves bandwidth.
 
-    :param path: Path to the file, relative to the root of the repository.
-                 Supports a wildcard in the name of the file, e.g. ``dir/*.json``.
+    Args:
+        path: Path to the file, relative to the root of the repository. Supports a
+              wildcard in the name of the file, e.g. `dir/*.json`.
+
+    Example:
+        ```python
+        from rcmt import Task
+        from rcmt.matcher import FileExists
+
+        with Task("example") as task:
+            task.add_matcher(FileExists("pyproject.toml"))
+        ```
     """
 
     def __init__(self, path: str):
@@ -54,15 +63,23 @@ class FileExists(Base):
 
 
 class LineInFile(Base):
-    """
-    LineInFile matches if a line in a file of a repository matches a regular expression.
+    """LineInFile matches if a line in a file of a repository matches a regular
+    expression.
 
     It downloads the file from the repository without checking out the whole repository.
 
-    :param path: Path of the file to check.
-    :param search: Regular expression to test against each line in the file.
+    Args:
+        path: Path of the file to check.
+        search: Regular expression to test against each line in the file.
 
-    .. versionadded:: 0.8.0
+    Example:
+        ```python
+        from rcmt import Task
+        from rcmt.matcher import LineInFile
+
+        with Task("example") as task:
+            task.add_matcher(LineInFile(path=".gitignore", search="^\\.vscode?"))
+        ```
     """
 
     def __init__(self, path: str, search: str):
@@ -87,10 +104,19 @@ class LineInFile(Base):
 
 
 class RepoName(Base):
-    """
-    RepoName matches if the name of a repository matches a regular expression.
+    """RepoName matches if the name of a repository matches a regular expression.
 
-    :param search: Regular expression to test against names of repositories.
+    Args:
+        search: Regular expression to test against names of repositories.
+
+    Example:
+        ```python
+        from rcmt import Task
+        from rcmt.matcher import RepoName
+
+        with Task("example") as task:
+            task.add_matcher(RepoName("github.com/wndhydrnt/.*"))
+        ```
     """
 
     def __init__(self, search: str):
@@ -108,12 +134,21 @@ class RepoName(Base):
 
 
 class Or(Base):
-    """
-    Or wraps multiple other matchers. It matches if one of those matchers matches.
+    """Or wraps multiple other matchers. It matches if one of those matchers matches.
 
-    :param args: One or more other matchers.
+    Args:
+        args: One or more other matchers.
 
-    .. versionadded:: 0.9.0
+    Example:
+        ```python
+        from rcmt import Task
+        from rcmt.matcher import FileExists, Or
+
+        with Task("example") as task:
+            task.add_matcher(
+                Or(FileExists("pyproject.toml"), FileExists("requirements.txt"))
+            )
+        ```
     """
 
     def __init__(self, *args: Matcher):
@@ -138,12 +173,21 @@ class Or(Base):
 
 
 class And(Base):
-    """
-    And wraps multiple other matchers. It matches if all of those matchers match.
+    """And wraps multiple other matchers. It matches if all of those matchers match.
 
-    :param args: One or more matchers.
+    Args:
+        args: One or more matchers.
 
-    .. versionadded:: 0.14.0
+    Example:
+        ```python
+        from rcmt import Task
+        from rcmt.matcher import And, FileExists
+
+        with Task("example") as task:
+            task.add_matcher(
+                And(FileExists("pyproject.toml"), FileExists("poetry.lock"))
+            )
+        ```
     """
 
     def __init__(self, *args: Matcher):
@@ -168,12 +212,19 @@ class And(Base):
 
 
 class Not(Base):
-    """
-    Not wraps a matcher and negates its match result.
+    """Not wraps a matcher and negates its match result.
 
-    :param matcher: The matcher to wrap.
+    Args:
+        matcher: The matcher to wrap.
 
-    .. versionadded:: 0.14.0
+    Example:
+        ```python
+        from rcmt import Task
+        from rcmt.matcher import FileExists, Not
+
+        with Task("example") as task:
+            task.add_matcher(Not(FileExists("pyproject.toml")))
+        ```
     """
 
     def __init__(self, matcher: Matcher):

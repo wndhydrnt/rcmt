@@ -1,9 +1,9 @@
 """
-This Task file contains two Tasks. Each Task will be executed independent of the other
-and create its own pull request.
+This Task file contains two Tasks. Each Task will be executed
+independent of the other and create its own pull request.
 
-This is great for sharing functionality between Tasks or group related Tasks together in
-one file.
+This is great for sharing functionality between Tasks or group
+related Tasks together in one file.
 """
 from rcmt import Task
 from rcmt.action import Own

@@ -1,0 +1,45 @@
+plugins:
+  - mkdocstrings:
+      default_handler: python
+  - search
+nav:
+  - Get Started:
+      - rcmt: index.md
+      - get-started/how-it-works.md
+  - Examples:
+      - examples/simple/index.md
+      - examples/load_file/index.md
+      - examples/multiple_tasks/index.md
+      - examples/custom_action/index.md
+      - examples/custom_matcher/index.md
+  - Reference:
+      - reference/configuration.md
+      - reference/task.md
+      - reference/matchers.md
+      - reference/actions.md
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+repo_name: wndhydrnt/rcmt
+repo_url: https://github.com/wndhydrnt/rcmt
+site_name: rcmt
+theme:
+  features:
+    - content.code.annotate
+    - content.code.copy
+    - content.tabs.link
+    - navigation.tabs
+  name: material
