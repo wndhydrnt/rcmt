@@ -61,53 +61,53 @@ def register_task(task: "Task") -> None:
 
 
 class Task:
-    """
-    A Task connects Actions with repositories. rcmt reads the Task, finds matching
-    repositories and then applies its Actions to each repository.
+    """A Task connects Actions with repositories.
 
-    :param name: The name of the Task. rcmt uses the name to identify a task.
-    :param auto_merge: rcmt automatically merges a pull request on its next run. The
-                       pull request must pass all its checks.
-    :param auto_merge_after: A duration after which to automatically merge a Pull
-                             Request. Requires ``auto_merge`` to be set to ``true``.
-    :param branch_name: Name of the branch in git. Defaults to ``branch_prefix`` +
-                        ``name``.
-    :param change_limit: Limits the number of changes per run of the Task. A change is
-                         either a pull request created or merged. Helps to reduce the
-                         load on a CI/CD system when a Task would create a lot of pull
-                         requests at the same time. Defaults to ``None`` which means no
-                         limit.
-    :param commit_msg: Message to use when committing changes via git.
-    :param delete_branch_after_merge: If ``True``, rcmt will delete the branch after it
-                                      has been merged. Defaults to ``True``.
-    :param enabled: If ``False``, disables the task. Handy if a task needs to be stopped
-                    temporarily. Defaults to ``True``.
-    :param merge_once: If ``True``, rcmt does not create another pull request if it
-                       created a pull request for the same branch before and that pull
-                       request has been merged.
-    :param pr_body: Define a custom body of a pull request.
-    :param pr_title: Set a custom title for a pull request.
+    rcmt reads the Task, finds matching repositories and then applies its Actions to
+    each repository.
 
-    **Example**
+    Args:
+        name: The name of the Task. rcmt uses the name to identify a task.
+        auto_merge: rcmt automatically merges a pull request on its next run. The
+                    pull request must pass all its checks.
+        auto_merge_after: A duration after which to automatically merge a pull request.
+                          Requires `auto_merge` to be set to `true`.
+        branch_name: Name of the branch in git. Defaults to `branch_prefix` + `name`.
+        change_limit: Limits the number of changes per run of the Task. A change is
+                      either a pull request created or merged. Helps to reduce the
+                      load on a CI/CD system when a Task would create a lot of pull
+                      requests at the same time. Defaults to ``None`` which means no
+                      limit.
+        commit_msg: Message to use when committing changes via git.
+        delete_branch_after_merge: If `True`, rcmt will delete the branch after it has
+                                   been merged. Defaults to `True`.
+        enabled: If `False`, disables the task. Handy if a task needs to be stopped
+                 temporarily. Defaults to `True`.
+        merge_once: If `True`, rcmt does not create another pull request if it created a
+                    pull request for the same branch before and that pull request has
+                    been merged.
+        pr_body: Define a custom body of a pull request.
+        pr_title: Set a custom title for a pull request.
 
-    .. code-block:: python
+    Example:
+        ```python
+        from datetime import timedelta
 
-       from datetime import timedelta
+        from rcmt import Task
+        from rcmt.matcher import FileExists, RepoName
 
-       from rcmt import Task
-       from rcmt.matcher import FileExists, RepoName
+        with Task(
+            name="python-defaults",
+            auto_merge=True,
+            auto_merge_after=timedelta(days=7)
+        ) as task:
+            task.add_matcher(FileExists("pyproject.toml"))
+            task.add_matcher(RepoName("^github.com/wndhydrnt/rcmt$"))
 
-       with Task(
-           name="python-defaults",
-           auto_merge=True,
-           auto_merge_after=timedelta(days=7)
-       ) as task:
-           task.add_matcher(FileExists("pyproject.toml"))
-           task.add_matcher(RepoName("^github.com/wndhydrnt/rcmt$"))
-
-           task.pr_title = "A custom PR title"
-           task.pr_body = '''A custom PR title.
-           It supports multiline strings.'''
+            task.pr_title = "A custom PR title"
+            task.pr_body = '''A custom PR title.
+            It supports multiline strings.'''
+        ```
     """
 
     def __init__(
@@ -154,18 +154,18 @@ class Task:
         register_task(task=self)
 
     def add_action(self, a: Callable[[str, dict], None]) -> None:
-        """
-        Add an Action to apply to every matching repository.
+        """Add an Action to apply to every matching repository.
 
-        :param a: The Action.
+        Args:
+            a: The Action.
         """
         self.actions.append(a)
 
     def add_matcher(self, m: Callable[[source.Repository], bool]) -> None:
-        """
-        Add a Matcher that matches repositories.
+        """Add a Matcher that matches repositories.
 
-        :param m: The matcher to add.
+        Args:
+            m: The matcher to add.
         """
         self.matchers.append(m)
 
@@ -182,11 +182,10 @@ class Task:
         return self.changes_total >= self.change_limit
 
     def load_file(self, path: str) -> FileProxy:
-        """
-        Returns a proxy that an Action can use to load a file.
+        """Returns a proxy that an Action can use to load a file.
 
-        :param path: Path to the file to load. Relative to the file that contains the
-                     Task.
+        Args:
+            path: Path to the file to load. Relative to the file that contains the Task.
         """
         fp = FileProxy(path)
         self.file_proxies.append(fp)
@@ -199,15 +198,7 @@ class Task:
 
         return True
 
-    def set_path(self, path):
-        """
-        Set the path to the Task.
-        Forwards this path to all ``FileProxys`` created when calling the
-        ``load_file`` function.
-        rcmt calls this function when it loads a Task file.
-
-        :param path: Path to the directory that contains the Task file.
-        """
+    def set_path(self, path: str):
         for fp in self.file_proxies:
             fp.set_path(path)
 

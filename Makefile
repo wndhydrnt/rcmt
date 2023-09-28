@@ -21,9 +21,8 @@ publish:
 
 .PHONY: docs
 docs:
-	mkdir -p ./docs/_static
-	rm -rf ./docs/_build
-	cd docs/ && poetry run make html SPHINXOPTS="-W"
+	rm -rf ./site/
+	poetry run mkdocs build -s
 
 docker_build:
 	docker build -t wandhydrant/rcmt:$(RCMT_VERSION) .

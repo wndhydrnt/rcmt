@@ -42,10 +42,13 @@ make test
 Requirements:
 - [Set up virtualenv and install dependencies](#set-up-virtualenv-and-install-dependencies) (only once)
 
+Start a local development server:
+
 ```shell
-make docs
-open ./docs/_build/html/index.html
+poetry run mkdocs serve
 ```
+
+Open `http://127.0.0.1:8000/` in a browser.
 
 ### Create a new database migration
 

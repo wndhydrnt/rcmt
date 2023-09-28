@@ -1,8 +1,8 @@
 """
 This file demonstrates the various ways to create an Action.
 An Action is a function that brings one or more files into a desired state.
-The function receives the path to the clone of a repository as well as data it can use
-for templating.
+The function receives the path to the clone of a repository as well as data
+it can use for templating.
 All Actions in this file do the same thing:
 Create the file "hello.txt" in the root of the repository.
 """
