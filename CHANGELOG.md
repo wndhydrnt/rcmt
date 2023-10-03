@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.23.2](https://github.com/wndhydrnt/rcmt/compare/v0.23.1...v0.23.2) (2023-10-03)
+
+
+### Bug Fixes
+
+* **deps:** update dependency gitpython to v3.1.36 ([#400](https://github.com/wndhydrnt/rcmt/issues/400)) ([c0a5f39](https://github.com/wndhydrnt/rcmt/commit/c0a5f397f83b73c1aff3a09d329a0304815f3d4f))
+* **deps:** update dependency gitpython to v3.1.37 ([#407](https://github.com/wndhydrnt/rcmt/issues/407)) ([61dceaf](https://github.com/wndhydrnt/rcmt/commit/61dceafd07ac40f8993bf230e9b25ad6446d2394))
+* **deps:** update dependency pydantic to v2.4.0 ([#409](https://github.com/wndhydrnt/rcmt/issues/409)) ([0ae8794](https://github.com/wndhydrnt/rcmt/commit/0ae879466fcafea9fe9e5a34b47e93a1e1bc6870))
+* **deps:** update dependency semgrep to v1.40.0 ([#402](https://github.com/wndhydrnt/rcmt/issues/402)) ([523f8ce](https://github.com/wndhydrnt/rcmt/commit/523f8ceb08ad63bb68b21961202c93773b1a4759))
+* **deps:** update dependency sqlalchemy to v2.0.21 ([#404](https://github.com/wndhydrnt/rcmt/issues/404)) ([e64a4b1](https://github.com/wndhydrnt/rcmt/commit/e64a4b107ee7143091dc52f4b388f92741307c1e))
+* **git:** do not fail when default branch has been renamed ([#410](https://github.com/wndhydrnt/rcmt/issues/410)) ([fbbf112](https://github.com/wndhydrnt/rcmt/commit/fbbf11267fcf8c794614fea9510ca9252d66865c))
+* **git:** handle generic git command errors ([#411](https://github.com/wndhydrnt/rcmt/issues/411)) ([c051661](https://github.com/wndhydrnt/rcmt/commit/c0516610cae51b9b2ed6f215b35f3395c6b3fd5c))
+
+
+### Documentation
+
+* Port documentation to mkdocs ([#405](https://github.com/wndhydrnt/rcmt/issues/405)) ([7b93aa5](https://github.com/wndhydrnt/rcmt/commit/7b93aa5bf2c6fade64842313ed4394479e381173))
+
 ## [0.23.1](https://github.com/wndhydrnt/rcmt/compare/v0.23.0...v0.23.1) (2023-09-13)
 
 
