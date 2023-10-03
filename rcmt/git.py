@@ -1,4 +1,5 @@
 import os.path
+import shutil
 from typing import Any, Mapping, Tuple, Union
 
 import git
@@ -7,7 +8,7 @@ from git.exc import GitCommandError
 
 from rcmt import source
 
-log = structlog.get_logger(package="git")
+log: structlog.stdlib.BoundLogger = structlog.get_logger(package="git")
 
 
 class Git:
@@ -49,7 +50,7 @@ class Git:
         git_repo = git.Repo(path=repo_dir)
         return len(git_repo.index.diff(None)) > 0 or len(git_repo.untracked_files) > 0
 
-    def prepare(self, repo: source.Repository) -> Tuple[str, bool]:
+    def prepare(self, repo: source.Repository, iteration: int = 0) -> Tuple[str, bool]:
         """
         1. Clone repository
         2. Checkout base branch
@@ -74,7 +75,24 @@ class Git:
         git_repo.config_writer().set_value("user", "email", self.user_email).release()
         git_repo.config_writer().set_value("user", "name", self.user_name).release()
         log.debug("Checking out base branch", branch=repo.base_branch, repo=str(repo))
-        git_repo.heads[repo.base_branch].checkout()
+        try:
+            git_repo.heads[repo.base_branch].checkout()
+        except IndexError as e:
+            # Protection against infinite loops
+            if iteration != 0:
+                log.error(
+                    "Base branch does not exist on second iteration - stopping processing of repository and re-raising exception"
+                )
+                raise e
+
+            log.debug(
+                "Base branch does not exist - deleting local repository and triggering another clone",
+                branch=repo.base_branch,
+                repo=str(repo),
+            )
+            shutil.rmtree(checkout_dir)
+            return self.prepare(repo, iteration=1)
+
         hash_before_pull = str(git_repo.head.commit)
         log.debug(
             "Pulling changes into base branch", branch=repo.base_branch, repo=str(repo)
