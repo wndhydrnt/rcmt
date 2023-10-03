@@ -1,8 +1,10 @@
 import datetime
+import shutil
 from enum import Enum
 from typing import Iterator, Optional
 
 import structlog
+from git.exc import GitCommandError
 
 from . import config, database, encoding, git, source, task
 
@@ -65,7 +67,20 @@ class RepoRun:
             )
             return RunResult.NO_CHANGES
 
-        work_dir, has_conflict = self.git.prepare(repo)
+        try:
+            work_dir, has_conflict = self.git.prepare(repo)
+        except GitCommandError as e:
+            # Catch any error raised by the git client, delete the repository and
+            # initialize it again
+            log.warn(
+                "generic git error detected - cloning repository again",
+                exc_info=e,
+                repo=str(repo),
+            )
+            checkout_dir = self.git.checkout_dir(repo)
+            shutil.rmtree(checkout_dir)
+            work_dir, has_conflict = self.git.prepare(repo)
+
         tpl_mapping = create_template_mapping(repo)
         apply_actions(repo, matcher, tpl_mapping, work_dir)
         has_local_changes = self.git.has_changes_local(work_dir)
