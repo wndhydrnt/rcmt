@@ -4,6 +4,7 @@ import unittest.mock
 from typing import Any, Union
 from unittest.mock import call
 
+from git.exc import GitCommandError
 from sqlalchemy import select
 
 from rcmt import action, config, database, encoding, git, source
@@ -69,6 +70,7 @@ def create_git_mock(
 ):
     m = unittest.mock.Mock(spec=git.Git)
     m.branch_name = branch_name
+    m.checkout_dir.return_value = checkout_dir
     m.has_changes_local.return_value = has_changes_local
     m.has_changes_origin.side_effect = [has_changes_base, has_changes_origin]
     m.prepare.return_value = (checkout_dir, has_conflict)
@@ -418,6 +420,31 @@ class RepoRunTest(unittest.TestCase):
 
         git_mock.push.assert_not_called()
         repo_mock.create_pull_request.assert_not_called()
+
+    @unittest.mock.patch("shutil.rmtree")
+    def test_git_error(self, rmtree):
+        cfg = config.Config()
+        opts = Options(cfg)
+        git_mock = create_git_mock("rcmt", "/unit/test", False, False)
+        git_mock.prepare.side_effect = [
+            GitCommandError(command=["git", "pull"]),
+            ("/unit/test", False),
+        ]
+        runner = RepoRun(git_mock, opts)
+        run = Task(name="testrun")
+        run.add_matcher(RepoName("local"))
+        action_mock = unittest.mock.Mock(spec=action.Action)
+        run.add_action(action_mock)
+        repo_mock = unittest.mock.Mock(spec=source.Repository)
+        repo_mock.name = "myrepo"
+        repo_mock.project = "myproject"
+        repo_mock.source = "githost.com"
+        repo_mock.find_pull_request.return_value = None
+
+        runner.execute(run, repo_mock)
+
+        rmtree.assert_called_once_with("/unit/test")
+        git_mock.prepare.assert_has_calls([call(repo_mock), call(repo_mock)])
 
 
 class ExecuteTaskTest(unittest.TestCase):
