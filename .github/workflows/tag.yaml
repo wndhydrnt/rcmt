@@ -11,7 +11,7 @@ jobs:
       - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
       - uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: "3.11"
       - uses: Gr1N/setup-poetry@v8
       - env:
           PUBLISH_USERNAME: ${{ secrets.PUBLISH_USERNAME }}
