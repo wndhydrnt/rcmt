@@ -480,7 +480,7 @@ class ExecuteTaskTest(unittest.TestCase):
         result = execute_task(task_=task, repo=repository, opts=opts)
 
         self.assertTrue(result)
-        repo_run.execute.not_called()
+        repo_run.execute.assert_not_called()
 
     @unittest.mock.patch("rcmt.rcmt.RepoRun")
     def test_execute_run__execute_exception(self, repo_run_class):
