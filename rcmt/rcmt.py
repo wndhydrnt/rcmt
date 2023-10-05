@@ -276,7 +276,7 @@ def execute(opts: Options) -> bool:
         log.error("Errors during execution - check previous log messages")
 
     ex = database.Execution()
-    ex.executed_at = datetime.datetime.now(datetime.UTC)
+    ex.executed_at = datetime.datetime.utcnow()
     db.save_execution(ex)
     return success
 
