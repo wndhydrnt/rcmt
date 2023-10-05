@@ -16,7 +16,7 @@ apply the changes and create merge requests.
 
 ### Prerequisites
 
-- Python 3.9 or higher (verify with `python --version`).
+- Python 3.10 or higher (verify with `python --version`).
 - A repository on GitHub or GitLab to modify.
 - A [GitHub Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token)
   or a [GitLab Access Token](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html#create-a-personal-access-token).
