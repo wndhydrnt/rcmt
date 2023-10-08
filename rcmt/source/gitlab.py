@@ -48,14 +48,16 @@ class GitlabRepository(Repository):
         log.debug(
             "Creating merge request", base=self.base_branch, head=branch, repo=str(self)
         )
-        self._project.mergerequests.create(
-            {
-                "description": pr.body,
-                "source_branch": branch,
-                "target_branch": self.base_branch,
-                "title": pr.title,
-            }
-        )
+        payload = {
+            "description": pr.body,
+            "source_branch": branch,
+            "target_branch": self.base_branch,
+            "title": pr.title,
+        }
+        if pr.labels is not None and len(pr.labels) > 0:
+            payload["labels"] = pr.labels
+
+        self._project.mergerequests.create(payload)
 
     def delete_branch(self, identifier: GitlabMergeRequest) -> None:
         if identifier.should_remove_source_branch is not True:

@@ -57,13 +57,16 @@ class GithubRepository(Repository):
         log.debug(
             "Creating pull request", base=self.base_branch, head=branch, repo=str(self)
         )
-        self.repo.create_pull(
+        gh_pr = self.repo.create_pull(
             title=pr.title,
             body=pr.body,
             base=self.base_branch,
             head=branch,
             maintainer_can_modify=True,
         )
+
+        if pr.labels is not None and len(pr.labels) > 0:
+            gh_pr.set_labels(*pr.labels)
 
     def delete_branch(self, identifier: github.PullRequest.PullRequest) -> None:
         if self.repo.delete_branch_on_merge is False:

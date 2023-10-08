@@ -83,6 +83,9 @@ class Task:
                                    been merged. Defaults to `True`.
         enabled: If `False`, disables the task. Handy if a task needs to be stopped
                  temporarily. Defaults to `True`.
+        labels: List of strings to add as labels to a pull request. Labels are set on
+                creation of a pull request. Subsequent updates of the labels will only
+                affect new pul requests.
         merge_once: If `True`, rcmt does not create another pull request if it created a
                     pull request for the same branch before and that pull request has
                     been merged.
@@ -123,6 +126,7 @@ class Task:
         merge_once: bool = False,
         pr_body: str = "",
         pr_title: str = "",
+        labels: Optional[list[str]] = None,
     ):
         self.auto_merge = auto_merge
         self.auto_merge_after = auto_merge_after
@@ -131,6 +135,7 @@ class Task:
         self.commit_msg = commit_msg
         self.delete_branch_after_merge = delete_branch_after_merge
         self.enabled = enabled
+        self.labels = labels
         self.merge_once = merge_once
         self.name = name
         self.pr_body = pr_body

@@ -212,6 +212,45 @@ class GithubRepositoryTest(unittest.TestCase):
         gh_repo_mock.get_git_ref.assert_called_once_with(ref="heads/rcmt/unittest")
         git_ref_mock.delete.assert_called_once_with()
 
+    def test_create_pull_request(self):
+        gh_pr_mock = unittest.mock.Mock(spec=github.PullRequest.PullRequest)
+        gh_repo_mock = unittest.mock.Mock(spec=github.Repository.Repository)
+        gh_repo_mock.create_pull.return_value = gh_pr_mock
+        gh_repo_mock.default_branch = "main"
+        pr_data = source.PullRequest(
+            auto_merge=False,
+            merge_once=False,
+            run_name="unit-test",
+            title_prefix="",
+            title_body="",
+            title_suffix="",
+            custom_body="body",
+            custom_title="title",
+            labels=["abc", "def"],
+        )
+
+        repo = GithubRepository(access_token="", repo=gh_repo_mock)
+        repo.create_pull_request(branch="rcmt/unit-test", pr=pr_data)
+
+        body = """body
+
+---
+
+**Automerge:** Disabled. Merge this manually.  
+**Ignore:** This PR will be recreated if closed.  
+
+---
+
+_This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
+        gh_repo_mock.create_pull.assert_called_once_with(
+            title="title",
+            body=body,
+            base="main",
+            head="rcmt/unit-test",
+            maintainer_can_modify=True,
+        )
+        gh_pr_mock.set_labels.assert_called_once_with("abc", "def")
+
 
 class GithubTest(unittest.TestCase):
     def test_create_from_name__returns_repository(self):

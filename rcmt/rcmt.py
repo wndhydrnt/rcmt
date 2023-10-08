@@ -139,6 +139,7 @@ class RepoRun:
             matcher.pr_body,
             matcher.pr_title,
             auto_merge_after=matcher.auto_merge_after,
+            labels=matcher.labels,
         )
         if has_changes is True and (
             pr_identifier is None
