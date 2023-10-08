@@ -17,12 +17,14 @@ class PullRequest:
         custom_body: str = "",
         custom_title: str = "",
         auto_merge_after: Optional[datetime.timedelta] = None,
+        labels: Optional[list[str]] = None,
     ):
         self.auto_merge = auto_merge
         self.auto_merge_after = auto_merge_after
         self.custom_body = custom_body
         self.custom_title = custom_title
         self.merge_once = merge_once
+        self.labels = labels
         self.run_name = run_name
         self.title_prefix = title_prefix
         self.title_body = title_body

@@ -14,6 +14,7 @@ from gitlab.v4.objects import (
     ProjectMergeRequest,
     ProjectMergeRequestApproval,
     ProjectMergeRequestApprovalManager,
+    ProjectMergeRequestManager,
     ProjectMergeRequestNoteManager,
 )
 from gitlab.v4.objects.files import ProjectFile, ProjectFileManager
@@ -24,6 +25,50 @@ from rcmt.source.gitlab import Gitlab, GitlabRepository
 
 
 class GitlabRepositoryTest(unittest.TestCase):
+    def test_create_pull_request(self):
+        project = unittest.mock.Mock(spec=Project)
+        project.default_branch = "main"
+        project.namespace = {"full_path": "rcmt"}
+        project.path = "unit-test"
+        project_merge_request_manager = unittest.mock.Mock(
+            spec=ProjectMergeRequestManager
+        )
+        project.mergerequests = project_merge_request_manager
+        pr_data = source.PullRequest(
+            auto_merge=False,
+            merge_once=False,
+            run_name="unit-test",
+            title_prefix="",
+            title_body="",
+            title_suffix="",
+            custom_body="body",
+            custom_title="title",
+            labels=["abc", "def"],
+        )
+
+        repo = GitlabRepository(project=project, token="", url="")
+        repo.create_pull_request(branch="rcmt/unit-test", pr=pr_data)
+
+        body = """body
+
+---
+
+**Automerge:** Disabled. Merge this manually.  
+**Ignore:** This PR will be recreated if closed.  
+
+---
+
+_This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
+        project_merge_request_manager.create.assert_called_once_with(
+            {
+                "description": body,
+                "labels": ["abc", "def"],
+                "source_branch": "rcmt/unit-test",
+                "target_branch": "main",
+                "title": "title",
+            }
+        )
+
     def test_get_file__file_exists(self):
         project = unittest.mock.Mock(spec=Project)
         project.default_branch = "main"
