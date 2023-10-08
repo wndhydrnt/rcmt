@@ -85,7 +85,7 @@ class Task:
                  temporarily. Defaults to `True`.
         labels: List of strings to add as labels to a pull request. Labels are set on
                 creation of a pull request. Subsequent updates of the labels will only
-                affect new pul requests.
+                affect new pull requests.
         merge_once: If `True`, rcmt does not create another pull request if it created a
                     pull request for the same branch before and that pull request has
                     been merged.
