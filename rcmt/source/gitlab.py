@@ -48,7 +48,7 @@ class GitlabRepository(Repository):
         log.debug(
             "Creating merge request", base=self.base_branch, head=branch, repo=str(self)
         )
-        payload = {
+        payload: dict[str, Any] = {
             "description": pr.body,
             "source_branch": branch,
             "target_branch": self.base_branch,
