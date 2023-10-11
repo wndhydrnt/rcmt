@@ -3,6 +3,7 @@ import urllib.parse
 from typing import Any, Generator, Iterator, Optional, TextIO, Union
 
 import humanize
+import jinja2
 
 
 class PullRequest:
@@ -18,6 +19,7 @@ class PullRequest:
         custom_title: str = "",
         auto_merge_after: Optional[datetime.timedelta] = None,
         labels: Optional[list[str]] = None,
+        tpl_data: Optional[dict[str, Any]] = None,
     ):
         self.auto_merge = auto_merge
         self.auto_merge_after = auto_merge_after
@@ -29,6 +31,7 @@ class PullRequest:
         self.title_prefix = title_prefix
         self.title_body = title_body
         self.title_suffix = title_suffix
+        self.tpl_data = tpl_data if tpl_data is not None else {}
 
     def __eq__(self, other: object) -> bool:
         """
@@ -71,7 +74,8 @@ class PullRequest:
         if self.custom_body == "":
             body = f"Apply changes from Run {self.run_name}\n"
         else:
-            body = self.custom_body
+            tpl = jinja2.Template(self.custom_body)
+            body = tpl.render(self.tpl_data)
             body += "\n"
 
         body += "\n---\n\n"
@@ -102,7 +106,8 @@ _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
     @property
     def title(self) -> str:
         if self.custom_title != "":
-            return self.custom_title
+            tpl = jinja2.Template(self.custom_title)
+            return tpl.render(self.tpl_data)
 
         return f"{self.title_prefix} {self.title_body} {self.title_suffix}".strip()
 

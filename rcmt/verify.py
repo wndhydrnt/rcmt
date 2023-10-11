@@ -4,7 +4,8 @@ import structlog
 
 import rcmt.git
 from rcmt import task
-from rcmt.rcmt import Options, apply_actions, create_template_mapping
+from rcmt.context import Context
+from rcmt.rcmt import Options, apply_actions
 from rcmt.source import Repository
 
 log: structlog.stdlib.BoundLogger = structlog.get_logger()
@@ -28,8 +29,9 @@ def execute(directory: str, opts: Options, out: TextIO, repo_name: str) -> None:
 
     for t in task.registry.tasks:
         result: bool = True
+        ctx = Context(repository)
         for m in t.matchers:
-            if m(repository) is True:
+            if m(ctx) is True:
                 print(f"✅ Matcher {str(m)} matches", file=out)
             else:
                 result = False
@@ -53,10 +55,11 @@ def execute(directory: str, opts: Options, out: TextIO, repo_name: str) -> None:
 
         print("🏗️  Preparing git clone", file=out)
         checkout_dir, has_conflict = gitc.prepare(repository)
-        tpl_mapping: dict[str, str] = create_template_mapping(repository)
         print("🚜 Applying actions", file=out)
         apply_actions(
-            repo=repository, task_=t, tpl_mapping=tpl_mapping, work_dir=checkout_dir
+            ctx=ctx,
+            task_=t,
+            work_dir=checkout_dir,
         )
         if gitc.has_changes_local(repo_dir=checkout_dir):
             print(

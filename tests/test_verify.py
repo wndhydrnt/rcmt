@@ -3,6 +3,7 @@ import unittest.mock
 
 from rcmt import Task, action, encoding, matcher, register_task
 from rcmt.config import Config
+from rcmt.context import Context
 from rcmt.git import Git
 from rcmt.rcmt import Options
 from rcmt.source import source
@@ -54,7 +55,10 @@ class ExecuteTest(unittest.TestCase):
                 repo_name="github.com/wndhydrnt/rcmt",
             )
 
-        matcher_mock.assert_called_with(repository_mock)
+        matcher_mock.assert_called()
+        ctx = matcher_mock.call_args.args[0]
+        self.assertIsInstance(ctx, Context)
+        self.assertEqual(repository_mock, ctx.repo)
         task_read_mock.assert_called_with("/tmp/run.py")
         action_mock.assert_called_once_with(
             checkout_dir,

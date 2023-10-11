@@ -2,6 +2,7 @@ import io
 import unittest
 from unittest import mock
 
+from rcmt.context import Context
 from rcmt.matcher import And, Base, FileExists, LineInFile, Not, Or
 from rcmt.source import Repository
 
@@ -13,7 +14,7 @@ class FileExistsTest(unittest.TestCase):
         path = "test.json"
 
         under_test = FileExists(path=path)
-        result = under_test.match(repo=repo)
+        result = under_test.match(Context(repo))
 
         self.assertTrue(result)
         repo.has_file.assert_called_once_with(path)
@@ -29,7 +30,7 @@ third line
 """
         )
         under_test = LineInFile("test.txt", "second line")
-        result = under_test.match(repo=repo)
+        result = under_test.match(Context(repo))
         self.assertTrue(result)
         repo.get_file.assert_called_once_with("test.txt")
 
@@ -42,7 +43,7 @@ third line
 """
         )
         under_test = LineInFile("test.txt", "other line")
-        result = under_test.match(repo=repo)
+        result = under_test.match(Context(repo))
         self.assertFalse(result)
         repo.get_file.assert_called_once_with("test.txt")
 
@@ -50,7 +51,7 @@ third line
         repo = mock.Mock(spec=Repository)
         repo.get_file = mock.Mock(side_effect=FileNotFoundError("does not exist"))
         under_test = LineInFile("test.txt", "other line")
-        result = under_test.match(repo=repo)
+        result = under_test.match(Context(repo))
         self.assertFalse(result)
         repo.get_file.assert_called_once_with("test.txt")
 
@@ -59,7 +60,7 @@ class MatcherMock(Base):
     def __init__(self, matches: bool):
         self.matches: bool = matches
 
-    def match(self, repo: Repository) -> bool:
+    def match(self, ctx: Context) -> bool:
         return self.matches
 
 
@@ -69,7 +70,7 @@ class OrTest(unittest.TestCase):
         mock2 = MatcherMock(matches=True)
 
         under_test = Or(mock1, mock2)
-        result = under_test.match(repo=mock.Mock(spec=Repository))
+        result = under_test.match(Context(mock.Mock(spec=Repository)))
 
         self.assertTrue(result)
 
@@ -78,7 +79,7 @@ class OrTest(unittest.TestCase):
         mock2 = MatcherMock(matches=False)
 
         under_test = Or(mock1, mock2)
-        result = under_test.match(repo=mock.Mock(spec=Repository))
+        result = under_test.match(Context(mock.Mock(spec=Repository)))
 
         self.assertFalse(result)
 
@@ -93,7 +94,7 @@ class AndTest(unittest.TestCase):
         mock2 = MatcherMock(matches=True)
 
         under_test = And(mock1, mock2)
-        result = under_test.match(repo=mock.Mock(spec=Repository))
+        result = under_test.match(Context(mock.Mock(spec=Repository)))
 
         self.assertTrue(result)
 
@@ -102,7 +103,7 @@ class AndTest(unittest.TestCase):
         mock2 = MatcherMock(matches=False)
 
         under_test = And(mock1, mock2)
-        result = under_test.match(repo=mock.Mock(spec=Repository))
+        result = under_test.match(Context(mock.Mock(spec=Repository)))
 
         self.assertFalse(result)
 
@@ -116,6 +117,6 @@ class NotTest(unittest.TestCase):
         mmock = MatcherMock(matches=True)
 
         under_test = Not(mmock)
-        result = under_test.match(repo=mock.Mock(spec=Repository))
+        result = under_test.match(Context(mock.Mock(spec=Repository)))
 
         self.assertFalse(result)

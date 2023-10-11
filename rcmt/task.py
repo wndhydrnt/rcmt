@@ -10,7 +10,7 @@ from typing import Callable, Optional
 
 from slugify import slugify
 
-from rcmt import source
+from rcmt import context
 from rcmt.fs import FileProxy
 from rcmt.typing import Action, Matcher
 
@@ -166,7 +166,7 @@ class Task:
         """
         self.actions.append(a)
 
-    def add_matcher(self, m: Callable[[source.Repository], bool]) -> None:
+    def add_matcher(self, m: Callable[[context.Context], bool]) -> None:
         """Add a Matcher that matches repositories.
 
         Args:
@@ -196,9 +196,9 @@ class Task:
         self.file_proxies.append(fp)
         return fp
 
-    def match(self, repo: source.Repository) -> bool:
+    def match(self, ctx: context.Context) -> bool:
         for m in self.matchers:
-            if m(repo) is False:
+            if m(ctx) is False:
                 return False
 
         return True
