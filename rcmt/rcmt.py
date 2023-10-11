@@ -6,7 +6,7 @@ from typing import Iterator, Optional
 import structlog
 from git.exc import GitCommandError
 
-from . import config, database, encoding, git, source, task
+from . import config, context, database, encoding, git, source, task
 
 log: structlog.stdlib.BoundLogger = structlog.get_logger()
 
@@ -41,7 +41,12 @@ class RepoRun:
         self.git = g
         self.opts = opts
 
-    def execute(self, matcher: task.Task, repo: source.Repository) -> RunResult:
+    def execute(
+        self,
+        ctx: context.Context,
+        matcher: task.Task,
+    ) -> RunResult:
+        repo = ctx.repo
         pr_identifier = repo.find_pull_request(self.git.branch_name)
         if (
             pr_identifier is not None
@@ -81,8 +86,7 @@ class RepoRun:
             shutil.rmtree(checkout_dir)
             work_dir, has_conflict = self.git.prepare(repo)
 
-        tpl_mapping = create_template_mapping(repo)
-        apply_actions(repo, matcher, tpl_mapping, work_dir)
+        apply_actions(ctx=ctx, task_=matcher, work_dir=work_dir)
         has_local_changes = self.git.has_changes_local(work_dir)
         if has_local_changes is True:
             self.git.commit_changes(work_dir, matcher.commit_msg)
@@ -140,6 +144,7 @@ class RepoRun:
             matcher.pr_title,
             auto_merge_after=matcher.auto_merge_after,
             labels=matcher.labels,
+            tpl_data=ctx.get_template_data(),
         )
         if has_changes is True and (
             pr_identifier is None
@@ -199,9 +204,8 @@ class RepoRun:
 
 
 def apply_actions(
-    repo: source.Repository,
+    ctx: context.Context,
     task_: task.Task,
-    tpl_mapping: dict,
     work_dir: str,
 ) -> None:
     for a in task_.actions:
@@ -209,9 +213,9 @@ def apply_actions(
             "Applying action from task",
             action=str(a),
             task=task_.name,
-            repo=str(repo),
+            repo=str(ctx.repo),
         )
-        a(work_dir, tpl_mapping)
+        a(work_dir, ctx.get_template_data())
 
 
 def execute(opts: Options) -> bool:
@@ -305,14 +309,15 @@ def execute_task(
             )
             return success
 
-        if task_.match(repo) is False:
+        ctx = context.Context(repo)
+        if task_.match(ctx) is False:
             log.debug(
                 "Repository does not match", repository=str(repo), task=task_.name
             )
             return success
 
         log.info("Matched repository", repository=str(repo), task=task_.name)
-        result: RunResult = runner.execute(task_, repo)
+        result: RunResult = runner.execute(ctx=ctx, matcher=task_)
         if result != RunResult.NO_CHANGES:
             task_.changes_total += 1
 
@@ -349,14 +354,6 @@ def config_to_options(cfg: config.Config) -> Options:
         opts.sources["gitlab"] = source_gitlab
 
     return opts
-
-
-def create_template_mapping(repo: source.Repository) -> dict[str, str]:
-    return {
-        "repo_name": repo.name,
-        "repo_project": repo.project,
-        "repo_source": repo.source,
-    }
 
 
 def list_repositories(

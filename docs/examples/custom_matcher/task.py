@@ -7,17 +7,16 @@ on what is needed.
 All Matchers in this file do the same thing:
 Match if the repository is "github.com/wndhydrnt/rcmt".
 """
-from rcmt import Task
+from rcmt import Context, Task
 from rcmt.matcher import Base, RepoName
-from rcmt.source import source
 
 
 # Create a class-based Matcher by extending matcher.Base.
 # matcher.Base provides helper methods, but it is not required to
 # create a Matcher.
 class MatcherAsClassFromBase(Base):
-    def match(self, repo: source.Repository) -> bool:
-        return repo.full_name == "github.com/wndhydrnt/rcmt"
+    def match(self, ctx: Context) -> bool:
+        return ctx.repo.full_name == "github.com/wndhydrnt/rcmt"
 
 
 # Use a callable class to create the Matcher.
@@ -25,13 +24,13 @@ class MatcherAsClassFromBase(Base):
 # It is recommended to extend matcher.Base as it provides some
 # useful helper methods.
 class MatcherAsCallableClass:
-    def __call__(self, repo: source.Repository) -> bool:
-        return repo.full_name == "github.com/wndhydrnt/rcmt"
+    def __call__(self, ctx: Context) -> bool:
+        return ctx.repo.full_name == "github.com/wndhydrnt/rcmt"
 
 
 # A function.
-def matcher_as_function(repo: source.Repository) -> bool:
-    return repo.full_name == "github.com/wndhydrnt/rcmt"
+def matcher_as_function(ctx: Context) -> bool:
+    return ctx.repo.full_name == "github.com/wndhydrnt/rcmt"
 
 
 with Task(name="matcher-example") as task:

@@ -1,6 +1,6 @@
 from typing import Callable
 
-from rcmt.source import source
+from rcmt import context
 
 Action = Callable[[str, dict], None]
-Matcher = Callable[[source.Repository], bool]
+Matcher = Callable[[context.Context], bool]

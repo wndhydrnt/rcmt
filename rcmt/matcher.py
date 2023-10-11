@@ -1,14 +1,14 @@
 import re
 
-from rcmt import source
+from rcmt.context import Context
 from rcmt.typing import Matcher
 
 
 class Base:
     """Base class that describes the methods of a Matcher."""
 
-    def __call__(self, repo: source.Repository) -> bool:
-        return self.match(repo)
+    def __call__(self, ctx: Context) -> bool:
+        return self.match(ctx)
 
     def __repr__(self) -> str:
         args: list[str] = []
@@ -20,11 +20,11 @@ class Base:
 
         return f'{self.__class__.__name__}({", ".join(args)})'
 
-    def match(self, repo: source.Repository) -> bool:
+    def match(self, ctx: Context) -> bool:
         """Indicates if a repository matches.
 
         Args:
-            repo: Repository to check.
+            ctx: Context containing information.
 
         Returns:
             Whether the repository matches.
@@ -58,8 +58,8 @@ class FileExists(Base):
     def __repr__(self):
         return f"FileExists(path={self.path})"
 
-    def match(self, repo: source.Repository) -> bool:
-        return repo.has_file(self.path)
+    def match(self, ctx: Context) -> bool:
+        return ctx.repo.has_file(self.path)
 
 
 class LineInFile(Base):
@@ -91,9 +91,9 @@ class LineInFile(Base):
     def __repr__(self):
         return f"LineInFile(path={self.path}, search={self._search})"
 
-    def match(self, repo: source.Repository) -> bool:
+    def match(self, ctx: Context) -> bool:
         try:
-            content = repo.get_file(self.path)
+            content = ctx.repo.get_file(self.path)
             for line in content.readlines():
                 if self.regex.match(line) is not None:
                     return True
@@ -126,8 +126,8 @@ class RepoName(Base):
     def __repr__(self):
         return f"RepoName(search={self._search})"
 
-    def match(self, repo: source.Repository) -> bool:
-        if self.regex.match(str(repo)) is None:
+    def match(self, ctx: Context) -> bool:
+        if self.regex.match(str(ctx.repo)) is None:
             return False
 
         return True
@@ -164,9 +164,9 @@ class Or(Base):
 
         return f'Or(matchers=[{", ".join(matchers_repr)}])'
 
-    def match(self, repo: source.Repository) -> bool:
+    def match(self, ctx: Context) -> bool:
         for m in self.matchers:
-            if m(repo) is True:
+            if m(ctx) is True:
                 return True
 
         return False
@@ -203,9 +203,9 @@ class And(Base):
 
         return f'And(matchers=[{", ".join(matchers_repr)}])'
 
-    def match(self, repo: source.Repository) -> bool:
+    def match(self, ctx: Context) -> bool:
         for m in self.matchers:
-            if m(repo) is False:
+            if m(ctx) is False:
                 return False
 
         return True
@@ -233,5 +233,5 @@ class Not(Base):
     def __repr__(self):
         return f"Not(matcher={str(self.matcher)})"
 
-    def match(self, repo: source.Repository) -> bool:
-        return not self.matcher(repo)
+    def match(self, ctx: Context) -> bool:
+        return not self.matcher(ctx)

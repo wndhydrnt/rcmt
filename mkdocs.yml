@@ -6,6 +6,7 @@ nav:
   - Get Started:
       - rcmt: index.md
       - get-started/how-it-works.md
+      - get-started/templating.md
   - Examples:
       - examples/simple/index.md
       - examples/load_file/index.md
@@ -33,6 +34,7 @@ markdown_extensions:
           format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
+  - tables
   - toc:
       permalink: true
 repo_name: wndhydrnt/rcmt
