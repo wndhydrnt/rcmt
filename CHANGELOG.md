@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.24.0](https://github.com/wndhydrnt/rcmt/compare/v0.23.2...v0.24.0) (2023-10-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* Templating with Jinja ([#419](https://github.com/wndhydrnt/rcmt/issues/419))
+
+### Features
+
+* add support for Python 3.12 ([#412](https://github.com/wndhydrnt/rcmt/issues/412)) ([8ab05f4](https://github.com/wndhydrnt/rcmt/commit/8ab05f481359a37acb55d3e09030b8137aca7824))
+* define labels of pull request via a Task ([#415](https://github.com/wndhydrnt/rcmt/issues/415)) ([3f793cf](https://github.com/wndhydrnt/rcmt/commit/3f793cf351e842e437abfb825c58ff8cc59e973e))
+* Templating with Jinja ([#419](https://github.com/wndhydrnt/rcmt/issues/419)) ([64e60c8](https://github.com/wndhydrnt/rcmt/commit/64e60c8315d5e40469135df28907573d827dfc70))
+
+
+### Bug Fixes
+
+* **deps:** update dependency semgrep to v1.42.0 ([#414](https://github.com/wndhydrnt/rcmt/issues/414)) ([fcc993a](https://github.com/wndhydrnt/rcmt/commit/fcc993a3a1a527cb2d6918b996b9ea040c04988f))
+
+
+### Miscellaneous Chores
+
+* release 0.24.0 ([946a9f1](https://github.com/wndhydrnt/rcmt/commit/946a9f112fd6937384adb70dbe9536e5d46984a4))
+
 ## [0.23.2](https://github.com/wndhydrnt/rcmt/compare/v0.23.1...v0.23.2) (2023-10-03)
 
 
