@@ -11,7 +11,7 @@ rcmt sets these template variables automatically:
 | Name         | Description                                                                                                          | Example      |
 |--------------|----------------------------------------------------------------------------------------------------------------------|--------------|
 | `repo_host`  | The host of the repository.                                                                                          | `github.com` |
-| `repo_owner` | In GitHub, The user or organization that owns the repository. In GitLab, The user or group that owns the repository. | `wndhydrnt`  |
+| `repo_owner` | In GitHub, the user or organization that owns the repository. In GitLab, the user or group that owns the repository. | `wndhydrnt`  |
 | `repo_name`  | The name of the repository.                                                                                          | `rcmt`       |
 
 ## Usage
