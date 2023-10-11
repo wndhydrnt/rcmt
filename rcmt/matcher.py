@@ -28,6 +28,9 @@ class Base:
 
         Returns:
             Whether the repository matches.
+
+        Changes:
+            - 0.24.0: Parameter `ctx` replaces parameter `repo`.
         """
         raise NotImplementedError("class does not implement Base.match()")
 
