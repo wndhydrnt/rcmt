@@ -16,6 +16,11 @@ from .typing import EventHandler
 log: structlog.stdlib.BoundLogger = structlog.get_logger()
 
 
+MESSAGE_BRANCH_MODIFIED = """:warning: **This pull request has been modified.**
+
+rcmt will not push new changes. It will not auto-merge this pull request."""
+
+
 class Options:
     def __init__(self, cfg: config.Config):
         self.config = cfg
@@ -77,6 +82,14 @@ class RepoRun:
 
         try:
             work_dir, has_conflict = self.git.prepare(repo)
+        except git.BranchModifiedError:
+            log.warn("branch has been modified", repo=str(repo), task=matcher.name)
+            ctx.repo.create_pr_comment_with_identifier(
+                body=MESSAGE_BRANCH_MODIFIED,
+                identifier="branch-modified",
+                pr=pr_identifier,
+            )
+            return RunResult.NO_CHANGES
         except GitCommandError as e:
             # Catch any error raised by the git client, delete the repository and
             # initialize it again

@@ -19,6 +19,7 @@ from gitlab.v4.objects import (
     ProjectMergeRequestApproval,
     ProjectMergeRequestApprovalManager,
     ProjectMergeRequestManager,
+    ProjectMergeRequestNote,
     ProjectMergeRequestNoteManager,
 )
 from gitlab.v4.objects.files import ProjectFile, ProjectFileManager
@@ -26,6 +27,7 @@ from gitlab.v4.objects.projects import ProjectManager
 
 from rcmt.source import source
 from rcmt.source.gitlab import Gitlab, GitlabRepository
+from rcmt.source.source import PullRequestComment
 
 
 class GitlabRepositoryTest(unittest.TestCase):
@@ -205,6 +207,18 @@ _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
         self.assertEqual("close", pr_mock.state_event)
         pr_mock.save.assert_called_once_with()
 
+    def test_create_pr_comment(self):
+        pr_mock = unittest.mock.Mock(spec=ProjectMergeRequest)
+        notes_mock = unittest.mock.Mock(spec=ProjectMergeRequestNoteManager)
+        pr_mock.notes = notes_mock
+
+        repo = GitlabRepository(
+            project=unittest.mock.Mock(spec=Project), token="", url=""
+        )
+        repo.create_pr_comment(body="Unit Test", pr=pr_mock)
+
+        notes_mock.create.assert_called_once_with({"body": "Unit Test"})
+
     def test_update_pull_request__no_change(self):
         pr_data = source.PullRequest(False, False, "unit-test", "", "", "")
         pr_mock = unittest.mock.Mock(spec=ProjectMergeRequest)
@@ -310,6 +324,25 @@ _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
 
         branches_mock.get.assert_called_once_with(id="rcmt/unittest", lazy=True)
         branch_mock.delete.assert_called_once_with()
+
+    def test_list_pr_comments(self):
+        pr_mock = unittest.mock.Mock(spec=ProjectMergeRequest)
+        notes_mock = unittest.mock.Mock(spec=ProjectMergeRequestNoteManager)
+        note_one = unittest.mock.Mock(spec=ProjectMergeRequestNote)
+        note_one.body = "Note 1"
+        note_two = unittest.mock.Mock(spec=ProjectMergeRequestNote)
+        note_two.body = "Note 2"
+        notes_mock.list.return_value = [note_one, note_two]
+        pr_mock.notes = notes_mock
+
+        repo = GitlabRepository(
+            project=unittest.mock.Mock(spec=Project), token="", url=""
+        )
+        result = list(repo.list_pr_comments(pr_mock))
+
+        self.assertListEqual(
+            result, [PullRequestComment("Note 1"), PullRequestComment("Note 2")]
+        )
 
 
 class GitlabTest(unittest.TestCase):

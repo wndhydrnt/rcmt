@@ -16,11 +16,14 @@ from github.GitRef import GitRef
 from github.GitTree import GitTree
 from github.GitTreeElement import GitTreeElement
 from github.Issue import Issue
+from github.IssueComment import IssueComment
 from github.PullRequestPart import PullRequestPart
 from github.Repository import Repository
+from github.Requester import Requester
 
 from rcmt.source import source
 from rcmt.source.github import Github, GithubRepository
+from rcmt.source.source import PullRequestComment
 
 
 class GithubRepositoryTest(unittest.TestCase):
@@ -141,6 +144,16 @@ class GithubRepositoryTest(unittest.TestCase):
         pr_mock.create_issue_comment.assert_called_once_with(body=message)
         pr_mock.edit.assert_called_once_with(state="closed")
 
+    def test_create_pr_comment(self):
+        pr_mock = unittest.mock.Mock(spec=github.PullRequest.PullRequest)
+
+        repo = GithubRepository(
+            access_token="", repo=unittest.mock.Mock(spec=github.Repository.Repository)
+        )
+        repo.create_pr_comment(body="Unit Test", pr=pr_mock)
+
+        pr_mock.create_issue_comment.assert_called_once_with(body="Unit Test")
+
     def test_update_pull_request__no_change(self):
         pr_data = source.PullRequest(False, False, "unit-test", "", "", "")
         pr_mock = unittest.mock.Mock(spec=github.PullRequest.PullRequest)
@@ -254,6 +267,33 @@ _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
             maintainer_can_modify=True,
         )
         gh_pr_mock.set_labels.assert_called_once_with("abc", "def")
+
+    def test_list_pr_comments(self):
+        pr_mock = unittest.mock.Mock(spec=github.PullRequest.PullRequest)
+        pr_mock.get_issue_comments.return_value = [
+            IssueComment(
+                attributes={"body": "Comment 1"},
+                completed=True,
+                headers={},
+                requester=unittest.mock.Mock(spec=Requester),
+            ),
+            IssueComment(
+                attributes={"body": "Comment 2"},
+                completed=True,
+                headers={},
+                requester=unittest.mock.Mock(spec=Requester),
+            ),
+        ]
+
+        repo = GithubRepository(
+            access_token="", repo=unittest.mock.Mock(spec=github.Repository.Repository)
+        )
+        result = list(repo.list_pr_comments(pr_mock))
+
+        self.assertListEqual(
+            [PullRequestComment("Comment 1"), PullRequestComment("Comment 2")],
+            result,
+        )
 
 
 class GithubTest(unittest.TestCase):

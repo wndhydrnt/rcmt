@@ -15,6 +15,10 @@ from rcmt import source
 log: structlog.stdlib.BoundLogger = structlog.get_logger(package="git")
 
 
+class BranchModifiedError(RuntimeError):
+    pass
+
+
 class Git:
     def __init__(
         self,
@@ -37,6 +41,18 @@ class Git:
         git_repo = git.Repo(path=repo_dir)
         git_repo.git.add(all=True)
         git_repo.index.commit(msg)
+
+    def _detect_modified_branch(
+        self,
+        merge_base: str,
+        repo: git.Repo,
+    ) -> None:
+        for commit in repo.iter_commits():
+            if commit.hexsha == merge_base:
+                return None
+
+            if commit.author.email != self.user_email:
+                raise BranchModifiedError()
 
     @staticmethod
     def has_changes_origin(branch: str, repo_dir: str) -> bool:
@@ -148,6 +164,7 @@ class Git:
         git_repo.heads[self.branch_name].checkout()
         merge_base = git_repo.git.merge_base(repo.base_branch, self.branch_name)
         log.debug("Resetting to merge base", branch=self.branch_name)
+        self._detect_modified_branch(merge_base=merge_base, repo=git_repo)
         git_repo.git.reset(merge_base, hard=True)
         log.debug("Rebasing onto work branch", branch=self.branch_name)
         git_repo.git.rebase(repo.base_branch)

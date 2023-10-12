@@ -18,7 +18,13 @@ from gitlab.v4.objects import Project as GitlabProject
 from gitlab.v4.objects.merge_requests import ProjectMergeRequest as GitlabMergeRequest
 
 from ..log import SECRET_MASKER
-from .source import Base, PullRequest, Repository, add_credentials_to_url
+from .source import (
+    Base,
+    PullRequest,
+    PullRequestComment,
+    Repository,
+    add_credentials_to_url,
+)
 
 log: structlog.stdlib.BoundLogger = structlog.get_logger(source="gitlab")
 
@@ -47,6 +53,9 @@ class GitlabRepository(Repository):
         pr.notes.create({"body": message})
         pr.state_event = "close"
         pr.save()
+
+    def create_pr_comment(self, body: str, pr: GitlabMergeRequest) -> None:
+        pr.notes.create({"body": body})
 
     def create_pull_request(self, branch: str, pr: PullRequest) -> None:
         log.debug(
@@ -155,6 +164,10 @@ class GitlabRepository(Repository):
 
     def is_pr_open(self, mr: GitlabMergeRequest) -> bool:
         return mr.state == "opened"
+
+    def list_pr_comments(self, pr: GitlabMergeRequest) -> Iterator[PullRequestComment]:
+        for note in pr.notes.list(iterator=True):
+            yield PullRequestComment(body=note.body)
 
     def merge_pull_request(self, identifier: GitlabMergeRequest):
         log.debug("Merging merge request", repo=str(self), id=identifier.get_id())

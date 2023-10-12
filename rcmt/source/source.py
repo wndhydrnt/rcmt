@@ -4,6 +4,7 @@
 
 import datetime
 import urllib.parse
+from dataclasses import dataclass
 from typing import Any, Generator, Iterator, Optional, TextIO, Union
 
 import humanize
@@ -116,6 +117,11 @@ _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
         return f"{self.title_prefix} {self.title_body} {self.title_suffix}".strip()
 
 
+@dataclass
+class PullRequestComment:
+    body: str
+
+
 class Repository:
     """
     Repository provides all methods needed to interact with a single repository of a
@@ -168,6 +174,25 @@ class Repository:
         raise NotImplementedError(
             "class does not implement Repository.close_pull_request()"
         )
+
+    def create_pr_comment(self, body: str, pr: Any) -> None:
+        raise NotImplementedError(
+            "class does not implement Repository.create_pr_comment()"
+        )
+
+    def create_pr_comment_with_identifier(
+        self, body: str, identifier: str, pr: Any
+    ) -> None:
+        if identifier == "":
+            raise RuntimeError("identifier cannot be empty")
+
+        prefix = f"<!-- rcmt::{identifier} -->"
+        for comment in self.list_pr_comments(pr):
+            if comment.body.startswith(prefix):
+                return None
+
+        body = f"{prefix}\n{body}"
+        self.create_pr_comment(body=body, pr=pr)
 
     def create_pull_request(self, branch: str, pr: PullRequest) -> None:
         """
@@ -271,6 +296,11 @@ class Repository:
         :rtype: bool
         """
         raise NotImplementedError("class does not implement Repository.is_pr_open()")
+
+    def list_pr_comments(self, pr: Any) -> Iterator[PullRequestComment]:
+        raise NotImplementedError(
+            "class does not implement Repository.list_pr_comments()"
+        )
 
     def merge_pull_request(self, identifier: Any) -> None:
         """
