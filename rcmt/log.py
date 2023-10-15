@@ -31,6 +31,7 @@ SECRET_MASKER = SecretMasker()
 
 def configure(format: Optional[str], level: str) -> None:
     processors = [
+        structlog.contextvars.merge_contextvars,
         SECRET_MASKER.process_event,
         structlog.processors.add_log_level,
         # Add a timestamp in ISO 8601 format.

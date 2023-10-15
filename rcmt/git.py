@@ -60,7 +60,7 @@ class Git:
         """
         checkout_dir = self.checkout_dir(repo)
         if os.path.exists(checkout_dir) is False:
-            log.debug("Cloning repository", url=repo.clone_url, repo=str(repo))
+            log.debug("Cloning repository", url=repo.clone_url)
             os.makedirs(checkout_dir)
             git_repo = git.Repo.clone_from(
                 repo.clone_url, checkout_dir, **self.clone_opts
@@ -74,7 +74,7 @@ class Git:
 
         git_repo.config_writer().set_value("user", "email", self.user_email).release()
         git_repo.config_writer().set_value("user", "name", self.user_name).release()
-        log.debug("Checking out base branch", branch=repo.base_branch, repo=str(repo))
+        log.debug("Checking out base branch", branch=repo.base_branch)
         try:
             git_repo.heads[repo.base_branch].checkout()
         except IndexError as e:
@@ -88,14 +88,14 @@ class Git:
             log.debug(
                 "Base branch does not exist - deleting local repository and triggering another clone",
                 branch=repo.base_branch,
-                repo=str(repo),
             )
             shutil.rmtree(checkout_dir)
             return self.prepare(repo, iteration=1)
 
         hash_before_pull = str(git_repo.head.commit)
         log.debug(
-            "Pulling changes into base branch", branch=repo.base_branch, repo=str(repo)
+            "Pulling changes into base branch",
+            branch=repo.base_branch,
         )
         git_repo.remotes["origin"].pull()
         git_repo.git.remote("prune", "origin")
@@ -105,13 +105,12 @@ class Git:
             log.debug(
                 "Base branch contains new commits",
                 base_branch=repo.base_branch,
-                repo=str(repo),
             )
 
         exists_local = branch_exists_local(self.branch_name, git_repo)
         remote_branch = get_remote_branch(self.branch_name, git_repo)
         if exists_local is False:
-            log.debug("Creating branch", branch=self.branch_name, repo=str(repo))
+            log.debug("Creating branch", branch=self.branch_name)
             if remote_branch is None:
                 git_repo.create_head(self.branch_name)
             else:
@@ -130,7 +129,6 @@ class Git:
                 log.debug(
                     "Merge conflict with base branch",
                     base_branch=repo.base_branch,
-                    repo=str(repo),
                 )
                 has_conflict = True
 
@@ -142,12 +140,12 @@ class Git:
                 if e.status != 128:
                     raise e
 
-        log.debug("Checking out work branch", branch=self.branch_name, repo=str(repo))
+        log.debug("Checking out work branch", branch=self.branch_name)
         git_repo.heads[self.branch_name].checkout()
         merge_base = git_repo.git.merge_base(repo.base_branch, self.branch_name)
-        log.debug("Resetting to merge base", branch=self.branch_name, repo=str(repo))
+        log.debug("Resetting to merge base", branch=self.branch_name)
         git_repo.git.reset(merge_base, hard=True)
-        log.debug("Rebasing onto work branch", branch=self.branch_name, repo=str(repo))
+        log.debug("Rebasing onto work branch", branch=self.branch_name)
         git_repo.git.rebase(repo.base_branch)
 
         return checkout_dir, has_conflict
