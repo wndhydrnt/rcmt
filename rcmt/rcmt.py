@@ -56,7 +56,6 @@ class RepoRun:
             log.info(
                 "Existing PR has been closed",
                 branch=self.git.branch_name,
-                repo=str(repo),
             )
             return RunResult.NO_CHANGES
 
@@ -68,7 +67,6 @@ class RepoRun:
             log.info(
                 "Existing PR has been merged",
                 branch=self.git.branch_name,
-                repo=str(repo),
             )
             return RunResult.NO_CHANGES
 
@@ -80,7 +78,6 @@ class RepoRun:
             log.warn(
                 "generic git error detected - cloning repository again",
                 exc_info=e,
-                repo=str(repo),
             )
             checkout_dir = self.git.checkout_dir(repo)
             shutil.rmtree(checkout_dir)
@@ -91,7 +88,7 @@ class RepoRun:
         if has_local_changes is True:
             self.git.commit_changes(work_dir, matcher.commit_msg)
         else:
-            log.info("No changes after applying actions", repo=str(repo))
+            log.info("No changes after applying actions")
 
         if (
             self.git.has_changes_origin(branch=repo.base_branch, repo_dir=work_dir)
@@ -106,7 +103,6 @@ class RepoRun:
             else:
                 log.info(
                     "Closing pull request because base branch contains all changes",
-                    repo=str(repo),
                 )
                 repo.close_pull_request(
                     "Everything up-to-date. Closing.", pr_identifier
@@ -114,7 +110,6 @@ class RepoRun:
                 log.info(
                     "Deleting source branch because base branch contains all changes",
                     branch=self.git.branch_name,
-                    repo=str(repo),
                 )
                 repo.delete_branch(pr_identifier)
 
@@ -130,7 +125,7 @@ class RepoRun:
             if self.opts.config.dry_run:
                 log.warn("DRY RUN: Not pushing changes")
             else:
-                log.debug("Pushing changes", repo=str(repo))
+                log.debug("Pushing changes")
                 self.git.push(work_dir)
 
         pr = source.PullRequest(
@@ -154,7 +149,7 @@ class RepoRun:
             if self.opts.config.dry_run:
                 log.warn("DRY RUN: Not creating pull request")
             else:
-                log.info("Create pull request", repo=str(repo))
+                log.info("Create pull request")
                 repo.create_pull_request(self.git.branch_name, pr)
 
             return RunResult.PR_CREATED
@@ -166,31 +161,28 @@ class RepoRun:
             and repo.is_pr_open(pr_identifier) is True
         ):
             if not repo.has_successful_pr_build(pr_identifier):
-                log.warn(
-                    "Cannot merge because build of pull request failed", repo=str(repo)
-                )
+                log.warn("Cannot merge because build of pull request failed")
                 return RunResult.NO_CHANGES
 
             if not can_merge_after(
                 repo.pr_created_at(pr_identifier), matcher.auto_merge_after
             ):
-                log.info("Too early to merge pull request", repo=str(repo))
+                log.info("Too early to merge pull request")
                 return RunResult.NO_CHANGES
 
             if not repo.can_merge_pull_request(pr_identifier):
-                log.warn("Cannot merge pull request", repo=str(repo))
+                log.warn("Cannot merge pull request")
                 return RunResult.NO_CHANGES
 
             if self.opts.config.dry_run:
-                log.warn("DRY RUN: Not merging pull request", repo=str(repo))
+                log.warn("DRY RUN: Not merging pull request")
             else:
-                log.info("Merge pull request", repo=str(repo))
+                log.info("Merge pull request")
                 repo.merge_pull_request(pr_identifier)
                 if matcher.delete_branch_after_merge:
                     log.info(
                         "Deleting source branch",
                         branch=self.git.branch_name,
-                        repo=str(repo),
                     )
                     repo.delete_branch(pr_identifier)
 
@@ -213,7 +205,6 @@ def apply_actions(
             "Applying action from task",
             action=str(a),
             task=task_.name,
-            repo=str(ctx.repo),
         )
         a(work_dir, ctx.get_template_data())
 
@@ -260,7 +251,12 @@ def execute(opts: Options) -> bool:
     for repository in repositories:
         repository_count += 1
         for task_ in tasks:
+            structlog.contextvars.clear_contextvars()
+            structlog.contextvars.bind_contextvars(
+                repository=repository.full_name, task=task_.name
+            )
             task_success = execute_task(task_, repository, opts)
+            structlog.contextvars.clear_contextvars()
             if task_success is False:
                 task_.failure_count += 1
                 success = False
