@@ -25,6 +25,6 @@ jobs:
         with:
           python-version: ${{ matrix.version }}
       - uses: Gr1N/setup-poetry@v8
-      - run: poetry install --extras "semgrep"
+      - run: poetry install --all-extras
       - run: make lint
       - run: make test
