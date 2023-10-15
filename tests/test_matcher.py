@@ -60,7 +60,7 @@ third line
         repo.get_file.assert_called_once_with("test.txt")
 
 
-class MatcherMock(Base):
+class FilterMock(Base):
     def __init__(self, matches: bool):
         self.matches: bool = matches
 
@@ -70,8 +70,8 @@ class MatcherMock(Base):
 
 class OrTest(unittest.TestCase):
     def test_filter__does_match(self):
-        mock1 = MatcherMock(matches=False)
-        mock2 = MatcherMock(matches=True)
+        mock1 = FilterMock(matches=False)
+        mock2 = FilterMock(matches=True)
 
         under_test = Or(mock1, mock2)
         result = under_test.filter(Context(mock.Mock(spec=Repository)))
@@ -79,8 +79,8 @@ class OrTest(unittest.TestCase):
         self.assertTrue(result)
 
     def test_filter__does_not_match(self):
-        mock1 = MatcherMock(matches=False)
-        mock2 = MatcherMock(matches=False)
+        mock1 = FilterMock(matches=False)
+        mock2 = FilterMock(matches=False)
 
         under_test = Or(mock1, mock2)
         result = under_test.filter(Context(mock.Mock(spec=Repository)))
@@ -94,8 +94,8 @@ class OrTest(unittest.TestCase):
 
 class AndTest(unittest.TestCase):
     def test_filter__does_match(self):
-        mock1 = MatcherMock(matches=True)
-        mock2 = MatcherMock(matches=True)
+        mock1 = FilterMock(matches=True)
+        mock2 = FilterMock(matches=True)
 
         under_test = And(mock1, mock2)
         result = under_test.filter(Context(mock.Mock(spec=Repository)))
@@ -103,8 +103,8 @@ class AndTest(unittest.TestCase):
         self.assertTrue(result)
 
     def test_filter__does_not_match(self):
-        mock1 = MatcherMock(matches=True)
-        mock2 = MatcherMock(matches=False)
+        mock1 = FilterMock(matches=True)
+        mock2 = FilterMock(matches=False)
 
         under_test = And(mock1, mock2)
         result = under_test.filter(Context(mock.Mock(spec=Repository)))
@@ -118,7 +118,7 @@ class AndTest(unittest.TestCase):
 
 class NotTest(unittest.TestCase):
     def test_filter(self):
-        mmock = MatcherMock(matches=True)
+        mmock = FilterMock(matches=True)
 
         under_test = Not(mmock)
         result = under_test.filter(Context(mock.Mock(spec=Repository)))

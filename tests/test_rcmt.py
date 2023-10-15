@@ -15,7 +15,7 @@ from rcmt import action, config, context, database, git, source
 from rcmt.config import Config
 from rcmt.config import Database as DatabaseConfig
 from rcmt.database import Database, Execution, Run
-from rcmt.matcher import RepoName
+from rcmt.filter import RepoName
 from rcmt.rcmt import Options, RepoRun, RunResult, execute, execute_task
 from rcmt.source import Base
 from rcmt.task import Task, registry
@@ -87,17 +87,17 @@ class RepoRunTest(unittest.TestCase):
         opts = Options(cfg)
         git_mock = create_git_mock("rcmt", "/unit/test", False, False)
         runner = RepoRun(git_mock, opts)
-        run = Task(name="testrun")
-        run.add_matcher(RepoName("local"))
+        task = Task(name="testrun")
+        task.add_filter(RepoName("local"))
         action_mock = unittest.mock.Mock(spec=action.Action)
-        run.add_action(action_mock)
+        task.add_action(action_mock)
         repo_mock = unittest.mock.Mock(spec=source.Repository)
         repo_mock.name = "myrepo"
         repo_mock.project = "myproject"
         repo_mock.source = "githost.com"
         repo_mock.find_pull_request.return_value = None
 
-        runner.execute(ctx=context.Context(repo_mock), matcher=run)
+        runner.execute(ctx=context.Context(repo_mock), matcher=task)
 
         action_mock.assert_called_once_with(
             "/unit/test",
@@ -117,7 +117,7 @@ class RepoRunTest(unittest.TestCase):
         git_mock = create_git_mock("rcmt", "/unit/test", True, True)
         runner = RepoRun(git_mock, opts)
         run = Task(commit_msg="Custom commit", name="testrun")
-        run.add_matcher(RepoName("local"))
+        run.add_filter(RepoName("local"))
         action_mock = unittest.mock.Mock(spec=action.Action)
         run.add_action(action_mock)
         repo_mock = unittest.mock.Mock(spec=source.Repository)
@@ -162,7 +162,7 @@ class RepoRunTest(unittest.TestCase):
             auto_merge_after=datetime.timedelta(hours=12),
             name="testmatch",
         )
-        run.add_matcher(RepoName("local"))
+        run.add_filter(RepoName("local"))
         action_mock = unittest.mock.Mock(spec=action.Action)
         run.add_action(action_mock)
         repo_mock = unittest.mock.Mock(spec=source.Repository)
@@ -200,7 +200,7 @@ class RepoRunTest(unittest.TestCase):
         git_mock = create_git_mock("rcmt", "/unit/test", True, True)
         runner = RepoRun(git_mock, opts)
         run = Task(name="testmatch", merge_once=True)
-        run.add_matcher(RepoName("local"))
+        run.add_filter(RepoName("local"))
         action_mock = unittest.mock.Mock(spec=action.Action)
         run.add_action(action_mock)
         repo_mock = unittest.mock.Mock(spec=source.Repository)
@@ -224,7 +224,7 @@ class RepoRunTest(unittest.TestCase):
         git_mock = create_git_mock("rcmt", "/unit/test", True, True)
         runner = RepoRun(git_mock, opts)
         run = Task(name="testmatch", merge_once=True)
-        run.add_matcher(RepoName("local"))
+        run.add_filter(RepoName("local"))
         action_mock = unittest.mock.Mock(spec=action.Action)
         run.add_action(action_mock)
         repo_mock = unittest.mock.Mock(spec=source.Repository)
@@ -361,7 +361,7 @@ class RepoRunTest(unittest.TestCase):
         git_mock = create_git_mock("rcmt", "/unit/test", True, True)
         runner = RepoRun(git_mock, opts)
         run = Task(commit_msg="Custom commit", name="testrun")
-        run.add_matcher(RepoName("local"))
+        run.add_filter(RepoName("local"))
         action_mock = unittest.mock.Mock(spec=action.Action)
         run.add_action(action_mock)
         repo_mock = unittest.mock.Mock(spec=source.Repository)
@@ -406,7 +406,7 @@ class RepoRunTest(unittest.TestCase):
             auto_merge_after=datetime.timedelta(hours=12),
             name="testmatch",
         )
-        run.add_matcher(RepoName("local"))
+        run.add_filter(RepoName("local"))
         action_mock = unittest.mock.Mock(spec=action.Action)
         run.add_action(action_mock)
         repo_mock = unittest.mock.Mock(spec=source.Repository)
@@ -438,7 +438,7 @@ class RepoRunTest(unittest.TestCase):
         ]
         runner = RepoRun(git_mock, opts)
         run = Task(name="testrun")
-        run.add_matcher(RepoName("local"))
+        run.add_filter(RepoName("local"))
         action_mock = unittest.mock.Mock(spec=action.Action)
         run.add_action(action_mock)
         repo_mock = unittest.mock.Mock(spec=source.Repository)
