@@ -1,9 +1,11 @@
+name: Pull Request
+
 on:
   pull_request: {}
 
 jobs:
   docs:
-    name: docs
+    name: Validate documentation
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
@@ -13,8 +15,13 @@ jobs:
       - uses: Gr1N/setup-poetry@v8
       - run: poetry install --with docs
       - run: make docs
+  license:
+    name: Ensure all files contain MPL 2.0 header
+    runs-on: ubuntu-latest
+    steps:
+      - uses: apache/skywalking-eyes/header@6b2529214f6b1ccee3ec92bb0adfeabf6f66f538
   test:
-    name: test
+    name: Unit Tests
     runs-on: ubuntu-latest
     strategy:
       matrix:

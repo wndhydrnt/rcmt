@@ -1,0 +1,30 @@
+header:
+  license:
+    spdx-id: MPL-2.0
+
+  paths-ignore:
+    - '**/*.md'
+    - 'LICENSE'
+    - '.github/**/*.*'
+    - '.idea/**/*'
+    - '.vscode/**/*'
+    - 'Dockerfile'
+    - 'Makefile'
+    - 'docs/**/*'
+    - 'hack/*'
+    - '**/*.yaml'
+    - '**/*.yml'
+    - '**/*.toml'
+    - '.python-version'
+    - '.*ignore'
+    - '**/*.mako'
+    - 'README'
+    - '*.lock'
+    - '**/*.txt'
+
+  comment: on-failure
+
+# If you don't want to check dependencies' license compatibility, remove the following part
+dependency:
+  files:
+    - pyproject.toml

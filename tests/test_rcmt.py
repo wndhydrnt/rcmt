@@ -1,3 +1,7 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 import datetime
 import unittest
 import unittest.mock
@@ -624,7 +628,7 @@ class ExecuteTest(unittest.TestCase):
         run_db = self.db.get_or_create_task(name="unit-test")
         self.assertEqual(
             run_db.checksum,
-            "e96d87b82e15adb13ef63d6559b7ce85",
+            "be5d75b776b1fe19119d22d363e39477",
             msg="Should write the checksum because the Run was successfully executed",
         )
         execution_db = self.db.get_last_execution()
@@ -664,7 +668,7 @@ class ExecuteTest(unittest.TestCase):
 
         self.db.get_or_create_task(name="unit-test")
         self.db.update_task(
-            name="unit-test", checksum="e96d87b82e15adb13ef63d6559b7ce85"
+            name="unit-test", checksum="be5d75b776b1fe19119d22d363e39477"
         )
 
         new_database_mock.return_value = self.db
@@ -700,7 +704,7 @@ class ExecuteTest(unittest.TestCase):
 
         self.db.get_or_create_task(name="unit-test")
         self.db.update_task(
-            name="unit-test", checksum="e96d87b82e15adb13ef63d6559b7ce85"
+            name="unit-test", checksum="be5d75b776b1fe19119d22d363e39477"
         )
 
         new_database_mock.return_value = self.db
@@ -751,7 +755,7 @@ class ExecuteTest(unittest.TestCase):
 
         self.db.get_or_create_task(name="unit-test")
         self.db.update_task(
-            name="unit-test", checksum="e96d87b82e15adb13ef63d6559b7ce85"
+            name="unit-test", checksum="be5d75b776b1fe19119d22d363e39477"
         )
 
         new_database_mock.return_value = self.db
@@ -838,7 +842,7 @@ class ExecuteTest(unittest.TestCase):
         task_db = self.db.get_or_create_task(name="unit-test")
         self.assertEqual(
             task_db.checksum,
-            "992c6a2a2b39dabbf200c93c80059718",
+            "56d0bab58ee968256dd628a633f3f918",
             msg="Should write the checksum of the Run if it has been disabled",
         )
         execute_task_mock.assert_not_called()
@@ -893,7 +897,7 @@ class ExecuteTest(unittest.TestCase):
         run_db = self.db.get_or_create_task(name="unit-test")
         self.assertEqual(
             run_db.checksum,
-            "e96d87b82e15adb13ef63d6559b7ce85",
+            "be5d75b776b1fe19119d22d363e39477",
             msg="Should write the checksum because the Run was successfully executed",
         )
         execution_db = self.db.get_last_execution()
@@ -949,7 +953,7 @@ class ExecuteTest(unittest.TestCase):
         task_db = self.db.get_or_create_task(name="unit-test")
         self.assertEqual(
             task_db.checksum,
-            "e96d87b82e15adb13ef63d6559b7ce85",
+            "be5d75b776b1fe19119d22d363e39477",
             msg="Should write the checksum of the working Task to the DB",
         )
         with self.db.session() as session, session.begin():
