@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "rcmt"
-version = "0.24.0"
+version = "0.25.0"
 description = ""
 license = "MPL-2.0"
 authors = [ "Markus Meyer <hydrantanderwand@gmail.com>",]

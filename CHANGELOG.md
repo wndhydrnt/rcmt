@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.25.0](https://github.com/wndhydrnt/rcmt/compare/v0.24.0...v0.25.0) (2023-10-15)
+
+
+### Features
+
+* create module "filter" and deprecate module "matcher" ([#425](https://github.com/wndhydrnt/rcmt/issues/425)) ([f315185](https://github.com/wndhydrnt/rcmt/commit/f315185ea4dab811d19592fed621f6f8570734b8))
+* remove experimental semgrep support ([#421](https://github.com/wndhydrnt/rcmt/issues/421)) ([cd80a67](https://github.com/wndhydrnt/rcmt/commit/cd80a67dee1ddf3272bc1c147038d59754d60124))
+* Switch license to MPL 2.0 ([#423](https://github.com/wndhydrnt/rcmt/issues/423)) ([9cd03d9](https://github.com/wndhydrnt/rcmt/commit/9cd03d94405829ec05aa41c45b8ecea82fed747d))
+
 ## [0.24.0](https://github.com/wndhydrnt/rcmt/compare/v0.23.2...v0.24.0) (2023-10-11)
 
 
