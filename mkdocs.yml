@@ -12,11 +12,11 @@ nav:
       - examples/load_file/index.md
       - examples/multiple_tasks/index.md
       - examples/custom_action/index.md
-      - examples/custom_matcher/index.md
+      - examples/custom_filter/index.md
   - Reference:
       - reference/configuration.md
       - reference/task.md
-      - reference/matchers.md
+      - reference/filters.md
       - reference/actions.md
 markdown_extensions:
   - admonition

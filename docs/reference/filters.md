@@ -1,6 +1,6 @@
-# Matchers
+# Filters
 
-::: rcmt.matcher
+::: rcmt.filter
     options:
         filters:
             - "!^Base"
@@ -8,6 +8,6 @@
 
 ## Base Class
 
-::: rcmt.matcher.Base
+::: rcmt.filter.Base
     options:
         heading_level: 3

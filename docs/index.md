@@ -41,7 +41,7 @@ Create the file `task.py` and add the following content:
 ```python title="task.py"
 from rcmt import Task
 from rcmt.action import Own
-from rcmt.matcher import RepoName
+from rcmt.filter import RepoName
 
 with Task(
     name="rcmt-example",
@@ -53,14 +53,14 @@ https://rcmt.readthedocs.io/get-started/create-a-task/
 """
 ) as task: # (1)!
     task.add_action(Own(content="rcmt works!", target="rcmt.txt")) # (2)!
-    task.add_matcher(RepoName("^github.com/wndhydrnt/rcmt-example$")) # (3)!
+    task.add_filter(RepoName("^github.com/wndhydrnt/rcmt-example$")) # (3)!
 ```
 
-1.  A Task bundles Actions and Matchers and allows to set extra configuration.
+1.  A Task bundles Actions and Filters and allows to set extra configuration.
 2.  This adds an Action. Actions modify files in a repository. In this case, the `Own`
     Action creates the file `rcmt.txt` with the content `rcmt works!`.
-3.  This adds a Matcher. Matchers allow filtering the repositories to which a Task
-    applies. This can be the name of a repository, like in this example. Other Matchers
+3.  This adds a Filter. Filters allow filtering the repositories to which a Task
+    applies. This can be the name of a repository, like in this example. Other Filters
     are available that check for the existence of a file in a repository or the content
     of a file.
 

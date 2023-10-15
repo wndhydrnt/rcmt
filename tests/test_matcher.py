@@ -12,20 +12,20 @@ from rcmt.source import Repository
 
 
 class FileExistsTest(unittest.TestCase):
-    def test_match(self):
+    def test_filter(self):
         repo = mock.Mock(spec=Repository)
         repo.has_file.return_value = True
         path = "test.json"
 
         under_test = FileExists(path=path)
-        result = under_test.match(Context(repo))
+        result = under_test.filter(Context(repo))
 
         self.assertTrue(result)
         repo.has_file.assert_called_once_with(path)
 
 
 class LineInFileTest(unittest.TestCase):
-    def test_match__does_match(self):
+    def test_filter__does_match(self):
         repo = mock.Mock(spec=Repository)
         repo.get_file.return_value = io.StringIO(
             """first line
@@ -34,11 +34,11 @@ third line
 """
         )
         under_test = LineInFile("test.txt", "second line")
-        result = under_test.match(Context(repo))
+        result = under_test.filter(Context(repo))
         self.assertTrue(result)
         repo.get_file.assert_called_once_with("test.txt")
 
-    def test_match__does_not_match(self):
+    def test_filter__does_not_match(self):
         repo = mock.Mock(spec=Repository)
         repo.get_file.return_value = io.StringIO(
             """first line
@@ -47,43 +47,43 @@ third line
 """
         )
         under_test = LineInFile("test.txt", "other line")
-        result = under_test.match(Context(repo))
+        result = under_test.filter(Context(repo))
         self.assertFalse(result)
         repo.get_file.assert_called_once_with("test.txt")
 
-    def test_match__does_not_exist(self):
+    def test_filter__does_not_exist(self):
         repo = mock.Mock(spec=Repository)
         repo.get_file = mock.Mock(side_effect=FileNotFoundError("does not exist"))
         under_test = LineInFile("test.txt", "other line")
-        result = under_test.match(Context(repo))
+        result = under_test.filter(Context(repo))
         self.assertFalse(result)
         repo.get_file.assert_called_once_with("test.txt")
 
 
-class MatcherMock(Base):
+class FilterMock(Base):
     def __init__(self, matches: bool):
         self.matches: bool = matches
 
-    def match(self, ctx: Context) -> bool:
+    def filter(self, ctx: Context) -> bool:
         return self.matches
 
 
 class OrTest(unittest.TestCase):
-    def test_match__does_match(self):
-        mock1 = MatcherMock(matches=False)
-        mock2 = MatcherMock(matches=True)
+    def test_filter__does_match(self):
+        mock1 = FilterMock(matches=False)
+        mock2 = FilterMock(matches=True)
 
         under_test = Or(mock1, mock2)
-        result = under_test.match(Context(mock.Mock(spec=Repository)))
+        result = under_test.filter(Context(mock.Mock(spec=Repository)))
 
         self.assertTrue(result)
 
-    def test_match__does_not_match(self):
-        mock1 = MatcherMock(matches=False)
-        mock2 = MatcherMock(matches=False)
+    def test_filter__does_not_match(self):
+        mock1 = FilterMock(matches=False)
+        mock2 = FilterMock(matches=False)
 
         under_test = Or(mock1, mock2)
-        result = under_test.match(Context(mock.Mock(spec=Repository)))
+        result = under_test.filter(Context(mock.Mock(spec=Repository)))
 
         self.assertFalse(result)
 
@@ -93,21 +93,21 @@ class OrTest(unittest.TestCase):
 
 
 class AndTest(unittest.TestCase):
-    def test_match__does_match(self):
-        mock1 = MatcherMock(matches=True)
-        mock2 = MatcherMock(matches=True)
+    def test_filter__does_match(self):
+        mock1 = FilterMock(matches=True)
+        mock2 = FilterMock(matches=True)
 
         under_test = And(mock1, mock2)
-        result = under_test.match(Context(mock.Mock(spec=Repository)))
+        result = under_test.filter(Context(mock.Mock(spec=Repository)))
 
         self.assertTrue(result)
 
-    def test_match__does_not_match(self):
-        mock1 = MatcherMock(matches=True)
-        mock2 = MatcherMock(matches=False)
+    def test_filter__does_not_match(self):
+        mock1 = FilterMock(matches=True)
+        mock2 = FilterMock(matches=False)
 
         under_test = And(mock1, mock2)
-        result = under_test.match(Context(mock.Mock(spec=Repository)))
+        result = under_test.filter(Context(mock.Mock(spec=Repository)))
 
         self.assertFalse(result)
 
@@ -117,10 +117,10 @@ class AndTest(unittest.TestCase):
 
 
 class NotTest(unittest.TestCase):
-    def test_match(self):
-        mmock = MatcherMock(matches=True)
+    def test_filter(self):
+        mmock = FilterMock(matches=True)
 
         under_test = Not(mmock)
-        result = under_test.match(Context(mock.Mock(spec=Repository)))
+        result = under_test.filter(Context(mock.Mock(spec=Repository)))
 
         self.assertFalse(result)

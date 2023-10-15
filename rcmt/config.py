@@ -68,7 +68,7 @@ class Config(BaseSettings):
     log_format: Optional[str] = None
     log_level: str = "info"
     pr_title_prefix: str = "rcmt:"
-    pr_title_body: str = "apply matcher {matcher_name}"
+    pr_title_body: str = "apply task {matcher_name}"
     pr_title_suffix: str = ""
     toml: Toml = Toml()
     yaml: Yaml = Yaml()

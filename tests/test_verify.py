@@ -5,7 +5,7 @@
 import unittest
 import unittest.mock
 
-from rcmt import Task, action, encoding, matcher, register_task
+from rcmt import Task, action, encoding, filter
 from rcmt.config import Config
 from rcmt.context import Context
 from rcmt.git import Git
@@ -39,9 +39,9 @@ class ExecuteTest(unittest.TestCase):
         opts.sources["github.com"] = source_mock
 
         task = Task(name="local")
-        matcher_mock = unittest.mock.Mock(spec=matcher.Base)
+        matcher_mock = unittest.mock.Mock(spec=filter.Base)
         matcher_mock.return_value = True
-        task.add_matcher(matcher_mock)
+        task.add_filter(matcher_mock)
         action_mock = unittest.mock.Mock(spec=action.Action)
         task.add_action(action_mock)
         registry.tasks.append(task)
