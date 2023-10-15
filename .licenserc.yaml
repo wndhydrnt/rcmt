@@ -1,7 +1,6 @@
 header:
   license:
     spdx-id: MPL-2.0
-#    copyright-owner: Markus Meyer
 
   paths-ignore:
     - '**/*.md'
