@@ -14,7 +14,7 @@ jobs:
       - run: poetry install --with docs
       - run: make docs
   license:
-    name: license
+    name: Ensure all files contain MPL 2.0 header
     runs-on: ubuntu-latest
     steps:
       - uses: apache/skywalking-eyes/header@6b2529214f6b1ccee3ec92bb0adfeabf6f66f538
