@@ -13,6 +13,11 @@ jobs:
       - uses: Gr1N/setup-poetry@v8
       - run: poetry install --with docs
       - run: make docs
+  license:
+    name: license
+    runs-on: ubuntu-latest
+    steps:
+      - uses: apache/skywalking-eyes/header@6b2529214f6b1ccee3ec92bb0adfeabf6f66f538
   test:
     name: test
     runs-on: ubuntu-latest
