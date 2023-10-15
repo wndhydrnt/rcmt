@@ -73,7 +73,7 @@ with the following content will print "Hello" when validated:
 \b
 print("Hello")
 with Task(name="example") as task:
-    # Add matchers/actions here
+    # Add filters/actions here
 
 
 
@@ -102,7 +102,7 @@ def validate(task_file: tuple[str]):
 
 verify_help = """Verify a Task locally.
 
-This command makes it possible to quickly verify that Matchers and Actions of a Task
+This command makes it possible to quickly verify that Filters and Actions of a Task
 work for a given repository.
 
 The command queries the API of a Source and clones the repository, but does not create a
@@ -114,7 +114,7 @@ applying Actions.
 Examples:
 
 \b
-# Verify that Matchers and Actions in task.py work for the repository "github.com/wndhydrnt/rcmt"
+# Verify that Filters and Actions in task.py work for the repository "github.com/wndhydrnt/rcmt"
 rcmt verify gitlab.com/wandhydrant/rcmt-test task.py
 
 Note: rcmt needs to query the API of a Source, like GitHub or GitLab, to execute the

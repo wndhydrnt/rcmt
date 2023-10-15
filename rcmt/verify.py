@@ -34,16 +34,16 @@ def execute(directory: str, opts: Options, out: TextIO, repo_name: str) -> None:
     for t in task.registry.tasks:
         result: bool = True
         ctx = Context(repository)
-        for m in t.matchers:
-            if m(ctx) is True:
-                print(f"✅ Matcher {str(m)} matches", file=out)
+        for f in t.filters:
+            if f(ctx) is True:
+                print(f"✅ Filter {str(f)} matches", file=out)
             else:
                 result = False
-                print(f"❌ Matcher {str(m)} does not match", file=out)
+                print(f"❌ Filter {str(f)} does not match", file=out)
 
         if result is False:
             print(
-                f"❌ - at least one Matcher did not match repository {repo_name}",
+                f"❌ - at least one Filter did not match repository {repo_name}",
                 file=out,
             )
             return

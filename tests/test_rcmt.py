@@ -146,7 +146,7 @@ class RepoRunTest(unittest.TestCase):
             run.merge_once,
             run.name,
             cfg.pr_title_prefix,
-            "apply matcher testrun",
+            "apply task testrun",
             cfg.pr_title_suffix,
         )
         repo_mock.create_pull_request.assert_called_once_with("rcmt", expected_pr)
@@ -286,7 +286,7 @@ class RepoRunTest(unittest.TestCase):
         cfg = config.Config()
         opts = Options(cfg)
         git_mock = create_git_mock("rcmt", "/unit/test", False, False, True)
-        run = Task(name="testmatch")
+        task = Task(name="testmatch")
         repo_mock = unittest.mock.Mock(spec=source.Repository)
         repo_mock.name = "myrepo"
         repo_mock.project = "myproject"
@@ -295,7 +295,7 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.is_pr_open.return_value = True
 
         runner = RepoRun(git_mock, opts)
-        runner.execute(ctx=context.Context(repo_mock), matcher=run)
+        runner.execute(ctx=context.Context(repo_mock), matcher=task)
 
         repo_mock.close_pull_request.assert_not_called()
         repo_mock.create_pull_request.assert_not_called()
@@ -305,7 +305,7 @@ class RepoRunTest(unittest.TestCase):
             False,
             "testmatch",
             cfg.pr_title_prefix,
-            "apply matcher testmatch",
+            "apply task testmatch",
             cfg.pr_title_suffix,
         )
         repo_mock.update_pull_request.assert_called_once_with("someid", pr_data)
@@ -390,7 +390,7 @@ class RepoRunTest(unittest.TestCase):
             run.merge_once,
             run.name,
             cfg.pr_title_prefix,
-            "apply matcher testrun",
+            "apply task testrun",
             cfg.pr_title_suffix,
         )
         repo_mock.create_pull_request.assert_called_once_with("rcmt", expected_pr)
@@ -460,7 +460,7 @@ class ExecuteTaskTest(unittest.TestCase):
         repo_run_class.return_value = repo_run
         task = unittest.mock.Mock(spec=Task)
         task.has_reached_change_limit.return_value = False
-        task.match.return_value = True
+        task.filter.return_value = True
         task.name = "test"
         task.change_limit = None
         task.changes_total = 0
@@ -493,7 +493,7 @@ class ExecuteTaskTest(unittest.TestCase):
         repo_run_class.return_value = repo_run
         task = unittest.mock.Mock(spec=Task)
         task.has_reached_change_limit.return_value = False
-        task.match.return_value = False
+        task.filter.return_value = False
         task.name = "test"
         repository = unittest.mock.Mock(spec=source.Repository)
         opts = Options(cfg=Config())
@@ -508,22 +508,22 @@ class ExecuteTaskTest(unittest.TestCase):
         repo_run = unittest.mock.Mock(spec=RepoRun)
         repo_run.execute.side_effect = RuntimeError
         repo_run_class.return_value = repo_run
-        run = unittest.mock.Mock(spec=Task)
-        run.match.return_value = True
-        run.name = "test"
+        task = unittest.mock.Mock(spec=Task)
+        task.filter.return_value = True
+        task.name = "test"
         repository = unittest.mock.Mock(spec=source.Repository)
         opts = Options(cfg=Config())
 
-        result = execute_task(task_=run, repo=repository, opts=opts)
+        result = execute_task(task_=task, repo=repository, opts=opts)
 
         self.assertFalse(result)
 
     @unittest.mock.patch("rcmt.rcmt.RepoRun")
-    def test_execute_run__match_exception(self, repo_run_class):
+    def test_execute_run__filter_exception(self, repo_run_class):
         repo_run = unittest.mock.Mock(spec=RepoRun)
         repo_run_class.return_value = repo_run
         run = unittest.mock.Mock(spec=Task)
-        run.match.side_effect = RuntimeError
+        run.filter.side_effect = RuntimeError
         run.name = "test"
         repository = unittest.mock.Mock(spec=source.Repository)
         opts = Options(cfg=Config())
@@ -542,7 +542,7 @@ class ExecuteTaskTest(unittest.TestCase):
         def return_true(*args, **kwargs) -> bool:
             return True
 
-        task.match = return_true
+        task.filter = return_true
         repository_one = unittest.mock.Mock(spec=source.Repository)
         repository_one.name = "one"
         repository_one.project = "repository"

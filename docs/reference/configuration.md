@@ -116,7 +116,7 @@ rcmt prefixes every Pull Request title with this string. Defaults to `rcmt:`.
 ## `pr_title_body`
 
 rcmt uses this string to set the title of each Pull Request. Defaults to
-`apply matcher {matcher_name}`.
+`apply task {matcher_name}`.
 
 `matcher_name` is a variable referencing the name of a [Task](./task.md). No
 other variables are supported at the moment.

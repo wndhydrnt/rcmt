@@ -1,6 +1,6 @@
 from rcmt import Task
 from rcmt.action import Seed
-from rcmt.matcher import RepoName
+from rcmt.filter import RepoName
 
 # Replace with your repository.
 REPOSITORY = "github.com/wndhydrnt/rcmt"
@@ -15,6 +15,6 @@ Name: {{repo_name}}"""
 
 
 with Task("default-templating") as task:
-    task.add_matcher(RepoName(f"^{REPOSITORY}$"))
+    task.add_filter(RepoName(f"^{REPOSITORY}$"))
 
     task.add_action(Seed(content="Default Templating", target="templating.txt"))

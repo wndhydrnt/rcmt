@@ -37,7 +37,7 @@ Name: rcmt
 
 ### Custom template variables
 
-Matchers can set custom template variables.
+Filters can set custom template variables.
 
 ```python
 --8<-- "docs/examples/templating/task_custom.py"
@@ -46,5 +46,5 @@ Matchers can set custom template variables.
 Creates a pull request with the following body:
 
 ```text
-Custom matcher says: Hello World
+Custom filter says: Hello World
 ```

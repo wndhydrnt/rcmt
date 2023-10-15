@@ -16,7 +16,7 @@ from slugify import slugify
 
 from rcmt import context
 from rcmt.fs import FileProxy
-from rcmt.typing import Action, Matcher
+from rcmt.typing import Action, Filter
 
 
 class TaskRegistry:
@@ -101,15 +101,15 @@ class Task:
         from datetime import timedelta
 
         from rcmt import Task
-        from rcmt.matcher import FileExists, RepoName
+        from rcmt.filter import FileExists, RepoName
 
         with Task(
             name="python-defaults",
             auto_merge=True,
             auto_merge_after=timedelta(days=7)
         ) as task:
-            task.add_matcher(FileExists("pyproject.toml"))
-            task.add_matcher(RepoName("^github.com/wndhydrnt/rcmt$"))
+            task.add_filter(FileExists("pyproject.toml"))
+            task.add_filter(RepoName("^github.com/wndhydrnt/rcmt$"))
 
             task.pr_title = "A custom PR title"
             task.pr_body = '''A custom PR title.
@@ -150,7 +150,7 @@ class Task:
         self.checksum: str = ""
         self.failure_count: int = 0
         self.file_proxies: list[FileProxy] = []
-        self.matchers: list[Matcher] = []
+        self.filters: list[Filter] = []
 
     def __enter__(self):
         return self
@@ -170,13 +170,24 @@ class Task:
         """
         self.actions.append(a)
 
-    def add_matcher(self, m: Callable[[context.Context], bool]) -> None:
-        """Add a Matcher that matches repositories.
+    def add_filter(self, f: Callable[[context.Context], bool]) -> None:
+        """Add a Filter that matches repositories.
 
         Args:
-            m: The matcher to add.
+            f: The filter to add.
         """
-        self.matchers.append(m)
+        self.filters.append(f)
+
+    def add_matcher(self, m: Callable[[context.Context], bool]) -> None:
+        """Add a Filter that matches repositories.
+
+        Args:
+            m: The filter to add.
+
+        Deprecated:
+            Use `add_filter`.
+        """
+        self.filters.append(m)
 
     def branch(self, prefix: str) -> str:
         if self.branch_name != "":
@@ -200,8 +211,8 @@ class Task:
         self.file_proxies.append(fp)
         return fp
 
-    def match(self, ctx: context.Context) -> bool:
-        for m in self.matchers:
+    def filter(self, ctx: context.Context) -> bool:
+        for m in self.filters:
             if m(ctx) is False:
                 return False
 

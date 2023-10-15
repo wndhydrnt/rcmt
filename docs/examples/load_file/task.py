@@ -1,11 +1,11 @@
 from rcmt import Task
 from rcmt.action import Own
-from rcmt.matcher import RepoName
+from rcmt.filter import RepoName
 
 # rcmt uses the name when committing changes.
 with Task(name="python-defaults") as task:
     # Match all repositories of MyOrg.
-    task.add_matcher(RepoName("github.com/MyOrg/.+"))
+    task.add_filter(RepoName("github.com/MyOrg/.+"))
     # Add an action to the task. The action tells rcmt what to do.
     # The Own action creates a file and ensures that its content stays the same.
     task.add_action(
