@@ -11,6 +11,7 @@ import structlog
 from git.exc import GitCommandError
 
 from . import config, context, database, encoding, git, source, task
+from .typing import EventHandler
 
 log: structlog.stdlib.BoundLogger = structlog.get_logger()
 
@@ -116,6 +117,7 @@ class RepoRun:
                     branch=self.git.branch_name,
                 )
                 repo.delete_branch(pr_identifier)
+                _trigger_event_handlers(ctx=ctx, handlers=matcher.handlers_closed)
 
             return RunResult.NO_CHANGES
 
@@ -155,6 +157,7 @@ class RepoRun:
             else:
                 log.info("Create pull request")
                 repo.create_pull_request(self.git.branch_name, pr)
+                _trigger_event_handlers(ctx=ctx, handlers=matcher.handlers_created)
 
             return RunResult.PR_CREATED
 
@@ -189,6 +192,7 @@ class RepoRun:
                         branch=self.git.branch_name,
                     )
                     repo.delete_branch(pr_identifier)
+                    _trigger_event_handlers(ctx=ctx, handlers=matcher.handlers_merged)
 
             return RunResult.PR_MERGED
 
@@ -404,3 +408,11 @@ def read_tasks(
         tasks.append(task_)
 
     return tasks, needs_all_repositories, all_reads_succeed
+
+
+def _trigger_event_handlers(ctx: context.Context, handlers: list[EventHandler]):
+    for handler in handlers:
+        try:
+            handler(ctx)
+        except Exception:
+            log.exception("event listener failed")

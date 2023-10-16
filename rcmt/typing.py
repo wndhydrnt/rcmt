@@ -7,4 +7,5 @@ from typing import Callable
 from rcmt import context
 
 Action = Callable[[str, dict], None]
+EventHandler = Callable[[context.Context], None]
 Filter = Callable[[context.Context], bool]

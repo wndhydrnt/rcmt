@@ -7,6 +7,7 @@ nav:
       - rcmt: index.md
       - get-started/how-it-works.md
       - get-started/templating.md
+      - get-started/events.md
   - Examples:
       - examples/simple/index.md
       - examples/load_file/index.md
