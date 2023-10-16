@@ -127,6 +127,8 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.is_pr_open.return_value = False
         repo_mock.find_pull_request.return_value = None
         ctx = context.Context(repo_mock)
+        handler_mock = unittest.mock.Mock()
+        run.on_pr_created(handler_mock)
 
         runner.execute(ctx=ctx, matcher=run)
 
@@ -151,6 +153,7 @@ class RepoRunTest(unittest.TestCase):
         )
         repo_mock.create_pull_request.assert_called_once_with("rcmt", expected_pr)
         repo_mock.merge_pull_request.assert_not_called()
+        handler_mock.assert_called_once_with(ctx)
 
     def test_auto_merge_pr(self):
         cfg = config.Config()
@@ -176,6 +179,8 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.pr_created_at.return_value = (
             datetime.datetime.now() - datetime.timedelta(days=1)
         )
+        handler_mock = unittest.mock.Mock()
+        run.on_pr_merged(handler_mock)
         ctx = context.Context(repo_mock)
 
         runner.execute(ctx=ctx, matcher=run)
@@ -193,6 +198,7 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.create_pull_request.assert_not_called()
         repo_mock.has_successful_pr_build.assert_called_once_with("someid")
         repo_mock.merge_pull_request.assert_called_once_with("someid")
+        handler_mock.assert_called_once_with(ctx)
 
     def test_no_merge_closed_pr(self):
         cfg = config.Config()
@@ -253,9 +259,12 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.find_pull_request.return_value = "someid"
         repo_mock.is_pr_merged.return_value = False
         repo_mock.is_pr_open.return_value = True
+        ctx = context.Context(repo_mock)
+        handler_mock = unittest.mock.Mock()
+        run.on_pr_closed(handler_mock)
 
         runner = RepoRun(git_mock, opts)
-        runner.execute(ctx=context.Context(repo_mock), matcher=run)
+        runner.execute(ctx=ctx, matcher=run)
 
         repo_mock.close_pull_request.assert_called_once_with(
             "Everything up-to-date. Closing.", "someid"
@@ -263,6 +272,7 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.delete_branch.assert_called_once_with("someid")
         repo_mock.create_pull_request.assert_not_called()
         repo_mock.merge_pull_request.assert_not_called()
+        handler_mock.assert_called_once_with(ctx)
 
     def test_no_changes_no_pr(self):
         cfg = config.Config()

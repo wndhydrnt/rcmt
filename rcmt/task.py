@@ -16,7 +16,7 @@ from slugify import slugify
 
 from rcmt import context
 from rcmt.fs import FileProxy
-from rcmt.typing import Action, Filter
+from rcmt.typing import Action, EventHandler, Filter
 
 
 class TaskRegistry:
@@ -152,6 +152,10 @@ class Task:
         self.file_proxies: list[FileProxy] = []
         self.filters: list[Filter] = []
 
+        self.handlers_closed: list[EventHandler] = []
+        self.handlers_created: list[EventHandler] = []
+        self.handlers_merged: list[EventHandler] = []
+
     def __enter__(self):
         return self
 
@@ -217,6 +221,36 @@ class Task:
                 return False
 
         return True
+
+    def on_pr_closed(self, h: EventHandler) -> None:
+        """Register an event handler that gets executed if a pull request gets closed.
+
+        The event handler is a Python function that accepts a `rcmt.context.Context`.
+
+        Args:
+            h: The event handler.
+        """
+        self.handlers_closed.append(h)
+
+    def on_pr_created(self, h: EventHandler):
+        """Register an event handler that gets executed if a pull request gets created.
+
+        The event handler is a Python function that accepts a `rcmt.context.Context`.
+
+        Args:
+            h: The event handler.
+        """
+        self.handlers_created.append(h)
+
+    def on_pr_merged(self, h: EventHandler):
+        """Register an event handler that gets executed if a pull request gets merged.
+
+        The event handler is a Python function that accepts a `rcmt.context.Context`.
+
+        Args:
+            h: The event handler.
+        """
+        self.handlers_merged.append(h)
 
     def set_path(self, path: str):
         for fp in self.file_proxies:
