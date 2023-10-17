@@ -21,6 +21,7 @@ header:
     - 'README'
     - '*.lock'
     - '**/*.txt'
+    - 'py.typed'
 
   comment: on-failure
 
