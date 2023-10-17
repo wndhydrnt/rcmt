@@ -156,10 +156,10 @@ class Task:
         self.handlers_created: list[EventHandler] = []
         self.handlers_merged: list[EventHandler] = []
 
-    def __enter__(self):
+    def __enter__(self) -> "Task":
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         # Do not register if an exception occurred
         if exc_val is not None:
             return

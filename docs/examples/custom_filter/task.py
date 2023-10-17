@@ -44,4 +44,4 @@ with Task(name="filter-example") as task:
     # Use the function.
     task.add_filter(filter_as_function)
     # Use a lambda function.
-    task.add_filter(lambda repo: repo.full_name == "github.com/wndhydrnt/rcmt")
+    task.add_filter(lambda ctx: ctx.repo.full_name == "github.com/wndhydrnt/rcmt")
