@@ -58,6 +58,7 @@ class Config(BaseSettings):
         env_nested_delimiter="__", env_prefix="rcmt_", extra="allow"
     )
 
+    custom: dict[str, Any] = {}
     database: Database = Database()
     dry_run: bool = False
     git: Git = Git()

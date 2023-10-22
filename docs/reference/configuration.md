@@ -7,6 +7,8 @@ Configuration defines global settings of rcmt.
 All values in this example are default values.
 
 ```yaml
+custom:
+  key: value
 database:
   connection: "sqlite:///:memory:"
   migrate: true
@@ -25,6 +27,11 @@ gitlab:
 log_format: ""
 log_level: info
 ```
+
+## `custom`
+
+Custom configuration. Filters and Event Handlers can retrieve this configuration. See
+[Custom Configuration](/get-started/custom-config/).
 
 ## `database`
 
