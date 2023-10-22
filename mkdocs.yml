@@ -8,6 +8,7 @@ nav:
       - get-started/how-it-works.md
       - get-started/templating.md
       - get-started/events.md
+      - get-started/custom-config.md
   - Examples:
       - examples/simple/index.md
       - examples/load_file/index.md

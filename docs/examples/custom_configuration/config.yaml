@@ -1,0 +1,9 @@
+log_level: debug
+# ...
+custom:
+  token: abc123
+  mail:
+    host: smtp.test
+    port: 465
+    username: example
+    password: secret

@@ -313,7 +313,7 @@ def execute_task(
             )
             return success
 
-        ctx = context.Context(repo)
+        ctx = context.Context(repo, custom_config=opts.config.custom)
         if task_.filter(ctx) is False:
             log.debug(
                 "Repository does not match", repository=str(repo), task=task_.name
