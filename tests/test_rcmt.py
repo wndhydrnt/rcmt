@@ -173,6 +173,7 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.project = "myproject"
         repo_mock.source = "githost.com"
         repo_mock.find_pull_request.return_value = "someid"
+        repo_mock.get_pr_body.return_value = ""
         repo_mock.has_successful_pr_build.return_value = True
         repo_mock.is_pr_closed.return_value = False
         repo_mock.is_pr_open.return_value = True
@@ -257,6 +258,7 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.name = "myrepo"
         repo_mock.project = "myproject"
         repo_mock.find_pull_request.return_value = "someid"
+        repo_mock.get_pr_body.return_value = ""
         repo_mock.is_pr_merged.return_value = False
         repo_mock.is_pr_open.return_value = True
         ctx = context.Context(repo_mock)
@@ -301,6 +303,7 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.name = "myrepo"
         repo_mock.project = "myproject"
         repo_mock.find_pull_request.return_value = "someid"
+        repo_mock.get_pr_body.return_value = ""
         repo_mock.is_pr_merged.return_value = False
         repo_mock.is_pr_open.return_value = True
 
@@ -329,6 +332,7 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.name = "myrepo"
         repo_mock.project = "myproject"
         repo_mock.find_pull_request.return_value = "someid"
+        repo_mock.get_pr_body.return_value = ""
         repo_mock.is_pr_merged.return_value = False
         repo_mock.is_pr_open.return_value = True
         repo_mock.can_merge_pull_request.return_value = False
@@ -351,6 +355,7 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.name = "myrepo"
         repo_mock.project = "myproject"
         repo_mock.find_pull_request.return_value = "someid"
+        repo_mock.get_pr_body.return_value = ""
         repo_mock.is_pr_merged.return_value = False
         repo_mock.is_pr_open.return_value = True
         repo_mock.can_merge_pull_request.return_value = True
@@ -379,6 +384,7 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.project = "myproject"
         repo_mock.source = "githost.com"
         repo_mock.find_pull_request.return_value = "someid"
+        repo_mock.get_pr_body.return_value = ""
         repo_mock.is_pr_closed.return_value = True
 
         runner.execute(ctx=context.Context(repo_mock), matcher=run)
@@ -424,6 +430,7 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.project = "myproject"
         repo_mock.source = "githost.com"
         repo_mock.find_pull_request.return_value = "someid"
+        repo_mock.get_pr_body.return_value = ""
         repo_mock.has_successful_pr_build.return_value = True
         repo_mock.is_pr_closed.return_value = False
         repo_mock.is_pr_merged.return_value = True
@@ -460,7 +467,12 @@ class RepoRunTest(unittest.TestCase):
         runner.execute(ctx=context.Context(repo_mock), matcher=run)
 
         rmtree.assert_called_once_with("/unit/test")
-        git_mock.prepare.assert_has_calls([call(repo_mock), call(repo_mock)])
+        git_mock.prepare.assert_has_calls(
+            [
+                call(force_rebase=False, repo=repo_mock),
+                call(force_rebase=False, repo=repo_mock),
+            ]
+        )
 
 
 class ExecuteTaskTest(unittest.TestCase):

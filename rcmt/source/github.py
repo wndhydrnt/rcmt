@@ -85,6 +85,11 @@ class GithubRepository(Repository):
         if self.repo.delete_branch_on_merge is False:
             self.repo.get_git_ref(ref=f"heads/{identifier.head.ref}").delete()
 
+    def delete_pr_comment(
+        self, comment: PullRequestComment, pr: github.PullRequest.PullRequest
+    ) -> None:
+        pr.get_comment(comment.id).delete()
+
     def find_pull_request(self, branch: str) -> Union[Any, None]:
         log.debug("Listing pull requests", repo=str(self))
         for pr in self.repo.get_pulls(state="all"):
@@ -106,6 +111,9 @@ class GithubRepository(Repository):
             file = file[0]
 
         return io.StringIO(file.decoded_content.decode("utf-8"))
+
+    def get_pr_body(self, pr: github.PullRequest.PullRequest) -> str:
+        return pr.body
 
     def has_file(self, path: str) -> bool:
         try:
@@ -148,8 +156,11 @@ class GithubRepository(Repository):
     def list_pr_comments(
         self, pr: github.PullRequest.PullRequest
     ) -> Iterator[PullRequestComment]:
+        if pr is None:
+            return []
+
         for issue in pr.get_issue_comments():
-            yield PullRequestComment(body=issue.body)
+            yield PullRequestComment(body=issue.body, id=issue.id)
 
     def merge_pull_request(self, pr: github.PullRequest.PullRequest) -> None:
         log.debug("Merging pull request", repo=str(self))

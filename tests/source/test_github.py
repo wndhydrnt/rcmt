@@ -257,6 +257,8 @@ class GithubRepositoryTest(unittest.TestCase):
 **Ignore:** This PR will be recreated if closed.  
 
 ---
+- [ ] If you want to rebase this PR, check this box
+---
 
 _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
         gh_repo_mock.create_pull.assert_called_once_with(
@@ -272,13 +274,13 @@ _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
         pr_mock = unittest.mock.Mock(spec=github.PullRequest.PullRequest)
         pr_mock.get_issue_comments.return_value = [
             IssueComment(
-                attributes={"body": "Comment 1"},
+                attributes={"body": "Comment 1", "id": 123},
                 completed=True,
                 headers={},
                 requester=unittest.mock.Mock(spec=Requester),
             ),
             IssueComment(
-                attributes={"body": "Comment 2"},
+                attributes={"body": "Comment 2", "id": 456},
                 completed=True,
                 headers={},
                 requester=unittest.mock.Mock(spec=Requester),
@@ -291,7 +293,10 @@ _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
         result = list(repo.list_pr_comments(pr_mock))
 
         self.assertListEqual(
-            [PullRequestComment("Comment 1"), PullRequestComment("Comment 2")],
+            [
+                PullRequestComment(body="Comment 1", id=123),
+                PullRequestComment(body="Comment 2", id=456),
+            ],
             result,
         )
 

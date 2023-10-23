@@ -29,6 +29,8 @@ class PullRequestTest(unittest.TestCase):
 **Ignore:** This PR will be recreated if closed.  
 
 ---
+- [ ] If you want to rebase this PR, check this box
+---
 
 _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
         self.assertEqual(want_body, pr.body)
@@ -46,6 +48,8 @@ _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
 **Automerge:** Disabled. Merge this manually.  
 **Ignore:** This PR will be recreated if closed.  
 
+---
+- [ ] If you want to rebase this PR, check this box
 ---
 
 _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
@@ -72,6 +76,8 @@ _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
 **Ignore:** This PR will be recreated if closed.  
 
 ---
+- [ ] If you want to rebase this PR, check this box
+---
 
 _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
 
@@ -96,6 +102,8 @@ _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
 **Automerge:** Enabled. rcmt automatically merges this in 2 days and if all checks have passed.  
 **Ignore:** Close this PR and it will not be recreated again.  
 
+---
+- [ ] If you want to rebase this PR, check this box
 ---
 
 _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""

@@ -63,6 +63,8 @@ class GitlabRepositoryTest(unittest.TestCase):
 **Ignore:** This PR will be recreated if closed.  
 
 ---
+- [ ] If you want to rebase this PR, check this box
+---
 
 _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
         project_merge_request_manager.create.assert_called_once_with(
@@ -330,8 +332,10 @@ _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
         notes_mock = unittest.mock.Mock(spec=ProjectMergeRequestNoteManager)
         note_one = unittest.mock.Mock(spec=ProjectMergeRequestNote)
         note_one.body = "Note 1"
+        note_one.id = 123
         note_two = unittest.mock.Mock(spec=ProjectMergeRequestNote)
         note_two.body = "Note 2"
+        note_two.id = 456
         notes_mock.list.return_value = [note_one, note_two]
         pr_mock.notes = notes_mock
 
@@ -341,7 +345,11 @@ _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
         result = list(repo.list_pr_comments(pr_mock))
 
         self.assertListEqual(
-            result, [PullRequestComment("Note 1"), PullRequestComment("Note 2")]
+            result,
+            [
+                PullRequestComment(body="Note 1", id=123),
+                PullRequestComment(body="Note 2", id=456),
+            ],
         )
 
 
