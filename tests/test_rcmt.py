@@ -16,7 +16,15 @@ from rcmt.config import Config
 from rcmt.config import Database as DatabaseConfig
 from rcmt.database import Database, Execution, Run
 from rcmt.filter import RepoName
-from rcmt.rcmt import Options, RepoRun, RunResult, execute, execute_task
+from rcmt.git import BranchModifiedError
+from rcmt.rcmt import (
+    TEMPLATE_BRANCH_MODIFIED,
+    Options,
+    RepoRun,
+    RunResult,
+    execute,
+    execute_task,
+)
 from rcmt.source import Base
 from rcmt.task import Task, registry
 
@@ -473,6 +481,53 @@ class RepoRunTest(unittest.TestCase):
                 call(force_rebase=False, repo=repo_mock),
             ]
         )
+
+    def test_branch_modified(self):
+        cfg = config.Config()
+        opts = Options(cfg)
+        git_mock = create_git_mock("rcmt", "/unit/test", False, False)
+        git_mock.prepare.side_effect = BranchModifiedError(["abc", "def"])
+        repo_mock = unittest.mock.Mock(spec=source.Repository)
+        repo_mock.base_branch = "main"
+        repo_mock.name = "myrepo"
+        repo_mock.project = "myproject"
+        repo_mock.source = "githost.com"
+        repo_mock.find_pull_request.return_value = "someid"
+        repo_mock.get_pr_body.return_value = "some body"
+        task_ = Task(name="testrun")
+
+        runner = RepoRun(git_mock, opts)
+        runner.execute(ctx=context.Context(repo_mock), matcher=task_)
+
+        body = TEMPLATE_BRANCH_MODIFIED.render(
+            checksums=["abc", "def"], default_branch="main"
+        )
+        repo_mock.create_pr_comment_with_identifier.assert_called_once_with(
+            body=body, identifier="branch-modified", pr="someid"
+        )
+        repo_mock.get_pr_body.assert_called_once_with("someid")
+
+    def test_delete_comment_on_force_rebase(self):
+        cfg = config.Config()
+        opts = Options(cfg)
+        git_mock = create_git_mock("rcmt", "/unit/test", False, False)
+        repo_mock = unittest.mock.Mock(spec=source.Repository)
+        repo_mock.name = "myrepo"
+        repo_mock.project = "myproject"
+        repo_mock.source = "githost.com"
+        repo_mock.find_pull_request.return_value = "someid"
+        repo_mock.get_pr_body.return_value = (
+            "header\n[x] If you want to rebase this PR\nfooter"
+        )
+        task_ = Task(name="testrun")
+
+        runner = RepoRun(git_mock, opts)
+        runner.execute(ctx=context.Context(repo_mock), matcher=task_)
+
+        repo_mock.delete_pr_comment_with_identifier.assert_called_once_with(
+            identifier="branch-modified", pr="someid"
+        )
+        repo_mock.get_pr_body.assert_called_once_with("someid")
 
 
 class ExecuteTaskTest(unittest.TestCase):
