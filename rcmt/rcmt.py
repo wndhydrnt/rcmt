@@ -20,6 +20,8 @@ log: structlog.stdlib.BoundLogger = structlog.get_logger()
 TEMPLATE_BRANCH_MODIFIED = jinja2.Template(
     """:warning: **This pull request has been modified.**
 
+This is a safety mechanism to prevent rcmt from accidentally overriding custom commits.
+
 rcmt will not be able to resolve merge conflicts with `{{ default_branch }}`
 automatically.
 It will not update this pull request or auto-merge it.
