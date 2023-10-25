@@ -4,8 +4,10 @@
 
 import datetime
 import unittest
+import unittest.mock
 
-from rcmt.source import PullRequest
+from rcmt.source import PullRequest, Repository
+from rcmt.source.source import PullRequestComment
 
 
 class PullRequestTest(unittest.TestCase):
@@ -109,3 +111,62 @@ _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
 _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
 
         self.assertEqual(want_body, pr.body)
+
+
+class RepositoryTest(unittest.TestCase):
+    @unittest.mock.patch.object(Repository, "list_pr_comments")
+    @unittest.mock.patch.object(Repository, "create_pr_comment")
+    def test_create_pr_comment_with_identifier__comment_does_not_exist(
+        self,
+        create_pr_comment_mock: unittest.mock.Mock,
+        list_pr_comments_mock: unittest.mock.Mock,
+    ):
+        pr_mock = unittest.mock.Mock()
+        list_pr_comments_mock.return_value = []
+
+        repo = Repository()
+        repo.create_pr_comment_with_identifier(
+            body="the comment", identifier="unit-test", pr=pr_mock
+        )
+
+        create_pr_comment_mock.assert_called_once_with(
+            body="<!-- rcmt::unit-test -->\nthe comment", pr=pr_mock
+        )
+
+    @unittest.mock.patch.object(Repository, "list_pr_comments")
+    @unittest.mock.patch.object(Repository, "create_pr_comment")
+    def test_create_pr_comment_with_identifier__comment_already_exists(
+        self,
+        create_pr_comment_mock: unittest.mock.Mock,
+        list_pr_comments_mock: unittest.mock.Mock,
+    ):
+        pr_mock = unittest.mock.Mock()
+        pr_comment = PullRequestComment(
+            body="<!-- rcmt::unit-test -->\nthe comment", id=123
+        )
+        list_pr_comments_mock.return_value = [pr_comment]
+
+        repo = Repository()
+        repo.create_pr_comment_with_identifier(
+            body="the comment", identifier="unit-test", pr=pr_mock
+        )
+
+        create_pr_comment_mock.assert_not_called()
+
+    @unittest.mock.patch.object(Repository, "list_pr_comments")
+    @unittest.mock.patch.object(Repository, "delete_pr_comment")
+    def test_delete_pr_comment_with_identifier(
+        self,
+        delete_pr_comment: unittest.mock.Mock,
+        list_pr_comments_mock: unittest.mock.Mock,
+    ):
+        pr_mock = unittest.mock.Mock()
+        pr_comment = PullRequestComment(
+            body="<!-- rcmt::unit-test -->\nthe comment", id=123
+        )
+        list_pr_comments_mock.return_value = [pr_comment]
+
+        repo = Repository()
+        repo.delete_pr_comment_with_identifier(identifier="unit-test", pr=pr_mock)
+
+        delete_pr_comment.assert_called_once_with(comment=pr_comment, pr=pr_mock)

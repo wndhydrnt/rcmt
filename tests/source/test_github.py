@@ -17,6 +17,7 @@ from github.GitTree import GitTree
 from github.GitTreeElement import GitTreeElement
 from github.Issue import Issue
 from github.IssueComment import IssueComment
+from github.PullRequestComment import PullRequestComment
 from github.PullRequestPart import PullRequestPart
 from github.Repository import Repository
 from github.Requester import Requester
@@ -299,6 +300,31 @@ _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
             ],
             result,
         )
+
+    def test_delete_pr_comment(self):
+        pr_mock = unittest.mock.Mock(spec=github.PullRequest.PullRequest)
+        comment_mock = unittest.mock.Mock(spec=["delete"])
+        pr_mock.get_comment.return_value = comment_mock
+        pr_comment = PullRequestComment(body="", id=123)
+
+        repo = GithubRepository(
+            access_token="", repo=unittest.mock.Mock(spec=github.Repository.Repository)
+        )
+        repo.delete_pr_comment(comment=pr_comment, pr=pr_mock)
+
+        pr_mock.get_comment.assert_called_once_with(123)
+        comment_mock.delete.assert_called_once()
+
+    def test_get_pr_body(self):
+        pr_mock = unittest.mock.Mock(spec=github.PullRequest.PullRequest)
+        pr_mock.body = "unit test"
+
+        repo = GithubRepository(
+            access_token="", repo=unittest.mock.Mock(spec=github.Repository.Repository)
+        )
+        result = repo.get_pr_body(pr_mock)
+
+        self.assertEqual("unit test", result)
 
 
 class GithubTest(unittest.TestCase):

@@ -352,6 +352,30 @@ _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
             ],
         )
 
+    def test_delete_pr_comment(self):
+        pr_mock = unittest.mock.Mock(spec=ProjectMergeRequest)
+        notes_mock = unittest.mock.Mock(spec=ProjectMergeRequestNoteManager)
+        pr_mock.notes = notes_mock
+        comment = PullRequestComment(body="comment", id=123)
+
+        repo = GitlabRepository(
+            project=unittest.mock.Mock(spec=Project), token="", url=""
+        )
+        repo.delete_pr_comment(comment=comment, pr=pr_mock)
+
+        notes_mock.delete.assert_called_once_with(comment.id)
+
+    def test_get_pr_body(self):
+        pr_mock = unittest.mock.Mock(spec=ProjectMergeRequest)
+        pr_mock.description = "comment body"
+
+        repo = GitlabRepository(
+            project=unittest.mock.Mock(spec=Project), token="", url=""
+        )
+        result = repo.get_pr_body(pr_mock)
+
+        self.assertEqual("comment body", result)
+
 
 class GitlabTest(unittest.TestCase):
     def test_create_from_name__return_repository(self):
