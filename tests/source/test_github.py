@@ -17,7 +17,6 @@ from github.GitTree import GitTree
 from github.GitTreeElement import GitTreeElement
 from github.Issue import Issue
 from github.IssueComment import IssueComment
-from github.PullRequestComment import PullRequestComment
 from github.PullRequestPart import PullRequestPart
 from github.Repository import Repository
 from github.Requester import Requester
