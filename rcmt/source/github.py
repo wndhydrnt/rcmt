@@ -88,7 +88,7 @@ class GithubRepository(Repository):
     def delete_pr_comment(
         self, comment: PullRequestComment, pr: github.PullRequest.PullRequest
     ) -> None:
-        pr.get_comment(comment.id).delete()
+        pr.get_issue_comment(comment.id).delete()
 
     def find_pull_request(self, branch: str) -> Union[Any, None]:
         log.debug("Listing pull requests", repo=str(self))

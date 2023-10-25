@@ -303,7 +303,7 @@ _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
     def test_delete_pr_comment(self):
         pr_mock = unittest.mock.Mock(spec=github.PullRequest.PullRequest)
         comment_mock = unittest.mock.Mock(spec=["delete"])
-        pr_mock.get_comment.return_value = comment_mock
+        pr_mock.get_issue_comment.return_value = comment_mock
         pr_comment = PullRequestComment(body="", id=123)
 
         repo = GithubRepository(
@@ -311,7 +311,7 @@ _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
         )
         repo.delete_pr_comment(comment=pr_comment, pr=pr_mock)
 
-        pr_mock.get_comment.assert_called_once_with(123)
+        pr_mock.get_issue_comment.assert_called_once_with(123)
         comment_mock.delete.assert_called_once()
 
     def test_get_pr_body(self):
