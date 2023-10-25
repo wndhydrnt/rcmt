@@ -22,12 +22,10 @@ TEMPLATE_BRANCH_MODIFIED = jinja2.Template(
 
 This is a safety mechanism to prevent rcmt from accidentally overriding custom commits.
 
-rcmt will not be able to resolve merge conflicts with `{{ default_branch }}`
-automatically.
+rcmt will not be able to resolve merge conflicts with `{{ default_branch }}` automatically.
 It will not update this pull request or auto-merge it.
 
-Check the box in the description of this PR to force a rebase. This will remove all
-commits not made by rcmt.
+Check the box in the description of this PR to force a rebase. This will remove all commits not made by rcmt.
 
 The commit(s) that modified the pull request:
 {% for checksum in checksums %}
