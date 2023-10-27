@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.26.0](https://github.com/wndhydrnt/rcmt/compare/v0.25.0...v0.26.0) (2023-10-27)
+
+
+### Features
+
+* add event handling for pull requests ([#428](https://github.com/wndhydrnt/rcmt/issues/428)) ([2458997](https://github.com/wndhydrnt/rcmt/commit/245899749341e94efe4f1e6ce516aaa495ace757))
+* pass custom configuration to filters and event handlers ([#435](https://github.com/wndhydrnt/rcmt/issues/435)) ([d040304](https://github.com/wndhydrnt/rcmt/commit/d0403046c05b19ce393fdc27da0bbfe5194147a9))
+* prevent overriding commits in a branch that were not made by rcmt ([#439](https://github.com/wndhydrnt/rcmt/issues/439)) ([215b44f](https://github.com/wndhydrnt/rcmt/commit/215b44ff8b4988403bb417b9c7c00f85b22d70d7))
+
+
+### Bug Fixes
+
+* **deps:** update dependency gitpython to v3.1.38 ([#436](https://github.com/wndhydrnt/rcmt/issues/436)) ([832ba22](https://github.com/wndhydrnt/rcmt/commit/832ba22c388ac9eb6b56a9f4b07a5286fc221d21))
+* **deps:** update dependency sqlalchemy to v2.0.22 ([#433](https://github.com/wndhydrnt/rcmt/issues/433)) ([a53a5ff](https://github.com/wndhydrnt/rcmt/commit/a53a5ff73486e6ad45bffc1a0118e1dca3ae735f))
+* **deps:** update dependency structlog to &gt;=23.2,&lt;23.3 ([#427](https://github.com/wndhydrnt/rcmt/issues/427)) ([800c79c](https://github.com/wndhydrnt/rcmt/commit/800c79c42e6feace7ec86d8e6c9dcfc2d9c1d26a))
+* fix mypy not validating task files ([#430](https://github.com/wndhydrnt/rcmt/issues/430)) ([4913e2f](https://github.com/wndhydrnt/rcmt/commit/4913e2faee7237032aa3dda1d8e1d1b429629b09))
+
 ## [0.25.0](https://github.com/wndhydrnt/rcmt/compare/v0.24.0...v0.25.0) (2023-10-15)
 
 
