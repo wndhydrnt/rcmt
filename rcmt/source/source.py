@@ -4,6 +4,7 @@
 
 import datetime
 import urllib.parse
+from dataclasses import dataclass
 from typing import Any, Generator, Iterator, Optional, TextIO, Union
 
 import humanize
@@ -100,6 +101,8 @@ class PullRequest:
         else:
             body += "**Ignore:** This PR will be recreated if closed.  \n"
 
+        body += "\n---\n- [ ] If you want to rebase this PR, check this box"
+
         body += """
 ---
 
@@ -114,6 +117,12 @@ _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
             return tpl.render(self.tpl_data)
 
         return f"{self.title_prefix} {self.title_body} {self.title_suffix}".strip()
+
+
+@dataclass
+class PullRequestComment:
+    body: str
+    id: Any
 
 
 class Repository:
@@ -169,6 +178,25 @@ class Repository:
             "class does not implement Repository.close_pull_request()"
         )
 
+    def create_pr_comment(self, body: str, pr: Any) -> None:
+        raise NotImplementedError(
+            "class does not implement Repository.create_pr_comment()"
+        )
+
+    def create_pr_comment_with_identifier(
+        self, body: str, identifier: str, pr: Any
+    ) -> None:
+        if identifier == "":
+            raise RuntimeError("identifier cannot be empty")
+
+        prefix = f"<!-- rcmt::{identifier} -->"
+        for comment in self.list_pr_comments(pr):
+            if comment.body.startswith(prefix):
+                return None
+
+        body = f"{prefix}\n{body}"
+        self.create_pr_comment(body=body, pr=pr)
+
     def create_pull_request(self, branch: str, pr: PullRequest) -> None:
         """
         Creates a pull request for the given branch.
@@ -180,6 +208,21 @@ class Repository:
         raise NotImplementedError(
             "class does not implement Repository.create_pull_request()"
         )
+
+    def delete_pr_comment(self, comment: PullRequestComment, pr: Any) -> None:
+        raise NotImplementedError(
+            "class does not implement Repository.delete_comment()"
+        )
+
+    def delete_pr_comment_with_identifier(self, identifier: str, pr: Any) -> None:
+        if identifier == "":
+            raise RuntimeError("identifier cannot be empty")
+
+        prefix = f"<!-- rcmt::{identifier} -->"
+        for comment in self.list_pr_comments(pr):
+            if comment.body.startswith(prefix):
+                self.delete_pr_comment(comment=comment, pr=pr)
+                return
 
     def delete_branch(self, identifier: Any) -> None:
         raise NotImplementedError(
@@ -209,6 +252,11 @@ class Repository:
 
     def get_file(self, path: str) -> TextIO:
         raise NotImplementedError("class does not implement Repository.has_file()")
+
+    def get_pr_body(self, pr_identifier: Any) -> str:
+        raise NotImplementedError(
+            "class does not implement Repository.get_pr_description()"
+        )
 
     def has_file(self, path: str) -> bool:
         """
@@ -271,6 +319,11 @@ class Repository:
         :rtype: bool
         """
         raise NotImplementedError("class does not implement Repository.is_pr_open()")
+
+    def list_pr_comments(self, pr: Any) -> Iterator[PullRequestComment]:
+        raise NotImplementedError(
+            "class does not implement Repository.list_pr_comments()"
+        )
 
     def merge_pull_request(self, identifier: Any) -> None:
         """

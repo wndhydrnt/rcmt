@@ -15,6 +15,11 @@ from rcmt import source
 log: structlog.stdlib.BoundLogger = structlog.get_logger(package="git")
 
 
+class BranchModifiedError(RuntimeError):
+    def __init__(self, checksums: list[str]):
+        self.checksums = checksums
+
+
 class Git:
     def __init__(
         self,
@@ -38,6 +43,22 @@ class Git:
         git_repo.git.add(all=True)
         git_repo.index.commit(msg)
 
+    def _detect_modified_branch(
+        self,
+        merge_base: str,
+        repo: git.Repo,
+    ) -> None:
+        foreign_commits: list[str] = []
+        for commit in repo.iter_commits():
+            if commit.hexsha == merge_base:
+                break
+
+            if commit.author.email != self.user_email:
+                foreign_commits.append(commit.hexsha)
+
+        if len(foreign_commits) > 0:
+            raise BranchModifiedError(foreign_commits)
+
     @staticmethod
     def has_changes_origin(branch: str, repo_dir: str) -> bool:
         git_repo = git.Repo(path=repo_dir)
@@ -54,7 +75,9 @@ class Git:
         git_repo = git.Repo(path=repo_dir)
         return len(git_repo.index.diff(None)) > 0 or len(git_repo.untracked_files) > 0
 
-    def prepare(self, repo: source.Repository, iteration: int = 0) -> Tuple[str, bool]:
+    def prepare(
+        self, repo: source.Repository, force_rebase: bool, iteration: int = 0
+    ) -> Tuple[str, bool]:
         """
         1. Clone repository
         2. Checkout base branch
@@ -94,7 +117,7 @@ class Git:
                 branch=repo.base_branch,
             )
             shutil.rmtree(checkout_dir)
-            return self.prepare(repo, iteration=1)
+            return self.prepare(force_rebase=force_rebase, iteration=1, repo=repo)
 
         hash_before_pull = str(git_repo.head.commit)
         log.debug(
@@ -146,7 +169,18 @@ class Git:
 
         log.debug("Checking out work branch", branch=self.branch_name)
         git_repo.heads[self.branch_name].checkout()
+        if remote_branch is not None:
+            log.debug("Pulling changes into work branch", branch=self.branch_name)
+            # `rebase=True` to end up with a clean history.
+            # `strategy_option="theirs"` to always prefer changes from the remote.
+            # Commits by someone else will be preserved with this strategy and there
+            # will be no conflict.
+            git_repo.remotes["origin"].pull(rebase=True, strategy_option="theirs")
+
         merge_base = git_repo.git.merge_base(repo.base_branch, self.branch_name)
+        if force_rebase is False:
+            self._detect_modified_branch(merge_base=merge_base, repo=git_repo)
+
         log.debug("Resetting to merge base", branch=self.branch_name)
         git_repo.git.reset(merge_base, hard=True)
         log.debug("Rebasing onto work branch", branch=self.branch_name)

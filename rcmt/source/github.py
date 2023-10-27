@@ -14,7 +14,13 @@ import github.Repository
 import structlog
 
 from ..log import SECRET_MASKER
-from .source import Base, PullRequest, Repository, add_credentials_to_url
+from .source import (
+    Base,
+    PullRequest,
+    PullRequestComment,
+    Repository,
+    add_credentials_to_url,
+)
 
 log = structlog.get_logger(source="github")
 
@@ -57,6 +63,9 @@ class GithubRepository(Repository):
         pr.create_issue_comment(body=message)
         pr.edit(state="closed")
 
+    def create_pr_comment(self, body: str, pr: github.PullRequest.PullRequest) -> None:
+        pr.create_issue_comment(body=body)
+
     def create_pull_request(self, branch: str, pr: PullRequest):
         log.debug(
             "Creating pull request", base=self.base_branch, head=branch, repo=str(self)
@@ -75,6 +84,11 @@ class GithubRepository(Repository):
     def delete_branch(self, identifier: github.PullRequest.PullRequest) -> None:
         if self.repo.delete_branch_on_merge is False:
             self.repo.get_git_ref(ref=f"heads/{identifier.head.ref}").delete()
+
+    def delete_pr_comment(
+        self, comment: PullRequestComment, pr: github.PullRequest.PullRequest
+    ) -> None:
+        pr.get_issue_comment(comment.id).delete()
 
     def find_pull_request(self, branch: str) -> Union[Any, None]:
         log.debug("Listing pull requests", repo=str(self))
@@ -97,6 +111,9 @@ class GithubRepository(Repository):
             file = file[0]
 
         return io.StringIO(file.decoded_content.decode("utf-8"))
+
+    def get_pr_body(self, pr: github.PullRequest.PullRequest) -> str:
+        return pr.body
 
     def has_file(self, path: str) -> bool:
         try:
@@ -135,6 +152,15 @@ class GithubRepository(Repository):
 
     def is_pr_open(self, pr: github.PullRequest.PullRequest) -> bool:
         return pr.state == "open"
+
+    def list_pr_comments(
+        self, pr: github.PullRequest.PullRequest
+    ) -> Iterator[PullRequestComment]:
+        if pr is None:
+            return []
+
+        for issue in pr.get_issue_comments():
+            yield PullRequestComment(body=issue.body, id=issue.id)
 
     def merge_pull_request(self, pr: github.PullRequest.PullRequest) -> None:
         log.debug("Merging pull request", repo=str(self))

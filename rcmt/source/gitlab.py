@@ -18,7 +18,13 @@ from gitlab.v4.objects import Project as GitlabProject
 from gitlab.v4.objects.merge_requests import ProjectMergeRequest as GitlabMergeRequest
 
 from ..log import SECRET_MASKER
-from .source import Base, PullRequest, Repository, add_credentials_to_url
+from .source import (
+    Base,
+    PullRequest,
+    PullRequestComment,
+    Repository,
+    add_credentials_to_url,
+)
 
 log: structlog.stdlib.BoundLogger = structlog.get_logger(source="gitlab")
 
@@ -48,6 +54,9 @@ class GitlabRepository(Repository):
         pr.state_event = "close"
         pr.save()
 
+    def create_pr_comment(self, body: str, pr: GitlabMergeRequest) -> None:
+        pr.notes.create({"body": body})
+
     def create_pull_request(self, branch: str, pr: PullRequest) -> None:
         log.debug(
             "Creating merge request", base=self.base_branch, head=branch, repo=str(self)
@@ -66,6 +75,11 @@ class GitlabRepository(Repository):
     def delete_branch(self, identifier: GitlabMergeRequest) -> None:
         if identifier.should_remove_source_branch is not True:
             self._project.branches.get(id=identifier.source_branch, lazy=True).delete()
+
+    def delete_pr_comment(
+        self, comment: PullRequestComment, pr: GitlabMergeRequest
+    ) -> None:
+        pr.notes.delete(comment.id)
 
     def find_pull_request(self, branch: str) -> Union[Any, None]:
         log.debug("Listing merge requests", repo=str(self))
@@ -97,6 +111,9 @@ class GitlabRepository(Repository):
             return io.StringIO(content.decode("utf-8"))
         except GitlabGetError:
             raise FileNotFoundError("file does not exist in repository")
+
+    def get_pr_body(self, mr: GitlabMergeRequest) -> str:
+        return mr.description
 
     def has_file(self, path: str) -> bool:
         directory = os.path.dirname(path)
@@ -155,6 +172,13 @@ class GitlabRepository(Repository):
 
     def is_pr_open(self, mr: GitlabMergeRequest) -> bool:
         return mr.state == "opened"
+
+    def list_pr_comments(self, mr: GitlabMergeRequest) -> Iterator[PullRequestComment]:
+        if mr is None:
+            return []
+
+        for note in mr.notes.list(iterator=True):
+            yield PullRequestComment(body=note.body, id=note.id)
 
     def merge_pull_request(self, identifier: GitlabMergeRequest):
         log.debug("Merging merge request", repo=str(self), id=identifier.get_id())

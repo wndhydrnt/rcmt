@@ -58,7 +58,7 @@ def execute(directory: str, opts: Options, out: TextIO, repo_name: str) -> None:
         )
 
         print("🏗️  Preparing git clone", file=out)
-        checkout_dir, has_conflict = gitc.prepare(repository)
+        checkout_dir, has_conflict = gitc.prepare(force_rebase=False, repo=repository)
         print("🚜 Applying actions", file=out)
         apply_actions(
             ctx=ctx,

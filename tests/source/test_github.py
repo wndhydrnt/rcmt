@@ -16,11 +16,14 @@ from github.GitRef import GitRef
 from github.GitTree import GitTree
 from github.GitTreeElement import GitTreeElement
 from github.Issue import Issue
+from github.IssueComment import IssueComment
 from github.PullRequestPart import PullRequestPart
 from github.Repository import Repository
+from github.Requester import Requester
 
 from rcmt.source import source
 from rcmt.source.github import Github, GithubRepository
+from rcmt.source.source import PullRequestComment
 
 
 class GithubRepositoryTest(unittest.TestCase):
@@ -141,6 +144,16 @@ class GithubRepositoryTest(unittest.TestCase):
         pr_mock.create_issue_comment.assert_called_once_with(body=message)
         pr_mock.edit.assert_called_once_with(state="closed")
 
+    def test_create_pr_comment(self):
+        pr_mock = unittest.mock.Mock(spec=github.PullRequest.PullRequest)
+
+        repo = GithubRepository(
+            access_token="", repo=unittest.mock.Mock(spec=github.Repository.Repository)
+        )
+        repo.create_pr_comment(body="Unit Test", pr=pr_mock)
+
+        pr_mock.create_issue_comment.assert_called_once_with(body="Unit Test")
+
     def test_update_pull_request__no_change(self):
         pr_data = source.PullRequest(False, False, "unit-test", "", "", "")
         pr_mock = unittest.mock.Mock(spec=github.PullRequest.PullRequest)
@@ -244,6 +257,8 @@ class GithubRepositoryTest(unittest.TestCase):
 **Ignore:** This PR will be recreated if closed.  
 
 ---
+- [ ] If you want to rebase this PR, check this box
+---
 
 _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
         gh_repo_mock.create_pull.assert_called_once_with(
@@ -254,6 +269,61 @@ _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
             maintainer_can_modify=True,
         )
         gh_pr_mock.set_labels.assert_called_once_with("abc", "def")
+
+    def test_list_pr_comments(self):
+        pr_mock = unittest.mock.Mock(spec=github.PullRequest.PullRequest)
+        pr_mock.get_issue_comments.return_value = [
+            IssueComment(
+                attributes={"body": "Comment 1", "id": 123},
+                completed=True,
+                headers={},
+                requester=unittest.mock.Mock(spec=Requester),
+            ),
+            IssueComment(
+                attributes={"body": "Comment 2", "id": 456},
+                completed=True,
+                headers={},
+                requester=unittest.mock.Mock(spec=Requester),
+            ),
+        ]
+
+        repo = GithubRepository(
+            access_token="", repo=unittest.mock.Mock(spec=github.Repository.Repository)
+        )
+        result = list(repo.list_pr_comments(pr_mock))
+
+        self.assertListEqual(
+            [
+                PullRequestComment(body="Comment 1", id=123),
+                PullRequestComment(body="Comment 2", id=456),
+            ],
+            result,
+        )
+
+    def test_delete_pr_comment(self):
+        pr_mock = unittest.mock.Mock(spec=github.PullRequest.PullRequest)
+        comment_mock = unittest.mock.Mock(spec=["delete"])
+        pr_mock.get_issue_comment.return_value = comment_mock
+        pr_comment = PullRequestComment(body="", id=123)
+
+        repo = GithubRepository(
+            access_token="", repo=unittest.mock.Mock(spec=github.Repository.Repository)
+        )
+        repo.delete_pr_comment(comment=pr_comment, pr=pr_mock)
+
+        pr_mock.get_issue_comment.assert_called_once_with(123)
+        comment_mock.delete.assert_called_once()
+
+    def test_get_pr_body(self):
+        pr_mock = unittest.mock.Mock(spec=github.PullRequest.PullRequest)
+        pr_mock.body = "unit test"
+
+        repo = GithubRepository(
+            access_token="", repo=unittest.mock.Mock(spec=github.Repository.Repository)
+        )
+        result = repo.get_pr_body(pr_mock)
+
+        self.assertEqual("unit test", result)
 
 
 class GithubTest(unittest.TestCase):

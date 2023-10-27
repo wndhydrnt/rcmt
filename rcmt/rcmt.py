@@ -5,8 +5,9 @@
 import datetime
 import shutil
 from enum import Enum
-from typing import Iterator, Optional
+from typing import Any, Iterator, Optional
 
+import jinja2
 import structlog
 from git.exc import GitCommandError
 
@@ -14,6 +15,24 @@ from . import config, context, database, encoding, git, source, task
 from .typing import EventHandler
 
 log: structlog.stdlib.BoundLogger = structlog.get_logger()
+
+
+TEMPLATE_BRANCH_MODIFIED = jinja2.Template(
+    """:warning: **This pull request has been modified.**
+
+This is a safety mechanism to prevent rcmt from accidentally overriding custom commits.
+
+rcmt will not be able to resolve merge conflicts with `{{ default_branch }}` automatically.
+It will not update this pull request or auto-merge it.
+
+Check the box in the description of this PR to force a rebase. This will remove all commits not made by rcmt.
+
+The commit(s) that modified the pull request:
+{% for checksum in checksums %}
+- {{ checksum }}
+{% endfor %}
+"""
+)
 
 
 class Options:
@@ -75,8 +94,28 @@ class RepoRun:
             )
             return RunResult.NO_CHANGES
 
+        force_rebase = self._has_rebase_checked(pr=pr_identifier, repo=repo)
         try:
-            work_dir, has_conflict = self.git.prepare(repo)
+            work_dir, has_conflict = self.git.prepare(
+                force_rebase=force_rebase, repo=repo
+            )
+            if force_rebase is True:
+                # It is likely that the branch was modified previously and a comment was
+                # created to notify the user. Delete that comment.
+                repo.delete_pr_comment_with_identifier(
+                    identifier="branch-modified", pr=pr_identifier
+                )
+
+        except git.BranchModifiedError as e:
+            log.warn("Branch contains commits not made by rcmt")
+            ctx.repo.create_pr_comment_with_identifier(
+                body=TEMPLATE_BRANCH_MODIFIED.render(
+                    checksums=e.checksums, default_branch=repo.base_branch
+                ),
+                identifier="branch-modified",
+                pr=pr_identifier,
+            )
+            return RunResult.NO_CHANGES
         except GitCommandError as e:
             # Catch any error raised by the git client, delete the repository and
             # initialize it again
@@ -86,7 +125,9 @@ class RepoRun:
             )
             checkout_dir = self.git.checkout_dir(repo)
             shutil.rmtree(checkout_dir)
-            work_dir, has_conflict = self.git.prepare(repo)
+            work_dir, has_conflict = self.git.prepare(
+                force_rebase=force_rebase, repo=repo
+            )
 
         apply_actions(ctx=ctx, task_=matcher, work_dir=work_dir)
         has_local_changes = self.git.has_changes_local(work_dir)
@@ -201,6 +242,14 @@ class RepoRun:
             return RunResult.NO_CHANGES
 
         return RunResult.NO_CHANGES
+
+    @staticmethod
+    def _has_rebase_checked(pr: Any, repo: source.Repository) -> bool:
+        if pr is None:
+            return False
+
+        desc = repo.get_pr_body(pr)
+        return "[x] If you want to rebase this PR" in desc
 
 
 def apply_actions(
