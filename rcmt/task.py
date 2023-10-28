@@ -14,7 +14,7 @@ from typing import Callable, Optional
 
 from slugify import slugify
 
-from rcmt import context
+from rcmt import Context, context
 from rcmt.fs import FileProxy
 from rcmt.typing import Action, EventHandler, Filter
 
@@ -62,6 +62,17 @@ registry = TaskRegistry()
 
 def register_task(task: "Task") -> None:
     registry.register(task)
+
+
+class TaskExperiment:
+    name: str = ""
+    auto_merge: bool = False
+
+    def filter(self, ctx: Context) -> bool:
+        return False
+
+    def apply(self, ctx: Context, checkout_dir: str):
+        raise NotImplementedError("Task does not implement Task.apply()")
 
 
 class Task:
