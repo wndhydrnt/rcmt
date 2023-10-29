@@ -2,8 +2,16 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-from rcmt import Task
-from rcmt.action import Own
+from rcmt import Context, Task, register_task
+from rcmt.action import own
 
-with Task("unit-test", enabled=False) as task:
-    task.add_action(Own(content="This is a unit test", target="test.txt"))
+
+class UnitTest(Task):
+    name = "unit-test"
+    enabled = False
+
+    def apply(self, ctx: Context) -> None:
+        own(ctx=ctx, content="This is a unit test", target="test.txt")
+
+
+register_task(UnitTest())
