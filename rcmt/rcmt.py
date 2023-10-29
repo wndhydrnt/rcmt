@@ -1,8 +1,9 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
-
+import contextlib
 import datetime
+import os
 import shutil
 from enum import Enum
 from typing import Any, Iterator, Optional
@@ -11,8 +12,7 @@ import jinja2
 import structlog
 from git.exc import GitCommandError
 
-from . import config, context, database, encoding, git, source, task
-from .typing import EventHandler
+from . import Context, config, context, database, git, source, task
 
 log: structlog.stdlib.BoundLogger = structlog.get_logger()
 
@@ -38,7 +38,6 @@ The commit(s) that modified the pull request:
 class Options:
     def __init__(self, cfg: config.Config):
         self.config = cfg
-        self.encoding_registry: encoding.Registry = encoding.Registry()
         self.task_paths: list[str] = []
         self.repositories: list[str] = []
         self.sources: dict[str, source.Base] = {}
@@ -129,7 +128,9 @@ class RepoRun:
                 force_rebase=force_rebase, repo=repo
             )
 
-        apply_actions(ctx=ctx, task_=matcher, work_dir=work_dir)
+        with in_checkout_dir(work_dir):
+            matcher.apply(ctx=ctx)
+
         has_local_changes = self.git.has_changes_local(work_dir)
         if has_local_changes is True:
             self.git.commit_changes(work_dir, matcher.commit_msg)
@@ -158,7 +159,7 @@ class RepoRun:
                     branch=self.git.branch_name,
                 )
                 repo.delete_branch(pr_identifier)
-                _trigger_event_handlers(ctx=ctx, handlers=matcher.handlers_closed)
+                matcher.on_pr_closed(ctx=ctx)
 
             return RunResult.NO_CHANGES
 
@@ -198,7 +199,7 @@ class RepoRun:
             else:
                 log.info("Create pull request")
                 repo.create_pull_request(self.git.branch_name, pr)
-                _trigger_event_handlers(ctx=ctx, handlers=matcher.handlers_created)
+                matcher.on_pr_created(ctx=ctx)
 
             return RunResult.PR_CREATED
 
@@ -233,7 +234,7 @@ class RepoRun:
                         branch=self.git.branch_name,
                     )
                     repo.delete_branch(pr_identifier)
-                    _trigger_event_handlers(ctx=ctx, handlers=matcher.handlers_merged)
+                    matcher.on_pr_merged(ctx=ctx)
 
             return RunResult.PR_MERGED
 
@@ -250,20 +251,6 @@ class RepoRun:
 
         desc = repo.get_pr_body(pr)
         return "[x] If you want to rebase this PR" in desc
-
-
-def apply_actions(
-    ctx: context.Context,
-    task_: task.Task,
-    work_dir: str,
-) -> None:
-    for a in task_.actions:
-        log.debug(
-            "Applying action from task",
-            action=str(a),
-            task=task_.name,
-        )
-        a(work_dir, ctx.get_template_data())
 
 
 def execute(opts: Options) -> bool:
@@ -340,12 +327,12 @@ def execute(opts: Options) -> bool:
 
 
 def execute_task(
-    task_: task.Task,
+    task_wrapper: task.TaskWrapper,
     repo: source.Repository,
     opts: Options,
 ) -> bool:
     gitc = git.Git(
-        task_.branch(opts.config.git.branch_prefix),
+        task_wrapper.branch(opts.config.git.branch_prefix),
         opts.config.git.clone_options,
         opts.config.git.data_dir,
         opts.config.git.user_name,
@@ -354,28 +341,30 @@ def execute_task(
     runner = RepoRun(gitc, opts)
     success = True
     try:
-        if task_.has_reached_change_limit():
+        if task_wrapper.has_reached_change_limit():
             log.info(
                 "Limit of changes reached",
-                limit=task_.change_limit,
-                task=task_.name,
+                limit=task_wrapper.change_limit,
+                task=task_wrapper.name,
             )
             return success
 
         ctx = context.Context(repo, custom_config=opts.config.custom)
-        if task_.filter(ctx) is False:
+        if task_wrapper.filter(ctx) is False:
             log.debug(
-                "Repository does not match", repository=str(repo), task=task_.name
+                "Repository does not match",
+                repository=str(repo),
+                task=task_wrapper.name,
             )
             return success
 
-        log.info("Matched repository", repository=str(repo), task=task_.name)
-        result: RunResult = runner.execute(ctx=ctx, matcher=task_)
+        log.info("Matched repository", repository=str(repo), task=task_wrapper.name)
+        result: RunResult = runner.execute(ctx=ctx, matcher=task_wrapper.task)
         if result != RunResult.NO_CHANGES:
-            task_.changes_total += 1
+            task_wrapper.changes_total += 1
 
     except Exception:
-        log.exception("Task failed", repository=str(repo), task=task_.name)
+        log.exception("Task failed", repository=str(repo), task=task_wrapper.name)
         success = False
 
     return success
@@ -388,16 +377,6 @@ def options_from_config(path: str) -> Options:
 
 def config_to_options(cfg: config.Config) -> Options:
     opts = Options(cfg)
-
-    opts.encoding_registry = encoding.Registry()
-    opts.encoding_registry.register(
-        encoding.Json(cfg.json_.indent), cfg.json_.extensions
-    )
-    opts.encoding_registry.register(encoding.Toml(), cfg.toml.extensions)
-    opts.encoding_registry.register(
-        encoding.Yaml(cfg.yaml.explicit_start), cfg.yaml.extensions
-    )
-
     if cfg.github.access_token != "":
         source_github = source.Github(cfg.github.access_token, cfg.github.base_url)
         opts.sources["github"] = source_github
@@ -432,8 +411,8 @@ def list_repositories(
 
 def read_tasks(
     db: database.Database, task_paths: list[str]
-) -> tuple[list[task.Task], bool, bool]:
-    tasks: list[task.Task] = []
+) -> tuple[list[task.TaskWrapper], bool, bool]:
+    tasks: list[task.TaskWrapper] = []
     needs_all_repositories: bool = False
     all_reads_succeed: bool = True
     for task_path in task_paths:
@@ -444,24 +423,26 @@ def read_tasks(
             all_reads_succeed = False
             continue
 
-    for task_ in task.registry.tasks:
-        task_db = db.get_or_create_task(name=task_.name)
-        if task_.enabled is False:
-            db.update_task(task_.name, task_.checksum)
-            log.info("Task disabled", task=task_.name)
+    for wrapper in task.registry.tasks:
+        task_db = db.get_or_create_task(name=wrapper.name)
+        if wrapper.task.enabled is False:
+            db.update_task(wrapper.name, wrapper.checksum)
+            log.info("Task disabled", task=wrapper.name)
             continue
 
-        if task_.checksum != task_db.checksum:
+        if wrapper.checksum != task_db.checksum:
             needs_all_repositories = True
 
-        tasks.append(task_)
+        tasks.append(wrapper)
 
     return tasks, needs_all_repositories, all_reads_succeed
 
 
-def _trigger_event_handlers(ctx: context.Context, handlers: list[EventHandler]):
-    for handler in handlers:
-        try:
-            handler(ctx)
-        except Exception:
-            log.exception("event listener failed")
+@contextlib.contextmanager
+def in_checkout_dir(d: str) -> Iterator[None]:
+    current = os.getcwd()
+    os.chdir(d)
+    try:
+        yield
+    finally:
+        os.chdir(current)

@@ -547,7 +547,7 @@ class ExecuteTaskTest(unittest.TestCase):
         repository.source = "github.test"
         opts = Options(cfg=Config())
 
-        result = execute_task(task_=task, repo=repository, opts=opts)
+        result = execute_task(task_wrapper=task, repo=repository, opts=opts)
 
         self.assertTrue(result)
         repo_run.execute.assert_called_once()
@@ -575,7 +575,7 @@ class ExecuteTaskTest(unittest.TestCase):
         repository = unittest.mock.Mock(spec=source.Repository)
         opts = Options(cfg=Config())
 
-        result = execute_task(task_=task, repo=repository, opts=opts)
+        result = execute_task(task_wrapper=task, repo=repository, opts=opts)
 
         self.assertTrue(result)
         repo_run.execute.assert_not_called()
@@ -591,7 +591,7 @@ class ExecuteTaskTest(unittest.TestCase):
         repository = unittest.mock.Mock(spec=source.Repository)
         opts = Options(cfg=Config())
 
-        result = execute_task(task_=task, repo=repository, opts=opts)
+        result = execute_task(task_wrapper=task, repo=repository, opts=opts)
 
         self.assertFalse(result)
 
@@ -605,7 +605,7 @@ class ExecuteTaskTest(unittest.TestCase):
         repository = unittest.mock.Mock(spec=source.Repository)
         opts = Options(cfg=Config())
 
-        result = execute_task(task_=run, repo=repository, opts=opts)
+        result = execute_task(task_wrapper=run, repo=repository, opts=opts)
 
         self.assertFalse(result)
 
@@ -630,8 +630,8 @@ class ExecuteTaskTest(unittest.TestCase):
         repository_two.source = "github.test"
         opts = Options(cfg=Config())
 
-        result_one = execute_task(task_=task, repo=repository_one, opts=opts)
-        result_two = execute_task(task_=task, repo=repository_two, opts=opts)
+        result_one = execute_task(task_wrapper=task, repo=repository_one, opts=opts)
+        result_two = execute_task(task_wrapper=task, repo=repository_two, opts=opts)
 
         self.assertTrue(result_one)
         self.assertTrue(result_two)

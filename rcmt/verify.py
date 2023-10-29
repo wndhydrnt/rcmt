@@ -9,7 +9,7 @@ import structlog
 import rcmt.git
 from rcmt import task
 from rcmt.context import Context
-from rcmt.rcmt import Options, apply_actions
+from rcmt.rcmt import Options
 from rcmt.source import Repository
 
 log: structlog.stdlib.BoundLogger = structlog.get_logger()
@@ -32,20 +32,11 @@ def execute(directory: str, opts: Options, out: TextIO, repo_name: str) -> None:
         task.read(task_path)
 
     for t in task.registry.tasks:
-        result: bool = True
         ctx = Context(repository)
-        for f in t.filters:
-            if f(ctx) is True:
-                print(f"✅ Filter {str(f)} matches", file=out)
-            else:
-                result = False
-                print(f"❌ Filter {str(f)} does not match", file=out)
-
-        if result is False:
-            print(
-                f"❌ - at least one Filter did not match repository {repo_name}",
-                file=out,
-            )
+        if t.filter(ctx=ctx) is True:
+            print(f"✅ Filter matches", file=out)
+        else:
+            print(f"❌ Filter does not match repository {repo_name}", file=out)
             return
 
         print("---")
@@ -59,12 +50,8 @@ def execute(directory: str, opts: Options, out: TextIO, repo_name: str) -> None:
 
         print("🏗️  Preparing git clone", file=out)
         checkout_dir, has_conflict = gitc.prepare(force_rebase=False, repo=repository)
-        print("🚜 Applying actions", file=out)
-        apply_actions(
-            ctx=ctx,
-            task_=t,
-            work_dir=checkout_dir,
-        )
+        print("🚜 Applying Task", file=out)
+        t.apply(ctx=ctx)
         if gitc.has_changes_local(repo_dir=checkout_dir):
             print(
                 f"😍 Actions modified files - view changes in {checkout_dir}", file=out

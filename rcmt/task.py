@@ -10,69 +10,14 @@ import os.path
 import random
 import string
 import sys
-from typing import Callable, Optional
+from typing import Optional
 
+import structlog
 from slugify import slugify
 
 from rcmt import Context, context
-from rcmt.fs import FileProxy
-from rcmt.typing import Action, EventHandler, Filter
 
-
-class TaskRegistry:
-    """
-    TaskRegistry stores all loaded Tasks.
-    """
-
-    def __init__(self):
-        self.task_path: Optional[str] = None
-        self.tasks: list[Task] = []
-
-    def register(self, task: "Task") -> None:
-        """
-        register adds a Task to the registry and calculates its checksum.
-
-        :param task: The Task to register.
-        """
-        if self.task_path is None:
-            raise RuntimeError("Task path must be set during task registration")
-
-        for t in self.tasks:
-            if t.name == task.name:
-                raise RuntimeError(f"Task '{task.name}' already registered")
-
-        checksum = hashlib.md5()
-        with open(self.task_path) as f:
-            while True:
-                line = f.readline()
-                if line == "":
-                    break
-
-                checksum.update(line.encode("utf-8"))
-
-        task.checksum = checksum.hexdigest()
-        task.set_path(os.path.dirname(self.task_path))
-        self.tasks.append(task)
-
-
-# registry is the single instance of TaskRegistry used by rcmt. Tasks call the instance
-# in the __exit__ method of their context manager ("with" statement).
-registry = TaskRegistry()
-
-
-def register_task(task: "Task") -> None:
-    registry.register(task)
-
-
-class TaskExperiment:
-    name: str = ""
-    auto_merge: bool = False
-
-    def filter(self, ctx: Context) -> bool:
-        return False
-
-    def apply(self, ctx: Context, checkout_dir: str):
-        raise NotImplementedError("Task does not implement Task.apply()")
+log: structlog.stdlib.BoundLogger = structlog.get_logger(package="task")
 
 
 class Task:
@@ -128,154 +73,152 @@ class Task:
         ```
     """
 
-    def __init__(
-        self,
-        name: str,
-        auto_merge: bool = False,
-        auto_merge_after: Optional[datetime.timedelta] = None,
-        branch_name: str = "",
-        change_limit: Optional[int] = None,
-        commit_msg: str = "Applied actions",
-        delete_branch_after_merge: bool = True,
-        enabled: bool = True,
-        merge_once: bool = False,
-        pr_body: str = "",
-        pr_title: str = "",
-        labels: Optional[list[str]] = None,
-    ):
-        self.auto_merge = auto_merge
-        self.auto_merge_after = auto_merge_after
-        self.branch_name = branch_name
-        self.change_limit = change_limit
-        self.commit_msg = commit_msg
-        self.delete_branch_after_merge = delete_branch_after_merge
-        self.enabled = enabled
-        self.labels = labels
-        self.merge_once = merge_once
-        self.name = name
-        self.pr_body = pr_body
-        self.pr_title = pr_title
+    name: str
+    auto_merge: bool = False
+    auto_merge_after: Optional[datetime.timedelta] = None
+    branch_name: str = ""
+    change_limit: Optional[int] = None
+    commit_msg: str = "Applied actions"
+    delete_branch_after_merge: bool = True
+    enabled: bool = True
+    merge_once: bool = False
+    pr_body: str = ""
+    pr_title: str = ""
+    labels: Optional[list[str]] = None
 
-        self.actions: list[Action] = []
-        self.changes_total: int = 0
-        self.checksum: str = ""
-        self.failure_count: int = 0
-        self.file_proxies: list[FileProxy] = []
-        self.filters: list[Filter] = []
+    _path: str = ""
 
-        self.handlers_closed: list[EventHandler] = []
-        self.handlers_created: list[EventHandler] = []
-        self.handlers_merged: list[EventHandler] = []
+    def apply(self, ctx: context.Context) -> None:
+        raise NotImplementedError("Task does not implement method apply()")
 
-    def __enter__(self) -> "Task":
-        return self
+    def filter(self, ctx: context.Context) -> bool:
+        raise NotImplementedError("Task does not implement method filter()")
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
-        # Do not register if an exception occurred
-        if exc_val is not None:
-            return
-
-        register_task(task=self)
-
-    def add_action(self, a: Callable[[str, dict], None]) -> None:
-        """Add an Action to apply to every matching repository.
-
-        Args:
-            a: The Action.
-        """
-        self.actions.append(a)
-
-    def add_filter(self, f: Callable[[context.Context], bool]) -> None:
-        """Add a Filter that matches repositories.
-
-        Args:
-            f: The filter to add.
-        """
-        self.filters.append(f)
-
-    def add_matcher(self, m: Callable[[context.Context], bool]) -> None:
-        """Add a Filter that matches repositories.
-
-        Args:
-            m: The filter to add.
-
-        Deprecated:
-            Use `add_filter`.
-        """
-        self.filters.append(m)
-
-    def branch(self, prefix: str) -> str:
-        if self.branch_name != "":
-            return self.branch_name
-
-        return f"{prefix}{slugify(self.name)}"
-
-    def has_reached_change_limit(self) -> bool:
-        if self.change_limit is None:
-            return False
-
-        return self.changes_total >= self.change_limit
-
-    def load_file(self, path: str) -> FileProxy:
+    def load_file(self, path: str) -> str:
         """Returns a proxy that an Action can use to load a file.
 
         Args:
             path: Path to the file to load. Relative to the file that contains the Task.
         """
-        fp = FileProxy(path)
-        self.file_proxies.append(fp)
-        return fp
+        with open(os.path.join(self._path, path)) as f:
+            return f.read()
 
-    def filter(self, ctx: context.Context) -> bool:
-        for m in self.filters:
-            if m(ctx) is False:
-                return False
-
-        return True
-
-    def on_pr_closed(self, h: EventHandler) -> None:
+    def on_pr_closed(self, ctx: context.Context) -> None:
         """Register an event handler that gets executed if a pull request gets closed.
 
         The event handler is a Python function that accepts a `rcmt.context.Context`.
 
         Args:
-            h: The event handler.
+            ctx: The current context.
         """
-        self.handlers_closed.append(h)
+        return None
 
-    def on_pr_created(self, h: EventHandler):
+    def on_pr_created(self, ctx: context.Context) -> None:
         """Register an event handler that gets executed if a pull request gets created.
 
         The event handler is a Python function that accepts a `rcmt.context.Context`.
 
         Args:
-            h: The event handler.
+            ctx: The current context.
         """
-        self.handlers_created.append(h)
+        return None
 
-    def on_pr_merged(self, h: EventHandler):
+    def on_pr_merged(self, ctx: context.Context) -> None:
         """Register an event handler that gets executed if a pull request gets merged.
 
         The event handler is a Python function that accepts a `rcmt.context.Context`.
 
         Args:
-            h: The event handler.
+            ctx: The current context.
         """
-        self.handlers_merged.append(h)
+        return None
 
     def set_path(self, path: str):
-        for fp in self.file_proxies:
-            fp.set_path(path)
+        self._path = os.path.abspath(os.path.dirname(path))
 
 
-class Run(Task):
+class TaskWrapper:
+    def __init__(self, t: Task):
+        self.task = t
+
+        self.changes_total: int = 0
+        self.checksum: str = ""
+        self.failure_count: int = 0
+
+    def apply(self, ctx: Context) -> None:
+        self.task.apply(ctx=ctx)
+
+    def branch(self, prefix: str) -> str:
+        if self.task.branch_name != "":
+            return self.task.branch_name
+
+        return f"{prefix}{slugify(self.task.name)}"
+
+    def filter(self, ctx: Context) -> bool:
+        return self.task.filter(ctx=ctx)
+
+    def has_reached_change_limit(self) -> bool:
+        if self.task.change_limit is None:
+            return False
+
+        return self.changes_total >= self.task.change_limit
+
+    @property
+    def change_limit(self) -> Optional[int]:
+        return self.task.change_limit
+
+    @property
+    def name(self) -> str:
+        return self.task.name
+
+
+class TaskRegistry:
     """
-    Run is an alias of Task.
-
-    Provides backwards compatibility with task files written for rcmt <= 0.15.3.
+    TaskRegistry stores all loaded Tasks.
     """
 
-    pass
+    def __init__(self):
+        self.task_path: Optional[str] = None
+        self.tasks: list[TaskWrapper] = []
+
+    def register(self, task: Task) -> None:
+        """
+        register adds a Task to the registry and calculates its checksum.
+
+        :param task: The Task to register.
+        """
+        if self.task_path is None:
+            log.debug(f"Path to Task no set - not registering Task {task.name}")
+            return None
+
+        for t in self.tasks:
+            if t.name == task.name:
+                raise RuntimeError(f"Task '{task.name}' already registered")
+
+        checksum = hashlib.md5()
+        with open(self.task_path) as f:
+            while True:
+                line = f.readline()
+                if line == "":
+                    break
+
+                checksum.update(line.encode("utf-8"))
+
+        task.set_path(self.task_path)
+        wrapper = TaskWrapper(t=task)
+        wrapper.checksum = checksum.hexdigest()
+        self.tasks.append(wrapper)
+        log.info(f"Registered Task {task.name}")
+
+
+# registry is the single instance of TaskRegistry used by rcmt. `register_task` uses
+# this registry.
+registry = TaskRegistry()
+
+
+def register_task(*tasks: Task) -> None:
+    for t in tasks:
+        registry.register(t)
 
 
 def read(path: str) -> None:
