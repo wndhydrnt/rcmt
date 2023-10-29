@@ -128,8 +128,8 @@ def exec(executable: str, args: Optional[list[str]] = None, timeout: int = 120) 
     if result.returncode > 0:
         raise RuntimeError(
             f"""Exec action call to {executable} failed.
-        stdout: {result.stdout.decode('utf-8')}
-        stderr: {result.stderr.decode('utf-8')}"""
+    stdout: {result.stdout.decode('utf-8')}
+    stderr: {result.stderr.decode('utf-8')}"""
         )
 
 

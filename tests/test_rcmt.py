@@ -15,7 +15,6 @@ from rcmt import action, config, context, database, git, source
 from rcmt.config import Config
 from rcmt.config import Database as DatabaseConfig
 from rcmt.database import Database, Execution, Run
-from rcmt.filter import RepoName
 from rcmt.git import BranchModifiedError
 from rcmt.rcmt import (
     TEMPLATE_BRANCH_MODIFIED,

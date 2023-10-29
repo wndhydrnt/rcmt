@@ -7,7 +7,7 @@ import unittest
 from unittest import mock
 
 from rcmt.context import Context
-from rcmt.matcher import And, Base, FileExists, LineInFile, Not, Or
+from rcmt.filter import file_exists, line_in_file
 from rcmt.source import Repository
 
 
@@ -17,8 +17,7 @@ class FileExistsTest(unittest.TestCase):
         repo.has_file.return_value = True
         path = "test.json"
 
-        under_test = FileExists(path=path)
-        result = under_test.filter(Context(repo))
+        result = file_exists(ctx=Context(repo), path=path)
 
         self.assertTrue(result)
         repo.has_file.assert_called_once_with(path)
@@ -33,8 +32,9 @@ second line
 third line
 """
         )
-        under_test = LineInFile("test.txt", "second line")
-        result = under_test.filter(Context(repo))
+
+        result = line_in_file(ctx=Context(repo), path="test.txt", search="second line")
+
         self.assertTrue(result)
         repo.get_file.assert_called_once_with("test.txt")
 
@@ -46,81 +46,17 @@ second line
 third line
 """
         )
-        under_test = LineInFile("test.txt", "other line")
-        result = under_test.filter(Context(repo))
+
+        result = line_in_file(ctx=Context(repo), path="test.txt", search="other line")
+
         self.assertFalse(result)
         repo.get_file.assert_called_once_with("test.txt")
 
     def test_filter__does_not_exist(self):
         repo = mock.Mock(spec=Repository)
         repo.get_file = mock.Mock(side_effect=FileNotFoundError("does not exist"))
-        under_test = LineInFile("test.txt", "other line")
-        result = under_test.filter(Context(repo))
+
+        result = line_in_file(ctx=Context(repo), path="test.txt", search="other line")
+
         self.assertFalse(result)
         repo.get_file.assert_called_once_with("test.txt")
-
-
-class FilterMock(Base):
-    def __init__(self, matches: bool):
-        self.matches: bool = matches
-
-    def filter(self, ctx: Context) -> bool:
-        return self.matches
-
-
-class OrTest(unittest.TestCase):
-    def test_filter__does_match(self):
-        mock1 = FilterMock(matches=False)
-        mock2 = FilterMock(matches=True)
-
-        under_test = Or(mock1, mock2)
-        result = under_test.filter(Context(mock.Mock(spec=Repository)))
-
-        self.assertTrue(result)
-
-    def test_filter__does_not_match(self):
-        mock1 = FilterMock(matches=False)
-        mock2 = FilterMock(matches=False)
-
-        under_test = Or(mock1, mock2)
-        result = under_test.filter(Context(mock.Mock(spec=Repository)))
-
-        self.assertFalse(result)
-
-    def test_init__no_args(self):
-        with self.assertRaises(RuntimeError):
-            Or()
-
-
-class AndTest(unittest.TestCase):
-    def test_filter__does_match(self):
-        mock1 = FilterMock(matches=True)
-        mock2 = FilterMock(matches=True)
-
-        under_test = And(mock1, mock2)
-        result = under_test.filter(Context(mock.Mock(spec=Repository)))
-
-        self.assertTrue(result)
-
-    def test_filter__does_not_match(self):
-        mock1 = FilterMock(matches=True)
-        mock2 = FilterMock(matches=False)
-
-        under_test = And(mock1, mock2)
-        result = under_test.filter(Context(mock.Mock(spec=Repository)))
-
-        self.assertFalse(result)
-
-    def test_init(self):
-        with self.assertRaises(RuntimeError):
-            And()
-
-
-class NotTest(unittest.TestCase):
-    def test_filter(self):
-        mmock = FilterMock(matches=True)
-
-        under_test = Not(mmock)
-        result = under_test.filter(Context(mock.Mock(spec=Repository)))
-
-        self.assertFalse(result)

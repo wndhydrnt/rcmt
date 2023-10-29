@@ -8,18 +8,17 @@ import tempfile
 import unittest
 from unittest import mock
 
+from rcmt import context, fs
 from rcmt.action import (
-    Absent,
-    DeleteKey,
-    DeleteLineInFile,
-    Exec,
-    LineInFile,
-    Merge,
-    Own,
-    ReplaceInLine,
-    Seed,
+    absent,
+    delete_line_in_file,
+    exec,
+    line_in_file,
+    own,
+    replace_in_line,
+    seed,
 )
-from rcmt.encoding import Json, Registry
+from rcmt.source import source
 
 
 class AbsentTest(unittest.TestCase):
@@ -29,8 +28,8 @@ class AbsentTest(unittest.TestCase):
             with open(to_delete_path, "w+") as to_delete:
                 to_delete.write("test")
 
-            under_test = Absent("to_delete")
-            under_test.apply(d, {})
+            with fs.in_checkout_dir(d):
+                absent("to_delete")
 
             self.assertFalse(os.path.exists(to_delete_path))
 
@@ -39,8 +38,8 @@ class AbsentTest(unittest.TestCase):
             to_delete_path = os.path.join(d, "to_delete")
             os.mkdir(to_delete_path)
 
-            under_test = Absent("to_delete")
-            under_test.apply(d, {})
+            with fs.in_checkout_dir(d):
+                absent("to_delete")
 
             self.assertFalse(os.path.isdir(to_delete_path))
 
@@ -50,30 +49,24 @@ class ExecTest(unittest.TestCase):
     def test_exec(self, subprocess_run: mock.MagicMock):
         completed_process = mock.Mock(returncode=1, stderr=b"stderr", stdout=b"stdout")
         subprocess_run.return_value = completed_process
-        ex = Exec(executable="/tmp/foo", args=["--level", "error"], timeout=120)
-        with self.assertRaises(RuntimeError) as e:
-            ex.apply("/repo-checkout", {})
-        self.assertEqual(
-            """Exec action call to /tmp/foo failed.
+        with tempfile.TemporaryDirectory() as d:
+            with self.assertRaises(RuntimeError) as e:
+                with fs.in_checkout_dir(d):
+                    exec(executable="/tmp/foo", args=["--level", "error"], timeout=120)
+
+            self.assertEqual(
+                """Exec action call to /tmp/foo failed.
     stdout: stdout
     stderr: stderr""",
-            str(e.exception),
-        )
-        subprocess_run.assert_called_once_with(
-            args=["/tmp/foo", "--level", "error"],
-            capture_output=True,
-            cwd="/repo-checkout",
-            shell=False,
-            timeout=120,
-        )
-
-
-class DeleteKeysTest(unittest.TestCase):
-    def test_process(self):
-        data = {"foo": "bar", "level1": {"level2": {"level3": "foo"}}}
-        key_to_delete = ["level1", "level2", "level3"]
-        result = DeleteKey.process_recursive(key_to_delete, data)
-        self.assertDictEqual({"foo": "bar", "level1": {"level2": {}}}, result)
+                str(e.exception),
+            )
+            subprocess_run.assert_called_once_with(
+                args=["/tmp/foo", "--level", "error"],
+                capture_output=True,
+                cwd=f"/private{d}",
+                shell=False,
+                timeout=120,
+            )
 
 
 class LineInFileTest(unittest.TestCase):
@@ -84,8 +77,8 @@ class LineInFileTest(unittest.TestCase):
                 test_file.write("abc\n")
                 test_file.write("def\n")
 
-            under_test = LineInFile("foobar", "test.txt")
-            under_test.apply(d, {})
+            with fs.in_checkout_dir(d):
+                line_in_file(line="foobar", target="test.txt")
 
             with open(test_file_path, "r") as test_file:
                 lines = test_file.readlines()
@@ -101,43 +94,14 @@ class LineInFileTest(unittest.TestCase):
                 test_file.write("foobar\n")
                 test_file.write("def\n")
 
-            under_test = LineInFile("foobar", "test.txt")
-            under_test.apply(d, {})
+            with fs.in_checkout_dir(d):
+                line_in_file(line="foobar", target="test.txt")
 
             with open(test_file_path, "r") as test_file:
                 lines = test_file.readlines()
 
             self.assertEqual(3, len(lines))
             self.assertEqual("foobar\n", lines[1])
-
-
-class DeleteKeyTest(unittest.TestCase):
-    def test_apply(self):
-        with tempfile.TemporaryDirectory() as d:
-            test_file_path = os.path.join(d, "test.json")
-            test_file = open(test_file_path, "w+")
-            data = {
-                "root": {
-                    "first_key": "first_value",
-                    "second_key": "second_value",
-                    "third_key": "third_value",
-                }
-            }
-            json.dump(data, test_file)
-            test_file.close()
-
-            enc_registry = Registry()
-            enc_registry.register(Json(), [".json"])
-            under_test = DeleteKey("root.second_key", "test.json")
-            under_test.encodings = enc_registry
-            under_test.apply(d, {})
-
-            with open(test_file_path, "r") as tf:
-                data = json.load(tf)
-                self.assertDictEqual(
-                    {"root": {"first_key": "first_value", "third_key": "third_value"}},
-                    data,
-                )
 
 
 class DeleteLineInFileTest(unittest.TestCase):
@@ -149,8 +113,8 @@ class DeleteLineInFileTest(unittest.TestCase):
                 test_file.write("foobar\n")
                 test_file.write("def\n")
 
-            under_test = DeleteLineInFile(line="foobar", selector="test.txt")
-            under_test.apply(d, {})
+            with fs.in_checkout_dir(d):
+                delete_line_in_file(search="foobar", target="test.txt")
 
             with open(test_file_path, "r") as test_file:
                 lines = test_file.readlines()
@@ -165,8 +129,8 @@ class DeleteLineInFileTest(unittest.TestCase):
                 test_file.write("foo\n")
                 test_file.write("def\n")
 
-            under_test = DeleteLineInFile(line="bar", selector="test.txt")
-            under_test.apply(d, {})
+            with fs.in_checkout_dir(d):
+                delete_line_in_file(search="bar", target="test.txt")
 
             with open(test_file_path, "r") as test_file:
                 lines = test_file.readlines()
@@ -174,65 +138,16 @@ class DeleteLineInFileTest(unittest.TestCase):
             self.assertEqual(3, len(lines))
 
 
-class MergeTest(unittest.TestCase):
-    def test_apply_strategy_replace(self):
-        with tempfile.TemporaryDirectory() as d:
-            test_file_path = os.path.join(d, "test.json")
-            test_file = open(test_file_path, "w+")
-            data = {"root": {"list": ["first_value", "second_value"]}}
-            json.dump(data, test_file)
-            test_file.close()
-
-            enc_registry = Registry()
-            enc_registry.register(Json(), [".json"])
-            under_test = Merge(
-                '{"root": { "list": ["first_value", "third_value"]}}', "test.json"
-            )
-            under_test.encodings = enc_registry
-            under_test.apply(d, {})
-
-            with open(test_file_path, "r") as tf:
-                data = json.load(tf)
-                self.assertDictEqual(
-                    {"root": {"list": ["first_value", "third_value"]}},
-                    data,
-                )
-
-    def test_apply_strategy_additive(self):
-        with tempfile.TemporaryDirectory() as d:
-            test_file_path = os.path.join(d, "test.json")
-            test_file = open(test_file_path, "w+")
-            data = {"root": {"list": ["first_value", "second_value"]}}
-            json.dump(data, test_file)
-            test_file.close()
-
-            enc_registry = Registry()
-            enc_registry.register(Json(), [".json"])
-            under_test = Merge(
-                '{"root": { "list": ["third_value"]}}',
-                "test.json",
-                merge_strategy="additive",
-            )
-            under_test.encodings = enc_registry
-            under_test.apply(d, {})
-
-            with open(test_file_path, "r") as tf:
-                data = json.load(tf)
-                self.assertDictEqual(
-                    {"root": {"list": ["first_value", "second_value", "third_value"]}},
-                    data,
-                )
-
-
 class OwnTest(unittest.TestCase):
     def test_apply(self):
+        ctx = context.Context(repo=unittest.mock.Mock(spec=source.Repository))
         with tempfile.TemporaryDirectory() as d:
             test_file_path = os.path.join(d, "test.txt")
             with open(test_file_path, "w+") as test_file:
                 test_file.write("abc\n")
 
-            under_test = Own("unit-test", "test.txt")
-            under_test.apply(d, {})
+            with fs.in_checkout_dir(d):
+                own(ctx=ctx, content="unit-test", target="test.txt")
 
             with open(test_file_path, "r") as test_file:
                 content = test_file.read()
@@ -242,9 +157,10 @@ class OwnTest(unittest.TestCase):
 
 class SeedTest(unittest.TestCase):
     def test_apply_seed_file(self):
+        ctx = context.Context(repo=unittest.mock.Mock(spec=source.Repository))
         with tempfile.TemporaryDirectory() as d:
-            under_test = Seed("unit-test", "test.txt")
-            under_test.apply(d, {})
+            with fs.in_checkout_dir(d):
+                seed(ctx=ctx, content="unit-test", target="test.txt")
 
             with open(os.path.join(d, "test.txt"), "r") as test_file:
                 content = test_file.read()
@@ -252,13 +168,14 @@ class SeedTest(unittest.TestCase):
             self.assertEqual("unit-test", content)
 
     def test_apply_file_exists(self):
+        ctx = context.Context(repo=unittest.mock.Mock(spec=source.Repository))
         with tempfile.TemporaryDirectory() as d:
             test_file_path = os.path.join(d, "test.txt")
             with open(test_file_path, "w+") as test_file:
                 test_file.write("abc\n")
 
-            under_test = Seed("unit-test", "test.txt")
-            under_test.apply(d, {})
+            with fs.in_checkout_dir(d):
+                seed(ctx=ctx, content="unit-test", target="test.txt")
 
             with open(test_file_path, "r") as test_file:
                 content = test_file.read()
@@ -268,6 +185,7 @@ class SeedTest(unittest.TestCase):
 
 class ReplaceInLineTest(unittest.TestCase):
     def test_apply_replace(self):
+        ctx = context.Context(repo=unittest.mock.Mock(spec=source.Repository))
         with tempfile.TemporaryDirectory() as d:
             test_file_path = os.path.join(d, "test.txt")
             with open(test_file_path, "w+") as test_file:
@@ -275,10 +193,13 @@ class ReplaceInLineTest(unittest.TestCase):
                 test_file.write("foo:bar:baz\n")
                 test_file.write("def\n")
 
-            under_test = ReplaceInLine(
-                search="(.+):bar:(.+)", replace=r"\1:boom:\2", selector="test.txt"
-            )
-            under_test.apply(d, {})
+            with fs.in_checkout_dir(d):
+                replace_in_line(
+                    ctx=ctx,
+                    search="(.+):bar:(.+)",
+                    replace=r"\1:boom:\2",
+                    target="test.txt",
+                )
 
             with open(test_file_path, "r") as test_file:
                 content = test_file.read()
@@ -290,6 +211,14 @@ def
             self.assertEqual(expected_content, content)
 
     def test_apply_templating(self):
+        ctx = context.Context(repo=unittest.mock.Mock(spec=source.Repository))
+        ctx.update_template_data(
+            {
+                "repo_source": "github.com",
+                "repo_project": "wndhydrnt",
+                "repo_name": "rcmt-test",
+            }
+        )
         with tempfile.TemporaryDirectory() as d:
             test_file_path = os.path.join(d, "test.txt")
             with open(test_file_path, "w+") as test_file:
@@ -297,19 +226,13 @@ def
                 test_file.write("github.com/wndhydrnt/rcmt-test-old\n")
                 test_file.write("def\n")
 
-            under_test = ReplaceInLine(
-                search="$repo_source/$repo_project/rcmt-test-old",
-                replace="$repo_source/$repo_project/$repo_name",
-                selector="test.txt",
-            )
-            under_test.apply(
-                d,
-                {
-                    "repo_source": "github.com",
-                    "repo_project": "wndhydrnt",
-                    "repo_name": "rcmt-test",
-                },
-            )
+            with fs.in_checkout_dir(d):
+                replace_in_line(
+                    ctx=ctx,
+                    search="{{repo_source}}/{{repo_project}}/rcmt-test-old",
+                    replace="{{repo_source}}/{{repo_project}}/{{repo_name}}",
+                    target="test.txt",
+                )
 
             with open(test_file_path, "r") as test_file:
                 content = test_file.read()

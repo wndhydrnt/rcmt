@@ -1,9 +1,7 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
-import contextlib
 import datetime
-import os
 import shutil
 from enum import Enum
 from typing import Any, Iterator, Optional
@@ -12,7 +10,7 @@ import jinja2
 import structlog
 from git.exc import GitCommandError
 
-from . import Context, config, context, database, git, source, task
+from . import config, context, database, fs, git, source, task
 
 log: structlog.stdlib.BoundLogger = structlog.get_logger()
 
@@ -128,7 +126,7 @@ class RepoRun:
                 force_rebase=force_rebase, repo=repo
             )
 
-        with in_checkout_dir(work_dir):
+        with fs.in_checkout_dir(work_dir):
             matcher.apply(ctx=ctx)
 
         has_local_changes = self.git.has_changes_local(work_dir)
@@ -436,13 +434,3 @@ def read_tasks(
         tasks.append(wrapper)
 
     return tasks, needs_all_repositories, all_reads_succeed
-
-
-@contextlib.contextmanager
-def in_checkout_dir(d: str) -> Iterator[None]:
-    current = os.getcwd()
-    os.chdir(d)
-    try:
-        yield
-    finally:
-        os.chdir(current)
