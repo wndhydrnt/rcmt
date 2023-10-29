@@ -34,9 +34,12 @@ def execute(directory: str, opts: Options, out: TextIO, repo_name: str) -> None:
     for t in task.registry.tasks:
         ctx = Context(repository)
         if t.filter(ctx=ctx) is True:
-            print(f"✅ Filter matches", file=out)
+            print(f"✅ Filter of task {t.name} matches", file=out)
         else:
-            print(f"❌ Filter does not match repository {repo_name}", file=out)
+            print(
+                f"❌ Filter of task {t.name} does not match repository {repo_name}",
+                file=out,
+            )
             return
 
         print("---")

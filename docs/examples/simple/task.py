@@ -1,11 +1,17 @@
-from rcmt import Task
-from rcmt.action import LineInFile
-from rcmt.filter import RepoName
+from rcmt import Task, context, register_task
+from rcmt.action import line_in_file
+from rcmt.filter import repo_name
 
-# rcmt uses the name to create the branch.
-with Task("git-ignore-vscode-dir") as task:
-    # Match all repositories in MyOrg on GitHub
-    task.add_filter(RepoName("github.com/MyOrg/.*"))
-    # Add the Action LineInFile to the Task.
-    # LineInFile ensures that the given `line` exists in the file.
-    task.add_action(LineInFile(line=".vscode/", selector=".gitignore"))
+
+class GitIgnoreVSCodeDir(Task):
+    def filter(self, ctx: context.Context) -> bool:
+        # Match all repositories in MyOrg on GitHub
+        return repo_name(ctx=ctx, search="github.com/MyOrg/.*")
+
+    def apply(self, ctx: context.Context) -> None:
+        # Add the Action LineInFile to the Task.
+        # LineInFile ensures that the given `line` exists in the file.
+        line_in_file(line=".vscode/", target=".gitignore")
+
+
+register_task(GitIgnoreVSCodeDir())

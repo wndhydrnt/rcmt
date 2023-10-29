@@ -1,24 +1,30 @@
 """
 This Task file contains two Tasks. Each Task will be executed
-independent of the other and create its own pull request.
+independent of the other and create its own pull request(s).
 
 This is great for sharing functionality between Tasks or group
 related Tasks together in one file.
 """
-from rcmt import Task
-from rcmt.action import Own
-from rcmt.filter import RepoName
+from rcmt import Task, context, register_task
+from rcmt.action import own
+from rcmt.filter import repo_name
 
-with Task("First Task") as task:
-    # Match all repositories of MyOrg.
-    task.add_filter(RepoName("github.com/MyOrg/.+"))
 
-    # Create the file example-one.txt with content "Example One".
-    task.add_action(Own(content="Example One", target="example-one.txt"))
+class FirstTask(Task):
+    def filter(self, ctx: context.Context) -> bool:
+        return repo_name(ctx=ctx, search="github.com/MyOrg/.+")
 
-with Task("Second Task") as task:
-    # Match all repositories of MyOrg.
-    task.add_filter(RepoName("github.com/MyOrg/.+"))
+    def apply(self, ctx: context.Context) -> None:
+        own(ctx=ctx, content="Example One", target="example-one.txt")
 
-    # Create the file example-two.txt with content "Example Two".
-    task.add_action(Own(content="Example Two", target="example-two.txt"))
+
+class SecondTask(Task):
+    def filter(self, ctx: context.Context) -> bool:
+        return repo_name(ctx=ctx, search="github.com/MyOrg/.+")
+
+    def apply(self, ctx: context.Context) -> None:
+        own(ctx=ctx, content="Example Two", target="example-two.txt")
+
+
+# Register both tasks. Can be done in one fucntion call.
+register_task(FirstTask(), SecondTask())
