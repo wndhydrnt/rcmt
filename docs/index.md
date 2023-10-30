@@ -41,7 +41,10 @@ Create the file `task.py` and add the following content:
 ```python title="task.py"
 from rcmt import Task, Context, register_task
 from rcmt.action import own
-from rcmt.filter import repo_name
+
+
+# Replace with your repository.
+REPOSITORY = "github.com/wndhydrnt/rcmt-example"
 
 
 class HelloWorld(Task):  # (1)!
@@ -53,7 +56,7 @@ https://rcmt.readthedocs.io/get-started/create-a-task/
 """
 
     def filter(self, ctx: Context) -> bool:  # (2)!
-        return repo_name(ctx=ctx, search="^github.com/wndhydrnt/rcmt-example$")
+        return ctx.repo.full_name == REPOSITORY
 
     def apply(self, ctx: Context) -> None:  # (3)!
         own(ctx=ctx, content="Hello World", target="hello-world.txt")
