@@ -5,13 +5,13 @@
 import unittest
 import unittest.mock
 
-from rcmt import Task, action, encoding, filter
+from rcmt import action, filter
 from rcmt.config import Config
 from rcmt.context import Context
 from rcmt.git import Git
 from rcmt.rcmt import Options
 from rcmt.source import source
-from rcmt.task import registry
+from rcmt.task import TaskWrapper, registry
 from rcmt.verify import execute
 
 
@@ -27,7 +27,6 @@ class ExecuteTest(unittest.TestCase):
 
         opts = Options(cfg=Config())
         opts.task_paths = ["/tmp/run.py"]
-        opts.encoding_registry = encoding.Registry()
 
         repository_mock = unittest.mock.Mock(spec=source.Repository)
         repository_mock.name = "rcmt"
@@ -38,12 +37,9 @@ class ExecuteTest(unittest.TestCase):
         source_mock.create_from_name.return_value = repository_mock
         opts.sources["github.com"] = source_mock
 
-        task = Task(name="local")
-        matcher_mock = unittest.mock.Mock(spec=filter.Base)
-        matcher_mock.return_value = True
-        task.add_filter(matcher_mock)
-        action_mock = unittest.mock.Mock(spec=action.Action)
-        task.add_action(action_mock)
+        task = unittest.mock.Mock(spec=TaskWrapper)
+        task.name = "local"
+        task.filter.return_value = True
         registry.tasks.append(task)
 
         git_mock = unittest.mock.Mock(spec=Git)
@@ -59,16 +55,9 @@ class ExecuteTest(unittest.TestCase):
                 repo_name="github.com/wndhydrnt/rcmt",
             )
 
-        matcher_mock.assert_called()
-        ctx = matcher_mock.call_args.args[0]
+        task.filter.assert_called()
+        ctx = task.filter.call_args.kwargs["ctx"]
         self.assertIsInstance(ctx, Context)
         self.assertEqual(repository_mock, ctx.repo)
         task_read_mock.assert_called_with("/tmp/run.py")
-        action_mock.assert_called_once_with(
-            checkout_dir,
-            {
-                "repo_source": "github.com",
-                "repo_project": "wndhydrnt",
-                "repo_name": "rcmt",
-            },
-        )
+        task.apply.assert_called_once_with(ctx=ctx)

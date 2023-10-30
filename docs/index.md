@@ -39,43 +39,55 @@ Output
 Create the file `task.py` and add the following content:
 
 ```python title="task.py"
-from rcmt import Task
-from rcmt.action import Own
-from rcmt.filter import RepoName
+from rcmt import Task, Context, register_task
+from rcmt.action import own
 
-with Task(
-    name="rcmt-example",
-    auto_merge=False,
-    pr_title="rcmt Example",
-    pr_body="""This pull request has been created as part of the how-to guide:
+
+# Replace with your repository.
+REPOSITORY = "github.com/wndhydrnt/rcmt-example"
+
+
+class HelloWorld(Task):  # (1)!
+    name = "hello-world"
+    pr_title = "rcmt Hello World"
+    pr_body = """This pull request has been created as part of the how-to guide:
 
 https://rcmt.readthedocs.io/get-started/create-a-task/
 """
-) as task: # (1)!
-    task.add_action(Own(content="rcmt works!", target="rcmt.txt")) # (2)!
-    task.add_filter(RepoName("^github.com/wndhydrnt/rcmt-example$")) # (3)!
+
+    def filter(self, ctx: Context) -> bool:  # (2)!
+        return ctx.repo.full_name == REPOSITORY
+
+    def apply(self, ctx: Context) -> None:  # (3)!
+        own(ctx=ctx, content="Hello World", target="hello-world.txt")
+
+
+register_task(HelloWorld())  # (4)!
 ```
 
-1.  A Task bundles Actions and Filters and allows to set extra configuration.
-2.  This adds an Action. Actions modify files in a repository. In this case, the `Own`
-    Action creates the file `rcmt.txt` with the content `rcmt works!`.
-3.  This adds a Filter. Filters allow filtering the repositories to which a Task
-    applies. This can be the name of a repository, like in this example. Other Filters
-    are available that check for the existence of a file in a repository or the content
-    of a file.
+1.  A Task bundles the code that determines which repositories to modify and how to
+    modify them. It is a regular Python class that extends the base class `Task`.
+2.  The `filter` method determines which repositories to modify. It is called by rcmt
+    for each repository.
+3.  The `apply` method contains the code that modifies files in a repository. In this
+    example, the `own` function creates the file `hello-world.txt` with the content
+    `Hello World` in the root of the repository. `target` is not an absolute path
+    because rcmt automatically sets the current working directory (`cwd`) to the
+    checkout of the repository.
+4.  Register the task with rcmt so rcmt knows about it.
 
 ### Run rcmt
 
 === "GitHub"
 
     ```shell
-    RCMT_GITHUB_ACCESS_TOKEN=xxxxx rcmt run ./task.py
+    RCMT_GITHUB__ACCESS_TOKEN=xxxxx rcmt run ./task.py
     ```
 
 === "GitLab"
 
     ```shell
-    RCMT_GITLAB_PRIVATE_TOKEN=xxxxx rcmt run ./task.py
+    RCMT_GITLAB__PRIVATE_TOKEN=xxxxx rcmt run ./task.py
     ```
 
 Output

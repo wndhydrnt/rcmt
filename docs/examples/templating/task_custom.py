@@ -1,6 +1,6 @@
-from rcmt import Context, Task
-from rcmt.action import Seed
-from rcmt.filter import RepoName
+from rcmt import Context, Task, context, register_task
+from rcmt.action import seed
+from rcmt.filter import repo_name
 
 # Replace with your repository.
 REPOSITORY = "github.com/wndhydrnt/rcmt"
@@ -21,8 +21,16 @@ Nothing to say.
 """
 
 
-with Task("custom-templating", pr_body=pr_body, pr_title=pr_title) as task:
-    task.add_filter(RepoName(f"^{REPOSITORY}$"))
-    task.add_filter(set_custom_template_var)
+class TemplatingWithCustomVars(Task):
+    pr_title = pr_title
+    pr_body = pr_body
 
-    task.add_action(Seed(content="Custom Templating", target="templating.txt"))
+    def filter(self, ctx: context.Context) -> bool:
+        ctx.set_template_key("greet", "Hello World")
+        return repo_name(ctx=ctx, search=f"^{REPOSITORY}$")
+
+    def apply(self, ctx: context.Context) -> None:
+        seed(ctx=ctx, content="Custom Templating", target="templating.txt")
+
+
+register_task(TemplatingWithCustomVars())

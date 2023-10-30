@@ -1,20 +1,22 @@
-from rcmt import Task
-from rcmt.action import Own
-from rcmt.filter import RepoName
+from rcmt import Task, context, register_task
+from rcmt.action import own
+from rcmt.filter import repo_name
 
-# rcmt uses the name when committing changes.
-with Task(name="python-defaults") as task:
-    # Match all repositories of MyOrg.
-    task.add_filter(RepoName("github.com/MyOrg/.+"))
-    # Add an action to the task. The action tells rcmt what to do.
-    # The Own action creates a file and ensures that its content stays the same.
-    task.add_action(
-        Own(
+
+class PythonDefaults(Task):
+    def filter(self, ctx: context.Context) -> bool:
+        return repo_name(ctx=ctx, search="github.com/MyOrg/.+")
+
+    def apply(self, ctx: context.Context) -> None:
+        own(
+            ctx=ctx,
             # Load the content to write from a file.
             # The path to the file is relative to task.py.
-            content=task.load_file(".flake8"),
+            content=self.load_file(".flake8"),
             # Path to the target where rcmt writes the content of source.
             # This is relative to the root path of a repository.
             target=".flake8",
         )
-    )
+
+
+register_task(PythonDefaults())

@@ -29,5 +29,9 @@ class Context:
     def set_template_key(self, key: str, value: Any):
         self._tpl_data[key] = value
 
+    @property
+    def template_data(self) -> dict[str, Any]:
+        return self._tpl_data
+
     def update_template_data(self, d: dict[str, Any]):
         self._tpl_data.update(d)

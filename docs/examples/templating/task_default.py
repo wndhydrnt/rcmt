@@ -1,6 +1,6 @@
-from rcmt import Task
-from rcmt.action import Seed
-from rcmt.filter import RepoName
+from rcmt import Context, Task, register_task
+from rcmt.action import seed
+from rcmt.filter import repo_name
 
 # Replace with your repository.
 REPOSITORY = "github.com/wndhydrnt/rcmt"
@@ -14,7 +14,15 @@ Owner: {{repo_owner}}
 Name: {{repo_name}}"""
 
 
-with Task("default-templating") as task:
-    task.add_filter(RepoName(f"^{REPOSITORY}$"))
+class TemplatingWithDefaultVars(Task):
+    pr_title = pr_title
+    pr_body = pr_body
 
-    task.add_action(Seed(content="Default Templating", target="templating.txt"))
+    def filter(self, ctx: Context) -> bool:
+        return repo_name(ctx=ctx, search=f"^{REPOSITORY}$")
+
+    def apply(self, ctx: Context) -> None:
+        seed(ctx=ctx, content="Default Templating", target="templating.txt")
+
+
+register_task(TemplatingWithDefaultVars())

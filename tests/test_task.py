@@ -3,8 +3,9 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import unittest
+from unittest import mock
 
-from rcmt.task import Task, TaskRegistry, read, registry
+from rcmt.task import Task, TaskRegistry, TaskWrapper, read, registry
 
 
 class ReadTaskTest(unittest.TestCase):
@@ -14,11 +15,9 @@ class ReadTaskTest(unittest.TestCase):
 
     def test_read(self):
         read("tests/fixtures/test_run/ReadTaskTest/test_read/task.py")
-        self.assertEqual(1, len(registry.tasks))
+        self.assertEqual(1, len(registry.tasks), "Should register the task")
         t = registry.tasks[0]
-
-        for fp in t.file_proxies:
-            self.assertEqual("tests/fixtures/test_run/ReadTaskTest/test_read", fp.path)
+        self.assertEqual("unit-test", t.name, "Should register the expected task")
 
     def test_read__code_exception(self):
         with self.assertRaises(RuntimeError) as e:
@@ -32,33 +31,49 @@ class ReadTaskTest(unittest.TestCase):
         )
 
 
-class TaskTest(unittest.TestCase):
+class TaskWrapperTest(unittest.TestCase):
     def test_branch__custom_name_not_altered(self):
-        r = Task(name="This is a test", branch_name="feature/branch-name")
-        result = r.branch("rcmt/")
-        self.assertEqual("feature/branch-name", result)
+        task = mock.Mock(spec=Task)
+        task.name = "This is a test"
+        task.branch_name = "feature/branch-name"
+
+        wrapper = TaskWrapper(t=task)
+        result = wrapper.branch("rcmt/")
+
+        self.assertEqual(
+            "feature/branch-name", result, "Should use the name set by the task"
+        )
 
     def test_branch__slugify_default(self):
-        r = Task(name="This is a test")
-        result = r.branch("rcmt/")
-        self.assertEqual("rcmt/this-is-a-test", result)
+        task = mock.Mock(spec=Task)
+        task.name = "This is a test"
+        task.branch_name = ""
+
+        wrapper = TaskWrapper(t=task)
+        result = wrapper.branch("rcmt/")
+
+        self.assertEqual(
+            "rcmt/this-is-a-test",
+            result,
+            "Should concat prefix and slugified name of task",
+        )
 
 
 class TaskRegistryTest(unittest.TestCase):
     def test_register__task_path_not_set(self):
         tr = TaskRegistry()
-        with self.assertRaises(RuntimeError) as e:
-            tr.register(task=Task(name="unit-test"))
+        t = mock.Mock(spec=Task)
+        t.name = "uni-test"
 
-        self.assertEqual(
-            str(e.exception),
-            "Task path must be set during task registration",
-        )
+        tr.register(task=t)
+
+        self.assertEqual(0, len(tr.tasks), "List of registered tasks should be empty")
 
     def test_register__task_register_twice(self):
         tr = TaskRegistry()
         tr.task_path = "tests/fixtures/test_run/ReadTaskTest/test_read/task.py"
-        t = Task(name="unit-test")
+        t = mock.Mock(spec=Task)
+        t.name = "unit-test"
         tr.register(t)
 
         with self.assertRaises(RuntimeError) as e:

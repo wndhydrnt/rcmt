@@ -4,18 +4,20 @@ from typing import Optional
 
 import requests
 
-from rcmt import Context, Task
-from rcmt.filter import Base
+from rcmt import Context, Task, context, register_task
 
 
-class CheckAPI(Base):
-    def filter(self, ctx: Context) -> bool:
+class API:
+    def __init__(self):
+        self.session = requests.Session()
+
+    def check(self, ctx: Context) -> bool:
         """Read a token from an environment variable and use it to call an API."""
         repo_name = ctx.repo.full_name
         # Read token from section "custom" of the configuration file
         token = ctx.custom_config["token"]
         bearer = f"Bearer {token}"
-        response = requests.get(
+        response = self.session.get(
             f"https://example.test/check?repo={repo_name}",
             headers={"Authorization": bearer},
         )
@@ -28,7 +30,7 @@ class SendMail:
     def __init__(self, client: Optional[smtplib.SMTP] = None):
         self._client: Optional[smtplib.SMTP] = client
 
-    def __call__(self, ctx: Context) -> None:
+    def send(self, ctx: Context) -> None:
         client = self._create_client(ctx)
         client.sendmail(
             from_addr="from@example.test",
@@ -55,7 +57,21 @@ class SendMail:
         return self._client
 
 
-with Task("custom-configuration") as task:
-    task.add_filter(CheckAPI())
-    task.on_pr_created(SendMail())
-    # Add actions...
+class CustomConfigurationRCMTConfig(Task):
+    def __init__(self, check: API, mail: SendMail):
+        self.check = check
+        self.mail = mail
+
+    def filter(self, ctx: context.Context) -> bool:
+        # Call a custom API to determine if the Task should modify a repository.
+        return self.check.check(ctx=ctx)
+
+    def apply(self, ctx: context.Context) -> None:
+        """Whatever modifications need to be done."""
+
+    def on_pr_created(self, ctx: context.Context) -> None:
+        # Send an e-mail on creation of a pull request.
+        self.mail.send(ctx=ctx)
+
+
+register_task(CustomConfigurationRCMTConfig(check=API(), mail=SendMail()))
