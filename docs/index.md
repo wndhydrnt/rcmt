@@ -71,7 +71,9 @@ register_task(HelloWorld())  # (4)!
     for each repository.
 3.  The `apply` method contains the code that modifies files in a repository. In this
     example, the `own` function creates the file `hello-world.txt` with the content
-    `Hello World` in the root of the repository.
+    `Hello World` in the root of the repository. `target` is not an absolute path
+    because rcmt automatically sets the current working directory (`cwd`) to the
+    checkout of the repository.
 4.  Register the task with rcmt so rcmt knows about it.
 
 ### Run rcmt

@@ -98,7 +98,7 @@ class Task:
         extends Task needs to override this method and implement the actual logic.
 
         rcmt calls this method if filter() returned true. It sets the current working
-        directory to the checkout of the current repository.
+        directory (`cwd`) to the checkout of the repository.
 
         Args:
             ctx: The context that holds the current repository and additional
