@@ -13,8 +13,14 @@ class EventHandlerExample(Task):
     def apply(self, ctx: Context) -> None:
         seed(ctx=ctx, content="Hello World", target="hello.txt")
 
+    def on_pr_closed(self, ctx: Context) -> None:
+        print("pull request closed")
+
     def on_pr_created(self, ctx: Context) -> None:
-        print("Pull request created")
+        print("pull request created")
+
+    def on_pr_merged(self, ctx: Context) -> None:
+        print("pull request merged")
 
 
 register_task(EventHandlerExample())

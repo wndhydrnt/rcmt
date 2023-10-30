@@ -1,4 +1,4 @@
-from rcmt import Context, Task
+from rcmt import Context, Task, register_task
 from rcmt.action import seed
 from rcmt.filter import repo_name
 
@@ -23,3 +23,6 @@ class TemplatingWithDefaultVars(Task):
 
     def apply(self, ctx: Context) -> None:
         seed(ctx=ctx, content="Default Templating", target="templating.txt")
+
+
+register_task(TemplatingWithDefaultVars())

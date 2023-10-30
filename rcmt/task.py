@@ -26,7 +26,7 @@ class Task:
     rcmt reads the Task, finds matching repositories and then applies its Actions to
     each repository.
 
-    Args:
+    Attributes:
         name: The name of the Task. rcmt uses the name to identify a task.
         auto_merge: rcmt automatically merges a pull request on its next run. The
                     pull request must pass all its checks.
@@ -54,22 +54,27 @@ class Task:
 
     Example:
         ```python
-        from datetime import timedelta
+        from rcmt import Task, Context
+        from rcmt.action import own
+        from rcmt.filter import repo_name
 
-        from rcmt import Task
-        from rcmt.filter import FileExists, RepoName
 
-        with Task(
-            name="python-defaults",
-            auto_merge=True,
-            auto_merge_after=timedelta(days=7)
-        ) as task:
-            task.add_filter(FileExists("pyproject.toml"))
-            task.add_filter(RepoName("^github.com/wndhydrnt/rcmt$"))
+        class HelloWorld(Task):
+            name = "hello-world"
+            pr_title = "rcmt Hello World"
+            pr_body = '''This pull request has been created as part of the how-to guide:
 
-            task.pr_title = "A custom PR title"
-            task.pr_body = '''A custom PR title.
-            It supports multiline strings.'''
+        https://rcmt.readthedocs.io/get-started/create-a-task/
+        '''
+
+            def filter(self, ctx: Context) -> bool:
+                return repo_name(ctx=ctx, search="^github.com/wndhydrnt/rcmt-example$")
+
+            def apply(self, ctx: Context) -> None:
+                own(ctx=ctx, content="Hello World", target="hello-world.txt")
+
+
+        register_task(HelloWorld())
         ```
     """
 
@@ -89,9 +94,30 @@ class Task:
     _path: str = ""
 
     def apply(self, ctx: context.Context) -> None:
+        """apply contains all logic that modifies files in a repository. The class that
+        extends Task needs to override this method and implement the actual logic.
+
+        rcmt calls this method if filter() returned true. It sets the current working
+        directory to the checkout of the current repository.
+
+        Args:
+            ctx: The context that holds the current repository and additional
+                 information.
+        """
         raise NotImplementedError("Task does not implement method apply()")
 
     def filter(self, ctx: context.Context) -> bool:
+        """filter determines if the task can be applied to the current repository. The
+        class that extends Task needs to override this method and implement the actual
+        logic.
+
+        Args:
+            ctx: The context that holds the current repository and additional
+                 information.
+
+        Returns:
+            Boolean that indicates if this task should process the current repository.
+        """
         raise NotImplementedError("Task does not implement method filter()")
 
     def load_file(self, path: str) -> str:
@@ -104,9 +130,13 @@ class Task:
             return f.read()
 
     def on_pr_closed(self, ctx: context.Context) -> None:
-        """Register an event handler that gets executed if a pull request gets closed.
+        """on_pr_closed gets called when a pull request is closed by rcmt.
 
-        The event handler is a Python function that accepts a `rcmt.context.Context`.
+        This can happen, for example, when the modifications have already been done in
+        the default branch of a repository and the pull request is no longer needed.
+
+        This method does nothing by default. A class that extends Task can override this
+        method and implement custom logic, like sending an e-mail or posting a message.
 
         Args:
             ctx: The current context.
@@ -114,9 +144,10 @@ class Task:
         return None
 
     def on_pr_created(self, ctx: context.Context) -> None:
-        """Register an event handler that gets executed if a pull request gets created.
+        """on_pr_closed gets called when a pull request is created by rcmt.
 
-        The event handler is a Python function that accepts a `rcmt.context.Context`.
+        This method does nothing by default. A class that extends Task can override this
+        method and implement custom logic, like sending an e-mail or posting a message.
 
         Args:
             ctx: The current context.
@@ -124,9 +155,10 @@ class Task:
         return None
 
     def on_pr_merged(self, ctx: context.Context) -> None:
-        """Register an event handler that gets executed if a pull request gets merged.
+        """on_pr_merged gets called when a pull request is merged by rcmt.
 
-        The event handler is a Python function that accepts a `rcmt.context.Context`.
+        This method does nothing by default. A class that extends Task can override this
+        method and implement custom logic, like sending an e-mail or posting a message.
 
         Args:
             ctx: The current context.
