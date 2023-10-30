@@ -4,6 +4,7 @@
 
 import json
 import os
+import platform
 import tempfile
 import unittest
 from unittest import mock
@@ -60,10 +61,16 @@ class ExecTest(unittest.TestCase):
     stderr: stderr""",
                 str(e.exception),
             )
+            # Workaround for macos symlink of /tmp to /private/tmp
+            if platform.system() == "Darwin":
+                cwd = f"/private{d}"
+            else:
+                cwd = d
+
             subprocess_run.assert_called_once_with(
                 args=["/tmp/foo", "--level", "error"],
                 capture_output=True,
-                cwd=f"/private{d}",
+                cwd=cwd,
                 shell=False,
                 timeout=120,
             )
