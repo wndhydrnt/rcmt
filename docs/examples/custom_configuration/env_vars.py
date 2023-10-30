@@ -32,14 +32,14 @@ class SendMail:
         self._client: Optional[smtplib.SMTP] = client
 
     def send(self, ctx: Context) -> None:
-        client = self._create_client(ctx)
+        client = self._create_client()
         client.sendmail(
             from_addr="from@example.test",
             to_addrs=["to@example.test"],
             msg="pull request created",
         )
 
-    def _create_client(self, ctx: Context) -> smtplib.SMTP:
+    def _create_client(self) -> smtplib.SMTP:
         """Create the SMTP only client once to avoid connection churn.
         Read connection details and credentials section "custom" of the configuration
         file.
