@@ -6,6 +6,7 @@ import datetime
 import hashlib
 import importlib.machinery
 import importlib.util
+import inspect
 import os.path
 import random
 import string
@@ -264,6 +265,18 @@ def read(path: str) -> None:
     try:
         registry.task_path = path
         loader.exec_module(new_module)
+        for name, obj in inspect.getmembers(new_module):
+            if (
+                inspect.isclass(obj)
+                and issubclass(obj, Task)
+                and obj.__module__ == mod_name
+            ):
+                known = [wrapper.task.__class__.__name__ for wrapper in registry.tasks]
+                if name not in known:
+                    raise RuntimeError(
+                        f"File '{path}' defines Task '{name}' but does not register it - use rcmt.register_task({name}())"
+                    )
+
     except Exception as e:
         raise RuntimeError(f"Import failed with {e.__class__.__name__}: {str(e)}")
     finally:

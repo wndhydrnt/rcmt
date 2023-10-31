@@ -30,6 +30,15 @@ class ReadTaskTest(unittest.TestCase):
             str(e.exception),
         )
 
+    def test_read__not_registered(self):
+        with self.assertRaises(RuntimeError) as e:
+            read("tests/fixtures/test_task/test_read__not_registered/task.py")
+
+        self.assertEqual(
+            "Import failed with RuntimeError: File 'tests/fixtures/test_task/test_read__not_registered/task.py' defines Task 'Test' but does not register it - use rcmt.register_task(Test())",
+            str(e.exception),
+        )
+
 
 class TaskWrapperTest(unittest.TestCase):
     def test_branch__custom_name_not_altered(self):
