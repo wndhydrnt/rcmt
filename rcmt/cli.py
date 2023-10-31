@@ -95,7 +95,7 @@ rcmt validate tasks/*.py
 
 @click.command(help=validate_help, short_help="Validate Task files")
 @click.argument("task_file", type=click.Path(), nargs=-1)
-def validate(task_file: tuple[str]):
+def validate(task_file: tuple[str, ...]):
     if rcmt.validate(task_file_paths=task_file) is False:
         exit(1)
 
