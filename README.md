@@ -1,9 +1,11 @@
 # rcmt
 
 <div align="center">
+
 [![pypi](https://img.shields.io/pypi/v/rcmt.svg)](https://pypi.org/project/rcmt/)
 [![python](https://img.shields.io/pypi/pyversions/rcmt.svg)](https://pypi.org/project/rcmt/)
 [![docs](https://readthedocs.org/projects/rcmt/badge/?version=stable)](https://readthedocs.org/projects/rcmt/?badge=stable)
+
 </div>
 
 rcmt automates refactorings across many repositories.
