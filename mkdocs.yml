@@ -3,12 +3,13 @@ plugins:
       default_handler: python
   - search
 nav:
-  - Get Started:
-      - rcmt: index.md
-      - get-started/how-it-works.md
-      - get-started/templating.md
-      - get-started/events.md
-      - get-started/custom-config.md
+  - Home: index.md
+  - get-started/tutorial.md
+  - get-started/how-it-works.md
+  - Features:
+      - features/events.md
+      - features/templating.md
+      - features/custom-config.md
   - Examples:
       - examples/simple/index.md
       - examples/load_file/index.md
@@ -18,6 +19,7 @@ nav:
       - reference/task.md
       - reference/filters.md
       - reference/actions.md
+  - contributing.md
 markdown_extensions:
   - admonition
   - pymdownx.details
@@ -45,5 +47,5 @@ theme:
     - content.code.annotate
     - content.code.copy
     - content.tabs.link
-    - navigation.tabs
+    - navigation.sections
   name: material

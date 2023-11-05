@@ -1,69 +1,72 @@
 # rcmt
 
-With rcmt you can
+<div align="center">
+[![pypi](https://img.shields.io/pypi/v/rcmt.svg)](https://pypi.org/project/rcmt/)
+[![python](https://img.shields.io/pypi/pyversions/rcmt.svg)](https://pypi.org/project/rcmt/)
+[![docs](https://readthedocs.org/projects/rcmt/badge/?version=stable)](https://readthedocs.org/projects/rcmt/?badge=stable)
+</div>
 
-- create, modify or delete files across many repositories.
-- merge global settings with user-configured settings in repositories.
-- write your own tooling to manipulate files in repositories.
+rcmt automates refactorings across many repositories.
 
-Take a look at the [documentation](https://rcmt.readthedocs.io/) to learn more.
+Write Python code to define how the content of files should look like. Then let rcmt
+apply the changes across repositories and create pull requests.
 
-## Development
 
-### Set up virtualenv and install dependencies
+## Features
 
-Requirements:
-- [poetry](https://python-poetry.org/)
+- **Mass Refactoring** - create, update or delete files across many repositories.
+- **Automation** - automatic creation of merge requests in repositories; optionally
+  merge them automatically if approved and all checks have passed.
+- **Flexibility** - call third-party APIs or integrate libraries.
 
-```shell
-poetry install --with docs
+## The Task file
+
+A Task file tells rcmt which repositories to modify. It is written in Python.
+
+```python
+from rcmt import Task, Context, register_task
+
+
+# Replace with your repository.
+REPOSITORY = "github.com/wndhydrnt/rcmt-example"
+
+# A Task bundles the code that determines which repositories to modify and how to modify
+# them. It is a regular Python class that extends the base class `Task`.
+class HelloWorld(Task):
+    name = "hello-world"
+    pr_title = "rcmt Hello World"
+    pr_body = """This pull request has been created as part of the how-to guide:
+
+https://rcmt.readthedocs.io/get-started/create-a-task/
+"""
+
+    # The `filter` method determines which repositories to modify. It is called by rcmt
+    # for each repository.
+    def filter(self, ctx: Context) -> bool:
+        return ctx.repo.full_name == REPOSITORY
+
+    # The `apply` method contains the code that modifies files in a repository. In this
+    # example, the `own` function creates the file `hello-world.txt` with the content
+    # `Hello World` in the root of the repository. `target` is not an absolute path
+    # because rcmt automatically sets the current working directory (`cwd`) to the
+    # checkout of the repository.
+    def apply(self, ctx: Context) -> None:
+        with open("hello-world.txt", "w+") as f:
+            f.write("Hello World")
+
+
+# Register the task with rcmt so rcmt knows about it.
+register_task(HelloWorld())
 ```
 
-### Run linters
+## What's next
 
-Requirements:
-- [Set up virtualenv and install dependencies](#set-up-virtualenv-and-install-dependencies) (only once)
+- [Tutorial](https://rcmt.readthedocs.io/en/stable/get-started/tutorial/)
+- [Learn how rcmt works](https://rcmt.readthedocs.io/en/stable/get-started/how-it-works/)
+- [Features](https://rcmt.readthedocs.io/en/stable/features/events/)
+- [Examples](https://rcmt.readthedocs.io/en/stable/examples/simple/)
+- [Reference](https://rcmt.readthedocs.io/en/stable/reference/configuration/)
 
-```shell
-make lint
-```
+## Contributing
 
-### Run tests
-
-Requirements:
-- [Set up virtualenv and install dependencies](#set-up-virtualenv-and-install-dependencies) (only once)
-
-```shell
-make test
-```
-
-### Generate and view docs
-
-Requirements:
-- [Set up virtualenv and install dependencies](#set-up-virtualenv-and-install-dependencies) (only once)
-
-Start a local development server:
-
-```shell
-poetry run mkdocs serve
-```
-
-Open `http://127.0.0.1:8000/` in a browser.
-
-### Create a new database migration
-
-Requirements:
-- [Set up virtualenv and install dependencies](#set-up-virtualenv-and-install-dependencies) (only once)
-
-1. Ensure that the database is on the latest revision:
-   ```shell
-   poetry run alembic -c ./hack/alembic.ini upgrade head
-   ```
-2. Add, change or delete a model in [rcmt/database/\_\_init\_\_.py](./rcmt/database/__init__.py).
-3. Let Alembic generate the new migration:
-   ```shell
-   poetry run alembic -c ./hack/alembic.ini revision --autogenerate -m 'Add model "Extension"'
-   ```
-   **Note:** Alembic cannot detect every change. Review the newly generated file in [rcmt/database/migrations/versions](./rcmt/database/migrations/versions).
-   See [What does Autogenerate Detect (and what does it not detect?)](https://alembic.sqlalchemy.org/en/latest/autogenerate.html#what-does-autogenerate-detect-and-what-does-it-not-detect)
-   section in the documentation of Alembic for more details.
+[Learn how to contribute code to rcmt](https://rcmt.readthedocs.io/en/stable/contributing/)

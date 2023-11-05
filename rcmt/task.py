@@ -16,7 +16,7 @@ from typing import Optional
 import structlog
 from slugify import slugify
 
-from rcmt import Context, context
+from rcmt import Context
 
 log: structlog.stdlib.BoundLogger = structlog.get_logger(package="task")
 
@@ -94,7 +94,7 @@ class Task:
 
     _path: str = ""
 
-    def apply(self, ctx: context.Context) -> None:
+    def apply(self, ctx: Context) -> None:
         """apply contains all logic that modifies files in a repository. The class that
         extends Task needs to override this method and implement the actual logic.
 
@@ -107,7 +107,7 @@ class Task:
         """
         raise NotImplementedError("Task does not implement method apply()")
 
-    def filter(self, ctx: context.Context) -> bool:
+    def filter(self, ctx: Context) -> bool:
         """filter determines if the task can be applied to the current repository. The
         class that extends Task needs to override this method and implement the actual
         logic.
@@ -130,7 +130,7 @@ class Task:
         with open(os.path.join(self._path, path)) as f:
             return f.read()
 
-    def on_pr_closed(self, ctx: context.Context) -> None:
+    def on_pr_closed(self, ctx: Context) -> None:
         """on_pr_closed gets called when a pull request is closed by rcmt.
 
         This can happen, for example, when the modifications have already been done in
@@ -144,7 +144,7 @@ class Task:
         """
         return None
 
-    def on_pr_created(self, ctx: context.Context) -> None:
+    def on_pr_created(self, ctx: Context) -> None:
         """on_pr_closed gets called when a pull request is created by rcmt.
 
         This method does nothing by default. A class that extends Task can override this
@@ -155,7 +155,7 @@ class Task:
         """
         return None
 
-    def on_pr_merged(self, ctx: context.Context) -> None:
+    def on_pr_merged(self, ctx: Context) -> None:
         """on_pr_merged gets called when a pull request is merged by rcmt.
 
         This method does nothing by default. A class that extends Task can override this

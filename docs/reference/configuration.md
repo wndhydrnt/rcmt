@@ -31,7 +31,7 @@ log_level: info
 ## `custom`
 
 Custom configuration. Filters and Event Handlers can retrieve this configuration. See
-[Custom Configuration](../get-started/custom-config.md).
+[Custom Configuration](../features/custom-config.md).
 
 ## `database`
 
