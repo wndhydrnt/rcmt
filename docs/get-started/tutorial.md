@@ -96,8 +96,11 @@ Take a look at the generated directories and files:
 ├── rcmt_tasks  # (6)!
 │   ├── __init__.py
 │   └── example.py  # (7)!
-├── rcmt_tasks.egg-info  # (8)!
-└── venv  # (9)!
+├── tests  # (8)!
+│   ├── __init__.py
+│   └── test_example.py
+├── rcmt_tasks.egg-info  # (9)!
+└── venv  # (10)!
 ```
 
 1.  `.dockerignore` contains files/directories that should not be copied into the Docker
@@ -110,8 +113,10 @@ Take a look at the generated directories and files:
 5.  `pyproject.toml` defines the Python project. Dependencies are defined here.
 6.  `rcmt_tasks` is the Python module that contains all rcmt Tasks.
 7.  `example.py` contains a Task as an example. Delete if not needed.
-8.  Python package information.
-9.  Files of the virtualenv. Contains rcmt and all its dependencies. More on it in the
+8.  `tests` contain unit tests of Tasks. Lean more about the
+    [unit testing feature](../features/unit-testing.md).
+9.  Python package information.
+10. Files of the virtualenv. Contains rcmt and all its dependencies. More on it in the
     next section.
 
 ## Activate the virtualenv
@@ -139,9 +144,9 @@ the project.
 The Task file contains the code that decides if a repository should be modified and how
 to modify it.
 
-Create the file `rcmt_tasks/hello-world.py` with the following content:
+Create the file `rcmt_tasks/hello_world.py` with the following content:
 
-```python title="rcmt_tasks/hello-world.py"
+```python title="rcmt_tasks/hello_world.py"
 from rcmt import Task, Context, register_task
 
 
@@ -175,13 +180,13 @@ With the Task file ready, supply the GitHub/GitLab Access Token and execute rcmt
 === "GitHub"
 
     ```shell
-    RCMT_GITHUB__ACCESS_TOKEN=xxxxx rcmt run ./rcmt_tasks/hello-world.py
+    RCMT_GITHUB__ACCESS_TOKEN=xxxxx rcmt run ./rcmt_tasks/hello_world.py
     ```
 
 === "GitLab"
 
     ```shell
-    RCMT_GITLAB__PRIVATE_TOKEN=xxxxx rcmt run ./rcmt_tasks/hello-world.py
+    RCMT_GITLAB__PRIVATE_TOKEN=xxxxx rcmt run ./rcmt_tasks/hello_world.py
     ```
 
 rcmt has created a pull request at the repository.

@@ -10,6 +10,7 @@ nav:
       - features/events.md
       - features/templating.md
       - features/custom-config.md
+      - features/unit-testing.md
   - Examples:
       - examples/simple/index.md
       - examples/load_file/index.md
