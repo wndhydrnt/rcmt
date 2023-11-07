@@ -136,14 +136,14 @@ class TaskTestCase(TestCase):
         self.assertEqual(first=first.full_name, second=second.full_name)
         for expected_file in first.files:
             actual_file = self._find_file(files=second.files, search=expected_file)
-            self.assertIsNotNone(
-                actual_file, f"Expected file '{expected_file.path}' does not exist"
-            )
-            self.assertMultiLineEqual(
-                expected_file.content,
-                actual_file.content,
-                f"Content of '{expected_file.path}' not equal",
-            )
+            if actual_file is None:
+                self.fail(f"Expected file '{expected_file.path}' does not exist")
+            else:
+                self.assertMultiLineEqual(
+                    expected_file.content,
+                    actual_file.content,
+                    f"Content of '{expected_file.path}' not equal",
+                )
 
     def assertTaskModifiesRepository(
         self, task: Task, before: Repository, after: Repository
