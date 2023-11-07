@@ -79,5 +79,6 @@ python -m unittest discover -v
 
 ## What's next
 
+- [Reference of the class `TaskTestCase`](../reference/unittest.md#rcmt.unittest.TaskTestCase)
 - [Documentation of the `unittest` module from the Python standard library](https://docs.python.org/3/library/unittest.html)
 - [Blog post on getting started with unit testing in Python](https://realpython.com/python-testing/)
