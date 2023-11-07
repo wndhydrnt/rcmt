@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.27.0](https://github.com/wndhydrnt/rcmt/compare/v0.26.0...v0.27.0) (2023-11-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* Define Task as a class ([#440](https://github.com/wndhydrnt/rcmt/issues/440))
+
+### Features
+
+* Define Task as a class ([#440](https://github.com/wndhydrnt/rcmt/issues/440)) ([74b572c](https://github.com/wndhydrnt/rcmt/commit/74b572c25a351f4e4538acb03a1c32487f284861))
+* **docs:** Add tutorial that describes how to bootstrap a project ([#451](https://github.com/wndhydrnt/rcmt/issues/451)) ([e8c29e2](https://github.com/wndhydrnt/rcmt/commit/e8c29e2f6bcf1fdced7c1480065d94f5eda4ec16))
+* raise an error if a Task has been defined but not registered ([#444](https://github.com/wndhydrnt/rcmt/issues/444)) ([12ca68f](https://github.com/wndhydrnt/rcmt/commit/12ca68f8c178f29581112b76bb4e4ff95c8fa2f1))
+* **unittest:** create helper class for writing unit tests ([#452](https://github.com/wndhydrnt/rcmt/issues/452)) ([f700a21](https://github.com/wndhydrnt/rcmt/commit/f700a21882a602e9f5f6a69871ea0ab409b52e65))
+
+
+### Bug Fixes
+
+* **deps:** update dependency alembic to v1.12.1 ([#448](https://github.com/wndhydrnt/rcmt/issues/448)) ([33dedbc](https://github.com/wndhydrnt/rcmt/commit/33dedbc2eeb9bd618c724c07ee7cbfdb1b8882ea))
+* **deps:** update dependency greenlet to v3.0.1 ([#447](https://github.com/wndhydrnt/rcmt/issues/447)) ([fb81e47](https://github.com/wndhydrnt/rcmt/commit/fb81e47e49a81397ce40ac73b2a03d009aca929a))
+* validate command does not work with class-based Task definitions ([#443](https://github.com/wndhydrnt/rcmt/issues/443)) ([0e93efd](https://github.com/wndhydrnt/rcmt/commit/0e93efd17c7740fdb34cf3637ff461d5c48ac23b))
+
 ## [0.26.0](https://github.com/wndhydrnt/rcmt/compare/v0.25.0...v0.26.0) (2023-10-27)
 
 
