@@ -175,7 +175,9 @@ class Git:
             # `strategy_option="theirs"` to always prefer changes from the remote.
             # Commits by someone else will be preserved with this strategy and there
             # will be no conflict.
-            git_repo.remotes["origin"].pull(rebase=True, strategy_option="theirs")
+            git_repo.remotes["origin"].pull(
+                self.branch_name, rebase=True, strategy_option="theirs"
+            )
 
         merge_base = git_repo.git.merge_base(repo.base_branch, self.branch_name)
         if force_rebase is False:
