@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.27.1](https://github.com/wndhydrnt/rcmt/compare/v0.27.0...v0.27.1) (2023-11-14)
+
+
+### Bug Fixes
+
+* **deps:** update dependency sqlalchemy to v2.0.23 ([#453](https://github.com/wndhydrnt/rcmt/issues/453)) ([c7a7297](https://github.com/wndhydrnt/rcmt/commit/c7a7297ecfbc785932dd418ad170c771af4f6c9a))
+* **git:** set branch name when rebasing from remote ([#455](https://github.com/wndhydrnt/rcmt/issues/455)) ([8d03967](https://github.com/wndhydrnt/rcmt/commit/8d03967aec0845caf9b9fd4e82614c2d03c78d26))
+
 ## [0.27.0](https://github.com/wndhydrnt/rcmt/compare/v0.26.0...v0.27.0) (2023-11-07)
 
 
