@@ -161,6 +161,18 @@ class OwnTest(unittest.TestCase):
 
             self.assertEqual("unit-test", content)
 
+    def test_apply__create_directory(self):
+        ctx = context.Context(repo=unittest.mock.Mock(spec=source.Repository))
+        with tempfile.TemporaryDirectory() as d:
+            test_file_path = "first/second/test.txt"
+            with fs.in_checkout_dir(d):
+                own(ctx=ctx, content="unit-test", target=test_file_path)
+
+            with open(os.path.join(d, test_file_path), "r") as test_file:
+                content = test_file.read()
+
+            self.assertEqual("unit-test", content)
+
 
 class SeedTest(unittest.TestCase):
     def test_apply_seed_file(self):
@@ -188,6 +200,18 @@ class SeedTest(unittest.TestCase):
                 content = test_file.read()
 
             self.assertEqual("abc\n", content)
+
+    def test_apply__create_directory(self):
+        ctx = context.Context(repo=unittest.mock.Mock(spec=source.Repository))
+        with tempfile.TemporaryDirectory() as d:
+            test_file_path = "first/second/test.txt"
+            with fs.in_checkout_dir(d):
+                seed(ctx=ctx, content="unit-test", target=test_file_path)
+
+            with open(os.path.join(d, test_file_path), "r") as test_file:
+                content = test_file.read()
+
+            self.assertEqual("unit-test", content)
 
 
 class ReplaceInLineTest(unittest.TestCase):

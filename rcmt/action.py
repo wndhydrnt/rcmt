@@ -60,6 +60,10 @@ def own(ctx: Context, content: str, target: str) -> None:
                 own(content=content, target=".flake8")
         ```
     """
+    dir = os.path.dirname(target)
+    if dir != "" and os.path.exists(dir) is False:
+        os.makedirs(name=dir)
+
     with open(target, "w+") as f:
         f.write(string.Template(content).substitute(ctx.template_data))
 
