@@ -12,3 +12,4 @@ htmlcov
 dist/
 hack/rcmt.sqlite
 site/
+.rcmt/
