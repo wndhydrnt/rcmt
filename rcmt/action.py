@@ -44,6 +44,9 @@ def own(ctx: Context, content: str, target: str) -> None:
 
     It overwrites the content of the file with the value of `content`.
 
+    If `target` contains one or more directories and the directories do not exist, they
+    will be created recursively.
+
     Args:
         ctx: The current context.
         content: Content of the file to write.
@@ -72,6 +75,9 @@ def seed(ctx: Context, content: str, target: str) -> None:
     """Seed ensures that a file in a repository is present.
 
     It does not modify the file again if the file is present in a repository.
+
+    If `target` contains one or more directories and the directories do not exist, they
+    will be created recursively.
 
     Args:
         ctx: The current context.
