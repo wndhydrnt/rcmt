@@ -1,7 +1,7 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
-
+import tempfile
 import unittest
 import unittest.mock
 
@@ -43,8 +43,8 @@ class ExecuteTest(unittest.TestCase):
         registry.tasks.append(task)
 
         git_mock = unittest.mock.Mock(spec=Git)
-        checkout_dir = "/tmp/repository/github.com/wndhydrnt/rcmt"
-        git_mock.prepare.return_value = (checkout_dir, False)
+        checkout_dir = tempfile.TemporaryDirectory()
+        git_mock.prepare.return_value = (checkout_dir.name, False)
         git_class_mock.return_value = git_mock
 
         with open("/dev/null", "w") as f:
@@ -61,3 +61,4 @@ class ExecuteTest(unittest.TestCase):
         self.assertEqual(repository_mock, ctx.repo)
         task_read_mock.assert_called_with("/tmp/run.py")
         task.apply.assert_called_once_with(ctx=ctx)
+        checkout_dir.cleanup()

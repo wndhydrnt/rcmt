@@ -7,7 +7,7 @@ from typing import Optional, TextIO
 import structlog
 
 import rcmt.git
-from rcmt import task
+from rcmt import fs, task
 from rcmt.context import Context
 from rcmt.rcmt import Options
 from rcmt.source import Repository
@@ -54,10 +54,12 @@ def execute(directory: str, opts: Options, out: TextIO, repo_name: str) -> None:
         print("🏗️  Preparing git clone", file=out)
         checkout_dir, has_conflict = gitc.prepare(force_rebase=False, repo=repository)
         print("🚜 Applying Task", file=out)
-        t.apply(ctx=ctx)
+        with fs.in_checkout_dir(checkout_dir):
+            t.apply(ctx=ctx)
+
         if gitc.has_changes_local(repo_dir=checkout_dir):
             print(
                 f"😍 Actions modified files - view changes in {checkout_dir}", file=out
             )
         else:
-            print("🤔 No changes after applying Actions", file=out)
+            print("⚠️  No changes after applying Actions", file=out)
