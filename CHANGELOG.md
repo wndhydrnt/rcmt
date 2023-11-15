@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.27.2](https://github.com/wndhydrnt/rcmt/compare/v0.27.1...v0.27.2) (2023-11-15)
+
+
+### Bug Fixes
+
+* **verify:** apply task in checkout directory ([#458](https://github.com/wndhydrnt/rcmt/issues/458)) ([1591d1f](https://github.com/wndhydrnt/rcmt/commit/1591d1f6c27f8987ac5d0cad434d67b0bceeb3d1))
+
 ## [0.27.1](https://github.com/wndhydrnt/rcmt/compare/v0.27.0...v0.27.1) (2023-11-14)
 
 
