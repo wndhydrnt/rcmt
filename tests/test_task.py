@@ -39,6 +39,13 @@ class ReadTaskTest(unittest.TestCase):
             str(e.exception),
         )
 
+    def test_read__ignore_extended_class(self):
+        read(
+            "tests/fixtures/test_task/test_read__not_registered_ignore_extended_class/task.py"
+        )
+
+        self.assertEqual(1, len(registry.tasks), "Should register one task")
+
 
 class TaskWrapperTest(unittest.TestCase):
     def test_branch__custom_name_not_altered(self):

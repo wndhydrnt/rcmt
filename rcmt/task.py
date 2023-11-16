@@ -11,7 +11,7 @@ import os.path
 import random
 import string
 import sys
-from typing import Optional
+from typing import Any, Optional
 
 import structlog
 from slugify import slugify
@@ -271,8 +271,14 @@ def read(path: str) -> None:
                 and issubclass(obj, Task)
                 and obj.__module__ == mod_name
             ):
+                subclasses = list(
+                    filter(
+                        lambda w: _does_extend(obj, w.task),
+                        registry.tasks,
+                    )
+                )
                 known = [wrapper.task.__class__.__name__ for wrapper in registry.tasks]
-                if name not in known:
+                if name not in known and len(subclasses) == 0:
                     raise RuntimeError(
                         f"File '{path}' defines Task '{name}' but does not register it - use rcmt.register_task({name}())"
                     )
@@ -281,3 +287,7 @@ def read(path: str) -> None:
         raise RuntimeError(f"Import failed with {e.__class__.__name__}: {str(e)}")
     finally:
         registry.task_path = None
+
+
+def _does_extend(obj: Any, task: Task) -> bool:
+    return issubclass(task.__class__, obj) and obj.__name__ != task.__class__.__name__
