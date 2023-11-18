@@ -112,6 +112,10 @@ class Repository(BaseRepository):
         if os.path.isdir(path) is False:
             raise RuntimeError(f"path '{path}' is not a directory")
 
+        # Add a / to ensure it gets stripped later
+        if path.endswith("/") is False:
+            path = f"{path}/"
+
         repo = Repository(name=name)
         for root, dirs, files in os.walk(path):
             for raw_file in files:

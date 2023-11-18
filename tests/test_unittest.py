@@ -9,7 +9,7 @@ from rcmt import Context, Task
 from rcmt.unittest import File, Repository, TaskTestCase
 
 
-class UnitTestTask(Task):
+class UnitTestTaskComplex(Task):
     name = "unit-test-task"
 
     def filter(self, ctx: Context) -> bool:
@@ -24,20 +24,29 @@ class UnitTestTask(Task):
         os.remove("level1/level2/delete.txt")
 
 
+class UnitTestTaskSimple(Task):
+    def filter(self, ctx: Context) -> bool:
+        return True
+
+    def apply(self, ctx: Context) -> None:
+        with open("test.txt", "w+") as f:
+            f.write("TEST\n")
+
+
 class TestTaskTestCase(TaskTestCase):
     def test_assertTaskFilterMatches(self):
         repo = Repository(
             "github.com/wndhydrnt/rcmt", File(content="{}", path="test.json")
         )
 
-        task = UnitTestTask()
+        task = UnitTestTaskComplex()
 
         self.assertTaskFilterMatches(task=task, repo=repo)
 
     def test_assertTaskFilterDoesNotMatch(self):
         repo = Repository("github.com/wndhydrnt/rcmt")
 
-        task = UnitTestTask()
+        task = UnitTestTaskComplex()
 
         self.assertTaskFilterDoesNotMatch(task=task, repo=repo)
 
@@ -52,7 +61,21 @@ class TestTaskTestCase(TaskTestCase):
             File(content=json.dumps({"abc": "def"}), path="test.json"),
         )
 
-        task = UnitTestTask()
+        task = UnitTestTaskComplex()
+
+        self.assertTaskModifiesRepository(
+            task=task, before=repo_before, after=repo_after
+        )
+
+    def test_assertTaskModifiesRepository_from_directory(self):
+        repo_before = Repository.from_directory(
+            name="unittest", path="tests/fixtures/test_unittest/before"
+        )
+        repo_after = Repository.from_directory(
+            name="unittest", path="tests/fixtures/test_unittest/after"
+        )
+
+        task = UnitTestTaskSimple()
 
         self.assertTaskModifiesRepository(
             task=task, before=repo_before, after=repo_after
