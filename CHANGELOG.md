@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.28.0](https://github.com/wndhydrnt/rcmt/compare/v0.27.2...v0.28.0) (2023-11-18)
+
+
+### Features
+
+* **action:** let actions "own" and "seed" create a directory if it does not exist ([#460](https://github.com/wndhydrnt/rcmt/issues/460)) ([dca70a3](https://github.com/wndhydrnt/rcmt/commit/dca70a3854e33cdb9cd03e5cb91ea4ba76410c58))
+
+
+### Bug Fixes
+
+* **task:** do not error if a Task class that gets extended is not registered ([#462](https://github.com/wndhydrnt/rcmt/issues/462)) ([137c6a1](https://github.com/wndhydrnt/rcmt/commit/137c6a10ab7eb3dbb7ea6dc63a683f3d438e489e))
+* **unittest:** read sub-diretories when creating a repository from a directory ([#464](https://github.com/wndhydrnt/rcmt/issues/464)) ([d6a2d65](https://github.com/wndhydrnt/rcmt/commit/d6a2d650e428b50bcc3b1692e29d8c4bd3d959f3))
+
 ## [0.27.2](https://github.com/wndhydrnt/rcmt/compare/v0.27.1...v0.27.2) (2023-11-15)
 
 
