@@ -52,9 +52,28 @@ def can_merge_after(
 
 
 class RunResult(Enum):
-    NO_CHANGES = 1
-    PR_CREATED = 2
-    PR_MERGED = 3
+    # PR could be merged but auto_merge_after setting prevents it
+    AUTO_MERGE_TOO_EARLY = 1
+    # Someone other than rcmt has pushed commits to the branch
+    BRANCH_MODIFIED = 2
+    # PR checks (approvals, tests etc.) have failed
+    CHECKS_FAILED = 3
+    # Conflict with default branch
+    CONFLICT = 4
+    # No modifications to any files
+    NO_CHANGES = 5
+    # PR created by the current Run
+    PR_CREATED = 6
+    # PR was closed during a previous Run
+    PR_CLOSED_BEFORE = 7
+    # PR closed by the current Run
+    PR_CLOSED = 8
+    # PR was merged during a previous Run
+    PR_MERGED_BEFORE = 9
+    # PR merged by the current Run
+    PR_MERGED = 10
+    # PR is open and the current run did not modify anything
+    PR_OPEN = 11
 
 
 class RepoRun:
@@ -78,7 +97,7 @@ class RepoRun:
                 "Existing PR has been closed",
                 branch=self.git.branch_name,
             )
-            return RunResult.NO_CHANGES
+            return RunResult.PR_CLOSED_BEFORE
 
         if (
             pr_identifier is not None
@@ -89,7 +108,7 @@ class RepoRun:
                 "Existing PR has been merged",
                 branch=self.git.branch_name,
             )
-            return RunResult.NO_CHANGES
+            return RunResult.PR_MERGED_BEFORE
 
         force_rebase = self._has_rebase_checked(pr=pr_identifier, repo=repo)
         try:
@@ -112,7 +131,7 @@ class RepoRun:
                 identifier="branch-modified",
                 pr=pr_identifier,
             )
-            return RunResult.NO_CHANGES
+            return RunResult.BRANCH_MODIFIED
         except GitCommandError as e:
             # Catch any error raised by the git client, delete the repository and
             # initialize it again
@@ -159,7 +178,7 @@ class RepoRun:
                 repo.delete_branch(pr_identifier)
                 matcher.on_pr_closed(ctx=ctx)
 
-            return RunResult.NO_CHANGES
+            return RunResult.PR_CLOSED
 
         has_changes = (
             has_local_changes
@@ -209,17 +228,17 @@ class RepoRun:
         ):
             if not repo.has_successful_pr_build(pr_identifier):
                 log.warn("Cannot merge because build of pull request failed")
-                return RunResult.NO_CHANGES
+                return RunResult.CHECKS_FAILED
 
             if not can_merge_after(
                 repo.pr_created_at(pr_identifier), matcher.auto_merge_after
             ):
                 log.info("Too early to merge pull request")
-                return RunResult.NO_CHANGES
+                return RunResult.AUTO_MERGE_TOO_EARLY
 
             if not repo.can_merge_pull_request(pr_identifier):
                 log.warn("Cannot merge pull request")
-                return RunResult.NO_CHANGES
+                return RunResult.CONFLICT
 
             if self.opts.config.dry_run:
                 log.warn("DRY RUN: Not merging pull request")
@@ -238,7 +257,7 @@ class RepoRun:
 
         if pr_identifier is not None and repo.is_pr_open(pr_identifier) is True:
             repo.update_pull_request(pr_identifier, pr)
-            return RunResult.NO_CHANGES
+            return RunResult.PR_OPEN
 
         return RunResult.NO_CHANGES
 
@@ -358,7 +377,7 @@ def execute_task(
 
         log.info("Matched repository", repository=str(repo), task=task_wrapper.name)
         result: RunResult = runner.execute(ctx=ctx, matcher=task_wrapper.task)
-        if result != RunResult.NO_CHANGES:
+        if result == RunResult.PR_CREATED or result == RunResult.PR_MERGED:
             task_wrapper.changes_total += 1
 
     except Exception:
