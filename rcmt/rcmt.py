@@ -52,17 +52,28 @@ def can_merge_after(
 
 
 class RunResult(Enum):
-    NO_CHANGES = 1
-    PR_CREATED = 2
-    PR_MERGED = 3
-    PR_CLOSED_BEFORE = 4
-    BRANCH_MODIFIED = 5
-    PR_CLOSED = 6
-    PR_MERGED_BEFORE = 7
-    CHECKS_FAILED = 8
-    TOO_EARLY = 9
-    CONFLICT = 10
-    OPEN = 11
+    # PR could be merged but auto_merge_after setting prevents it
+    AUTO_MERGE_TOO_EARLY = 1
+    # Someone other than rcmt has pushed commits to the branch
+    BRANCH_MODIFIED = 2
+    # PR checks (approvals, tests etc.) have failed
+    CHECKS_FAILED = 3
+    # Conflict with default branch
+    CONFLICT = 4
+    # No modifications to any files
+    NO_CHANGE = 5
+    # PR created by the current Run
+    PR_CREATED = 6
+    # PR was closed during a previous Run
+    PR_CLOSED_BEFORE = 7
+    # PR closed by the current Run
+    PR_CLOSED = 8
+    # PR was merged during a previous Run
+    PR_MERGED_BEFORE = 9
+    # PR merged by the current Run
+    PR_MERGED = 10
+    # PR is open and the current run did not modify anything
+    PR_OPEN = 11
 
 
 class RepoRun:
@@ -223,7 +234,7 @@ class RepoRun:
                 repo.pr_created_at(pr_identifier), matcher.auto_merge_after
             ):
                 log.info("Too early to merge pull request")
-                return RunResult.TOO_EARLY
+                return RunResult.AUTO_MERGE_TOO_EARLY
 
             if not repo.can_merge_pull_request(pr_identifier):
                 log.warn("Cannot merge pull request")
@@ -246,9 +257,9 @@ class RepoRun:
 
         if pr_identifier is not None and repo.is_pr_open(pr_identifier) is True:
             repo.update_pull_request(pr_identifier, pr)
-            return RunResult.OPEN
+            return RunResult.PR_OPEN
 
-        return RunResult.OPEN
+        return RunResult.NO_CHANGE
 
     @staticmethod
     def _has_rebase_checked(pr: Any, repo: source.Repository) -> bool:

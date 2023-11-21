@@ -104,8 +104,9 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.find_pull_request.return_value = None
         ctx = context.Context(repo_mock)
 
-        runner.execute(ctx=ctx, matcher=task)
+        result = runner.execute(ctx=ctx, matcher=task)
 
+        self.assertEqual(RunResult.NO_CHANGE, result)
         task.apply.assert_called_once_with(ctx=ctx)
         repo_mock.find_pull_request.assert_called_once_with("rcmt")
         repo_mock.create_pull_request.assert_not_called()
@@ -129,8 +130,9 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.find_pull_request.return_value = None
         ctx = context.Context(repo_mock)
 
-        runner.execute(ctx=ctx, matcher=task)
+        result = runner.execute(ctx=ctx, matcher=task)
 
+        self.assertEqual(RunResult.PR_CREATED, result)
         git_mock.commit_changes.assert_called_once_with("/tmp", "Custom commit")
         task.apply.assert_called_once_with(ctx=ctx)
         repo_mock.find_pull_request.assert_called_once_with("rcmt")
@@ -172,8 +174,9 @@ class RepoRunTest(unittest.TestCase):
         )
         ctx = context.Context(repo_mock)
 
-        runner.execute(ctx=ctx, matcher=task)
+        result = runner.execute(ctx=ctx, matcher=task)
 
+        self.assertEqual(RunResult.PR_MERGED, result)
         task.apply.assert_called_once_with(ctx=ctx)
         repo_mock.find_pull_request.assert_called_once_with("rcmt")
         git_mock.push.assert_not_called()
@@ -197,8 +200,9 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.find_pull_request.return_value = "someid"
         repo_mock.is_pr_closed.return_value = True
 
-        runner.execute(ctx=context.Context(repo_mock), matcher=task)
+        result = runner.execute(ctx=context.Context(repo_mock), matcher=task)
 
+        self.assertEqual(RunResult.PR_CLOSED_BEFORE, result)
         task.apply.assert_not_called()
         repo_mock.find_pull_request.assert_called_once_with("rcmt")
         repo_mock.is_pr_closed.assert_called_once_with("someid")
@@ -221,8 +225,9 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.find_pull_request.return_value = "someid"
         repo_mock.is_pr_merged.return_value = True
 
-        runner.execute(ctx=context.Context(repo_mock), matcher=task)
+        result = runner.execute(ctx=context.Context(repo_mock), matcher=task)
 
+        self.assertEqual(RunResult.PR_MERGED_BEFORE, result)
         task.apply.assert_not_called()
         repo_mock.find_pull_request.assert_called_once_with("rcmt")
         repo_mock.is_pr_merged.assert_called_once_with("someid")
@@ -248,8 +253,9 @@ class RepoRunTest(unittest.TestCase):
         ctx = context.Context(repo_mock)
 
         runner = RepoRun(git_mock, opts)
-        runner.execute(ctx=ctx, matcher=task)
+        result = runner.execute(ctx=ctx, matcher=task)
 
+        self.assertEqual(RunResult.PR_CLOSED, result)
         repo_mock.close_pull_request.assert_called_once_with(
             "Everything up-to-date. Closing.", "someid"
         )
@@ -271,8 +277,9 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.find_pull_request.return_value = None
 
         runner = RepoRun(git_mock, opts)
-        runner.execute(ctx=context.Context(repo_mock), matcher=task)
+        result = runner.execute(ctx=context.Context(repo_mock), matcher=task)
 
+        self.assertEqual(RunResult.NO_CHANGE, result)
         repo_mock.is_pr_open.assert_not_called()
         repo_mock.close_pull_request.assert_not_called()
         repo_mock.create_pull_request.assert_not_called()
@@ -295,8 +302,9 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.is_pr_open.return_value = True
 
         runner = RepoRun(git_mock, opts)
-        runner.execute(ctx=context.Context(repo_mock), matcher=task)
+        result = runner.execute(ctx=context.Context(repo_mock), matcher=task)
 
+        self.assertEqual(RunResult.PR_OPEN, result)
         repo_mock.close_pull_request.assert_not_called()
         repo_mock.create_pull_request.assert_not_called()
         repo_mock.merge_pull_request.assert_not_called()
@@ -328,8 +336,9 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.can_merge_pull_request.return_value = False
 
         runner = RepoRun(git_mock, opts)
-        runner.execute(ctx=context.Context(repo_mock), matcher=task)
+        result = runner.execute(ctx=context.Context(repo_mock), matcher=task)
 
+        self.assertEqual(RunResult.CONFLICT, result)
         repo_mock.close_pull_request.assert_not_called()
         repo_mock.create_pull_request.assert_not_called()
         repo_mock.merge_pull_request.assert_not_called()
@@ -382,8 +391,9 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.is_pr_closed.return_value = True
         ctx = context.Context(repo_mock)
 
-        runner.execute(ctx=ctx, matcher=task)
+        result = runner.execute(ctx=ctx, matcher=task)
 
+        self.assertEqual(RunResult.PR_CREATED, result)
         git_mock.commit_changes.assert_called_once_with("/tmp", "Custom commit")
         task.apply.assert_called_once_with(ctx=ctx)
         repo_mock.find_pull_request.assert_called_once_with("rcmt")
@@ -424,8 +434,9 @@ class RepoRunTest(unittest.TestCase):
             datetime.datetime.now() - datetime.timedelta(days=1)
         )
 
-        runner.execute(ctx=context.Context(repo_mock), matcher=task)
+        result = runner.execute(ctx=context.Context(repo_mock), matcher=task)
 
+        self.assertEqual(RunResult.NO_CHANGE, result)
         git_mock.push.assert_not_called()
         repo_mock.create_pull_request.assert_not_called()
 
@@ -475,8 +486,9 @@ class RepoRunTest(unittest.TestCase):
         task.name = "testrun"
 
         runner = RepoRun(git_mock, opts)
-        runner.execute(ctx=context.Context(repo_mock), matcher=task)
+        result = runner.execute(ctx=context.Context(repo_mock), matcher=task)
 
+        self.assertEqual(result.BRANCH_MODIFIED, result)
         body = TEMPLATE_BRANCH_MODIFIED.render(
             checksums=["abc", "def"], default_branch="main"
         )
