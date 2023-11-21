@@ -61,7 +61,7 @@ class RunResult(Enum):
     # Conflict with default branch
     CONFLICT = 4
     # No modifications to any files
-    NO_CHANGE = 5
+    NO_CHANGES = 5
     # PR created by the current Run
     PR_CREATED = 6
     # PR was closed during a previous Run
@@ -259,7 +259,7 @@ class RepoRun:
             repo.update_pull_request(pr_identifier, pr)
             return RunResult.PR_OPEN
 
-        return RunResult.NO_CHANGE
+        return RunResult.NO_CHANGES
 
     @staticmethod
     def _has_rebase_checked(pr: Any, repo: source.Repository) -> bool:

@@ -106,7 +106,7 @@ class RepoRunTest(unittest.TestCase):
 
         result = runner.execute(ctx=ctx, matcher=task)
 
-        self.assertEqual(RunResult.NO_CHANGE, result)
+        self.assertEqual(RunResult.NO_CHANGES, result)
         task.apply.assert_called_once_with(ctx=ctx)
         repo_mock.find_pull_request.assert_called_once_with("rcmt")
         repo_mock.create_pull_request.assert_not_called()
@@ -279,7 +279,7 @@ class RepoRunTest(unittest.TestCase):
         runner = RepoRun(git_mock, opts)
         result = runner.execute(ctx=context.Context(repo_mock), matcher=task)
 
-        self.assertEqual(RunResult.NO_CHANGE, result)
+        self.assertEqual(RunResult.NO_CHANGES, result)
         repo_mock.is_pr_open.assert_not_called()
         repo_mock.close_pull_request.assert_not_called()
         repo_mock.create_pull_request.assert_not_called()
@@ -436,7 +436,7 @@ class RepoRunTest(unittest.TestCase):
 
         result = runner.execute(ctx=context.Context(repo_mock), matcher=task)
 
-        self.assertEqual(RunResult.NO_CHANGE, result)
+        self.assertEqual(RunResult.NO_CHANGES, result)
         git_mock.push.assert_not_called()
         repo_mock.create_pull_request.assert_not_called()
 
