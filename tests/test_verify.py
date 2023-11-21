@@ -37,10 +37,14 @@ class ExecuteTest(unittest.TestCase):
         source_mock.create_from_name.return_value = repository_mock
         opts.sources["github.com"] = source_mock
 
-        task = unittest.mock.Mock(spec=TaskWrapper)
-        task.name = "local"
-        task.filter.return_value = True
-        registry.tasks.append(task)
+        task_one = unittest.mock.Mock(spec=TaskWrapper)
+        task_one.name = "one"
+        task_one.filter.return_value = True
+        registry.tasks.append(task_one)
+        task_two = unittest.mock.Mock(spec=TaskWrapper)
+        task_two.name = "two"
+        task_two.filter.return_value = False
+        registry.tasks.append(task_two)
 
         git_mock = unittest.mock.Mock(spec=Git)
         checkout_dir = tempfile.TemporaryDirectory()
@@ -53,12 +57,15 @@ class ExecuteTest(unittest.TestCase):
                 opts=opts,
                 out=f,
                 repo_name="github.com/wndhydrnt/rcmt",
+                task_name="",
             )
 
-        task.filter.assert_called()
-        ctx = task.filter.call_args.kwargs["ctx"]
+        task_one.filter.assert_called()
+        ctx = task_one.filter.call_args.kwargs["ctx"]
         self.assertIsInstance(ctx, Context)
         self.assertEqual(repository_mock, ctx.repo)
         task_read_mock.assert_called_with("/tmp/run.py")
-        task.apply.assert_called_once_with(ctx=ctx)
+        task_one.apply.assert_called_once_with(ctx=ctx)
+        task_two.filter.assert_called()
+        task_two.apply.assert_not_called()
         checkout_dir.cleanup()

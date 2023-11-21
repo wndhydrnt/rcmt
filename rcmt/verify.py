@@ -15,7 +15,9 @@ from rcmt.source import Repository
 log: structlog.stdlib.BoundLogger = structlog.get_logger()
 
 
-def execute(directory: str, opts: Options, out: TextIO, repo_name: str) -> None:
+def execute(
+    directory: str, opts: Options, out: TextIO, repo_name: str, task_name: str
+) -> None:
     repository: Optional[Repository] = None
     for source_name, source in opts.sources.items():
         repository = source.create_from_name(repo_name)
@@ -32,6 +34,9 @@ def execute(directory: str, opts: Options, out: TextIO, repo_name: str) -> None:
         task.read(task_path)
 
     for t in task.registry.tasks:
+        if task_name != "" and t.name != task_name:
+            continue
+
         ctx = Context(repository)
         if t.filter(ctx=ctx) is True:
             print(f"✅ Filter of task {t.name} matches", file=out)
@@ -40,7 +45,7 @@ def execute(directory: str, opts: Options, out: TextIO, repo_name: str) -> None:
                 f"❌ Filter of task {t.name} does not match repository {repo_name}",
                 file=out,
             )
-            return
+            continue
 
         print("---")
         gitc = rcmt.git.Git(

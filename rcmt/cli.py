@@ -115,18 +115,18 @@ Examples:
 
 \b
 # Verify that Filters and Actions in task.py work for the repository "github.com/wndhydrnt/rcmt"
-rcmt verify gitlab.com/wandhydrant/rcmt-test task.py
+rcmt verify task.py gitlab.com/wandhydrant/rcmt-test
 
 Note: rcmt needs to query the API of a Source, like GitHub or GitLab, to execute the
 Task.
 
 \b
 # Supply a GitHub Access Token
-RCMT_GITHUB__ACCESS_TOKEN=xxx rcmt verify github.com/wndhydrnt/rcmt task.py
+RCMT_GITHUB__ACCESS_TOKEN=xxx rcmt verify task.py github.com/wndhydrnt/rcmt
 
 \b
 # Supply a configuration file that contains an access token
-rcmt verify --config config.yaml gitlab.com/wandhydrant/rcmt-test task.py
+rcmt verify --config config.yaml task.py gitlab.com/wandhydrant/rcmt-test
 """
 
 
@@ -141,15 +141,27 @@ rcmt verify --config config.yaml gitlab.com/wandhydrant/rcmt-test task.py
     default=".rcmt",
     type=str,
 )
-@click.argument("repository", type=str)
+@click.option(
+    "--task-name",
+    help="Name of the Task to execute if a Task file contains multiple Tasks.",
+    default="",
+    type=str,
+)
 @click.argument("task_file", type=str)
-def verify(config: str, directory: str, repository: str, task_file: str):
+@click.argument("repository", type=str)
+def verify(
+    config: str, directory: str, task_name: str, task_file: str, repository: str
+):
     try:
         opts = rcmt.options_from_config(config)
         opts.task_paths = [task_file]
         configure_logging(format=opts.config.log_format, level=opts.config.log_level)
         rcmt.execute_verify(
-            directory=directory, opts=opts, out=sys.stdout, repo_name=repository
+            directory=directory,
+            opts=opts,
+            out=sys.stdout,
+            repo_name=repository,
+            task_name=task_name,
         )
     except Exception:
         log.exception("Unexpected error")
