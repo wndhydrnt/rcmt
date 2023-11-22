@@ -287,7 +287,7 @@ _This pull request has been created by [rcmt](https://rcmt.readthedocs.io/)._"""
                 minute=7,
                 second=26,
                 microsecond=697000,
-                tzinfo=None,
+                tzinfo=datetime.timezone.utc,
             ),
         )
 

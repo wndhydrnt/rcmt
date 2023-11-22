@@ -47,7 +47,7 @@ def can_merge_after(
     if delay is None:
         return True
 
-    passed = datetime.datetime.now() - created_at
+    passed = datetime.datetime.now(tz=datetime.timezone.utc) - created_at
     return passed >= delay
 
 
@@ -296,7 +296,7 @@ def execute(opts: Options) -> bool:
     else:
         execution = db.get_last_execution()
         if needs_all_repositories is True or execution.executed_at is None:
-            since = datetime.datetime.fromtimestamp(0)
+            since = datetime.datetime.fromtimestamp(0, tz=datetime.timezone.utc)
         else:
             since = execution.executed_at
 
@@ -338,7 +338,7 @@ def execute(opts: Options) -> bool:
         log.error("Errors during execution - check previous log messages")
 
     ex = database.Execution()
-    ex.executed_at = datetime.datetime.utcnow()
+    ex.executed_at = datetime.datetime.now(tz=datetime.timezone.utc)
     db.save_execution(ex)
     return success
 

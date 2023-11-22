@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 import alembic.command
 from alembic.config import Config as AlembicConfig
@@ -38,10 +38,15 @@ class Database:
         with self.session() as session:
             execution = session.scalars(stmt).first()
             if execution:
+                if execution.executed_at.tzinfo is None:
+                    # Assume UTC if no timezone is set
+                    execution.executed_at = execution.executed_at.replace(
+                        tzinfo=timezone.utc
+                    )
                 return execution
             else:
                 ex = Execution()
-                ex.executed_at = datetime.fromtimestamp(0.0)
+                ex.executed_at = datetime.fromtimestamp(0.0, tz=timezone.utc)
                 return ex
 
     def get_or_create_task(self, name: str, checksum: str = "") -> Run:

@@ -24,7 +24,7 @@ def upgrade() -> None:
     op.create_table(
         "executions",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("executed_at", sa.DateTime(), nullable=False),
+        sa.Column("executed_at", sa.DateTime(timezone=True), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
     # ### end Alembic commands ###
