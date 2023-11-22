@@ -169,9 +169,9 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.has_successful_pr_build.return_value = True
         repo_mock.is_pr_closed.return_value = False
         repo_mock.is_pr_open.return_value = True
-        repo_mock.pr_created_at.return_value = (
-            datetime.datetime.now() - datetime.timedelta(days=1)
-        )
+        repo_mock.pr_created_at.return_value = datetime.datetime.now(
+            tz=datetime.UTC
+        ) - datetime.timedelta(days=1)
         ctx = context.Context(repo_mock)
 
         result = runner.execute(ctx=ctx, matcher=task)
@@ -737,7 +737,7 @@ class ExecuteTest(unittest.TestCase):
         execute_task_mock: unittest.mock.MagicMock,
         new_database_mock: unittest.mock.MagicMock,
     ) -> None:
-        executed_at = datetime.datetime.fromtimestamp(2934000)
+        executed_at = datetime.datetime.fromtimestamp(2934000, tz=datetime.UTC)
         execution = Execution()
         execution.executed_at = executed_at
         self.db.save_execution(execution)

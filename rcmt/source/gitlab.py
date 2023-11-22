@@ -190,7 +190,7 @@ class GitlabRepository(Repository):
 
     def pr_created_at(self, pr: GitlabMergeRequest) -> datetime.datetime:
         corrected: str = pr.created_at.replace("Z", "")
-        return datetime.datetime.fromisoformat(corrected)
+        return datetime.datetime.fromisoformat(corrected).replace(tzinfo=datetime.UTC)
 
     @property
     def project(self) -> str:
