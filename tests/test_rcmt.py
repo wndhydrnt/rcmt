@@ -11,7 +11,7 @@ from unittest.mock import call
 from git.exc import GitCommandError
 from sqlalchemy import select
 
-from rcmt import action, config, context, database, git, source
+from rcmt import config, context, database, git, source
 from rcmt.config import Config
 from rcmt.config import Database as DatabaseConfig
 from rcmt.database import Database, Execution, Run
@@ -170,7 +170,7 @@ class RepoRunTest(unittest.TestCase):
         repo_mock.is_pr_closed.return_value = False
         repo_mock.is_pr_open.return_value = True
         repo_mock.pr_created_at.return_value = datetime.datetime.now(
-            tz=datetime.UTC
+            tz=datetime.timezone.utc
         ) - datetime.timedelta(days=1)
         ctx = context.Context(repo_mock)
 
@@ -737,7 +737,7 @@ class ExecuteTest(unittest.TestCase):
         execute_task_mock: unittest.mock.MagicMock,
         new_database_mock: unittest.mock.MagicMock,
     ) -> None:
-        executed_at = datetime.datetime.fromtimestamp(2934000, tz=datetime.UTC)
+        executed_at = datetime.datetime.fromtimestamp(2934000, tz=datetime.timezone.utc)
         execution = Execution()
         execution.executed_at = executed_at
         self.db.save_execution(execution)
