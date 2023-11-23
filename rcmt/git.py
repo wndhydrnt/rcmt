@@ -197,6 +197,7 @@ class Git:
     @staticmethod
     def reset(repo: git.Repo) -> None:
         repo.git.reset("HEAD", hard=True)
+        repo.git.clean("-d", "--force")
 
     def validate_branch_name(self, repo: git.Repo) -> bool:
         try:
