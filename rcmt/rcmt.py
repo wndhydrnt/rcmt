@@ -124,13 +124,17 @@ class RepoRun:
 
         except git.BranchModifiedError as e:
             log.warn("Branch contains commits not made by rcmt")
-            ctx.repo.create_pr_comment_with_identifier(
-                body=TEMPLATE_BRANCH_MODIFIED.render(
-                    checksums=e.checksums, default_branch=repo.base_branch
-                ),
-                identifier="branch-modified",
-                pr=pr_identifier,
-            )
+            if self.opts.config.dry_run is True:
+                log.warn("DRY RUN: Not creating note on pull request")
+            else:
+                ctx.repo.create_pr_comment_with_identifier(
+                    body=TEMPLATE_BRANCH_MODIFIED.render(
+                        checksums=e.checksums, default_branch=repo.base_branch
+                    ),
+                    identifier="branch-modified",
+                    pr=pr_identifier,
+                )
+
             return RunResult.BRANCH_MODIFIED
         except GitCommandError as e:
             # Catch any error raised by the git client, delete the repository and
