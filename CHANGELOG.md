@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.29.0](https://github.com/wndhydrnt/rcmt/compare/v0.28.0...v0.29.0) (2023-11-23)
+
+
+### Features
+
+* **verify:** handle multiple Tasks in one file ([#470](https://github.com/wndhydrnt/rcmt/issues/470)) ([21c4c2a](https://github.com/wndhydrnt/rcmt/commit/21c4c2afa112bb6797a3a0d3fa2f4adba54d042d))
+
+
+### Bug Fixes
+
+* **deps:** update dependency pydantic to v2.5.0 ([#465](https://github.com/wndhydrnt/rcmt/issues/465)) ([e092b61](https://github.com/wndhydrnt/rcmt/commit/e092b6115510839ba52fe68cdd41ffa175884f70))
+* **deps:** update dependency pydantic-settings to v2.1.0 ([#467](https://github.com/wndhydrnt/rcmt/issues/467)) ([7f8e6df](https://github.com/wndhydrnt/rcmt/commit/7f8e6df6740b2733da41d01f4c004b3edfc44952))
+* **deps:** update dependency pygithub to v2 ([#408](https://github.com/wndhydrnt/rcmt/issues/408)) ([79fbb79](https://github.com/wndhydrnt/rcmt/commit/79fbb799331dfaac8ebe8c1f06eaaa9c8309cbeb))
+* **deps:** update dependency python-gitlab to v4 ([#449](https://github.com/wndhydrnt/rcmt/issues/449)) ([38fd82e](https://github.com/wndhydrnt/rcmt/commit/38fd82e793c6daec33db6c133e2859985e8a29b8))
+* **rcmt:** do not create "branch modified" note in dry-run mode ([#471](https://github.com/wndhydrnt/rcmt/issues/471)) ([30bfb0d](https://github.com/wndhydrnt/rcmt/commit/30bfb0d6b2d07e57e0a468417bd7ef3df0d1e60d))
+
 ## [0.28.0](https://github.com/wndhydrnt/rcmt/compare/v0.27.2...v0.28.0) (2023-11-18)
 
 
