@@ -10,7 +10,7 @@ import jinja2
 import structlog
 from git.exc import GitCommandError
 
-from . import config, context, database, fs, git, source, task
+from . import config, context, database, fs, git, metric, source, task
 
 log: structlog.stdlib.BoundLogger = structlog.get_logger()
 
@@ -280,6 +280,7 @@ def execute(opts: Options) -> bool:
             "No Source has been configured. Configure access credentials for GitHub or GitLab."
         )
 
+    metric.run_start_timestamp.set_to_current_time()
     db = database.new_database(opts.config.database)
     tasks, needs_all_repositories, reads_succeeded = read_tasks(
         db=db, task_paths=opts.task_paths
@@ -327,6 +328,7 @@ def execute(opts: Options) -> bool:
                 success = False
 
     log.info("Finished processing of repositories", repository_count=repository_count)
+    metric.run_repositories_processed.set(repository_count)
 
     if repository_count > 0:
         for task_ in tasks:
@@ -338,12 +340,16 @@ def execute(opts: Options) -> bool:
                 # the failed repositories again.
                 db.update_task(task_.name, task_.checksum)
 
+    metric.run_error.set(0)
     if success is False:
         log.error("Errors during execution - check previous log messages")
+        metric.run_error.set(1)
 
     ex = database.Execution()
     ex.executed_at = datetime.datetime.now(tz=datetime.timezone.utc)
     db.save_execution(ex)
+    metric.run_finish_timestamp.set_to_current_time()
+    metric.push(opts.config.pushgateway)
     return success
 
 
