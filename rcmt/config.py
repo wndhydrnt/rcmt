@@ -44,6 +44,12 @@ class Json(pydantic.BaseModel):
     extensions: list[str] = [".json"]
 
 
+class Pushgateway(pydantic.BaseModel):
+    address: str = "localhost:9091"
+    enabled: bool = False
+    job_label: str = "rcmt"
+
+
 class Toml(pydantic.BaseModel):
     extensions: list[str] = [".toml"]
 
@@ -71,6 +77,7 @@ class Config(BaseSettings):
     pr_title_prefix: str = "rcmt:"
     pr_title_body: str = "apply task {matcher_name}"
     pr_title_suffix: str = ""
+    pushgateway: Pushgateway = Pushgateway()
     toml: Toml = Toml()
     yaml: Yaml = Yaml()
 
