@@ -26,6 +26,10 @@ gitlab:
   url: https://gitlab.com
 log_format: ""
 log_level: info
+pushgateway:
+  address: "localhost:9091"
+  enabled: false
+  job_name: "rcmt"
 ```
 
 ## `custom`
@@ -131,6 +135,28 @@ other variables are supported at the moment.
 ## `pr_title_suffix`
 
 rcmt suffixes every Pull Request title with this string. Defaults to `""`.
+
+## `pushgateway`
+
+Send metrics to a [Prometheus Pushgateway](https://github.com/prometheus/pushgateway).
+
+### `address`
+
+The address of the Pushgateway.
+Defaults to `localhost:9091`.
+
+### `enabled`
+
+Set to `true` to enable sending metrics to a Pushgateway.
+Defaults to `false`.
+
+### `job_label`
+
+Configure the value of the `job` label added to each metric.
+Defaults to `rcmt`.
+
+See [About the job and instance labels](https://github.com/prometheus/pushgateway#about-the-job-and-instance-labels)
+for an explanation of the label.
 
 ## Environment Variables
 

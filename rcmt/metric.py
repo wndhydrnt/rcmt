@@ -2,6 +2,24 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+"""
+rcmt can collect metrics on each of its runs and send them to a Prometheus Pushgateway.
+
+See [pushgateway configuration](https://rcmt.readthedocs.io/en/latest/operations/metrics/)
+for how to configure sending metrics.
+
+The following metrics are recorded:
+
+- `rcmt_run_start_timestamp` - Unix timestamp at which the latest run started.
+- `rcmt_run_finish_timestamp` - Unix timestamp at which the latest run finished.
+- `rcmt_run_repositories_processed` - Repositories processed by the latest run of rcmt.
+- `rcmt_run_error` - Result of the latest run of rcmt.
+   0 indicates success, 1 indicates an error.
+
+On each run, a unique label `run_id` is created and attached to each of the metrics.
+The label can be used to differentiate between runs when querying metrics via Prometheus.
+"""
+
 import random
 import string
 
