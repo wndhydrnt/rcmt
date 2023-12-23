@@ -110,6 +110,9 @@ class RepoRun:
             )
             return RunResult.PR_MERGED_BEFORE
 
+        if pr_identifier is not None and matcher.create_only is True:
+            return RunResult.PR_OPEN
+
         force_rebase = self._has_rebase_checked(pr=pr_identifier, repo=repo)
         try:
             work_dir, has_conflict = self.git.prepare(
