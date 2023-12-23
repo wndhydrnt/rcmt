@@ -40,6 +40,11 @@ class Task:
                       requests at the same time. Defaults to ``None`` which means no
                       limit.
         commit_msg: Message to use when committing changes via git.
+        create_only: If `True`, create the pull request but do not rebase and push
+                     updates on subsequent runs of rcmt. Allows users to modify the pull
+                     request without triggering the override detection. Setting
+                     `auto_merge` will have no effect if this parameter is set to
+                     `True`. Defaults to `False`.
         delete_branch_after_merge: If `True`, rcmt will delete the branch after it has
                                    been merged. Defaults to `True`.
         enabled: If `False`, disables the task. Handy if a task needs to be stopped
@@ -85,6 +90,7 @@ class Task:
     branch_name: str = ""
     change_limit: Optional[int] = None
     commit_msg: str = "Applied actions"
+    create_only: bool = False
     delete_branch_after_merge: bool = True
     enabled: bool = True
     merge_once: bool = False

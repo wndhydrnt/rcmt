@@ -521,6 +521,31 @@ class RepoRunTest(unittest.TestCase):
         )
         repo_mock.get_pr_body.assert_called_once_with("someid")
 
+    def test_task_create_only_pr_exists(self):
+        cfg = config.Config()
+        opts = Options(cfg)
+        git_mock = create_git_mock("rcmt", "/unit/test", False, False)
+        runner = RepoRun(git_mock, opts)
+        task = Task()
+        task.create_only = True
+        task.name = "testmatch"
+        task.apply = unittest.mock.Mock(return_value=None)
+        repo_mock = unittest.mock.Mock(spec=source.Repository)
+        repo_mock.name = "myrepo"
+        repo_mock.project = "myproject"
+        repo_mock.find_pull_request.return_value = "someid"
+        repo_mock.is_pr_closed.return_value = False
+
+        result = runner.execute(ctx=context.Context(repo_mock), matcher=task)
+
+        self.assertEqual(RunResult.PR_OPEN, result)
+        task.apply.assert_not_called()
+        repo_mock.find_pull_request.assert_called_once_with("rcmt")
+        repo_mock.is_pr_closed.assert_called_once_with("someid")
+        git_mock.push.assert_not_called()
+        repo_mock.create_pull_request.assert_not_called()
+        repo_mock.merge_pull_request.assert_not_called()
+
 
 class ExecuteTaskTest(unittest.TestCase):
     @unittest.mock.patch("rcmt.rcmt.RepoRun")
