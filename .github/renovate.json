@@ -18,6 +18,10 @@
       "description": "Prevent upgrades until https://github.com/sphinx-doc/sphinx/issues/11662 has been resolved",
       "matchManagers": ["poetry"],
       "matchPackageNames": ["Sphinx"]
+    },
+    {
+      "automerge": true,
+      "matchManagers": ["github-actions"]
     }
   ],
   "semanticCommits": "enabled"
