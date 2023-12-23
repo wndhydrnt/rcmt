@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
-      - uses: apache/skywalking-eyes/header@a790ab8dd23a7f861c18bd6aaa9b012e3a234bce
+      - uses: apache/skywalking-eyes/header@ed436a5593c63a25f394ea29da61b0ac3731a9fe
   test:
     name: Unit Tests
     runs-on: ubuntu-latest
