@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.30.0](https://github.com/wndhydrnt/rcmt/compare/v0.29.0...v0.30.0) (2023-12-23)
+
+
+### Features
+
+* **metric:** Instrument code and send metrics to a Prometheus Pushgateway ([#487](https://github.com/wndhydrnt/rcmt/issues/487)) ([8039d08](https://github.com/wndhydrnt/rcmt/commit/8039d08b620291554a037321b894b184f6e179a6))
+* **rcmt:** add option to make rcmt create a pull request but never update it on next runs ([#492](https://github.com/wndhydrnt/rcmt/issues/492)) ([3ceadf8](https://github.com/wndhydrnt/rcmt/commit/3ceadf87f34cd098a8e6ab43592a92797688cce5))
+
+
+### Bug Fixes
+
+* **deps:** update dependency alembic to v1.13.0 ([#481](https://github.com/wndhydrnt/rcmt/issues/481)) ([10aef3a](https://github.com/wndhydrnt/rcmt/commit/10aef3a8d83d4019fc8b0588481940be5fcab437))
+* **deps:** update dependency greenlet to v3.0.2 ([#485](https://github.com/wndhydrnt/rcmt/issues/485)) ([2577cf3](https://github.com/wndhydrnt/rcmt/commit/2577cf3fa3a7ce9707f21f0a5e9276bca5d0710a))
+* **deps:** update dependency humanize to v4.9.0 ([#473](https://github.com/wndhydrnt/rcmt/issues/473)) ([5dba6bb](https://github.com/wndhydrnt/rcmt/commit/5dba6bbb8b956137bc20855546fde0b45f6e1a26))
+* **deps:** update dependency pydantic to v2.5.2 ([#475](https://github.com/wndhydrnt/rcmt/issues/475)) ([af076c5](https://github.com/wndhydrnt/rcmt/commit/af076c598d95ed3b5322aa31153a452eeddba86f))
+* **deps:** update dependency python-gitlab to &gt;=4.2,&lt;4.3 ([#479](https://github.com/wndhydrnt/rcmt/issues/479)) ([3a07518](https://github.com/wndhydrnt/rcmt/commit/3a07518577c0dff9dad50fc225d51ed5f6d0a281))
+
 ## [0.29.0](https://github.com/wndhydrnt/rcmt/compare/v0.28.0...v0.29.0) (2023-11-23)
 
 
