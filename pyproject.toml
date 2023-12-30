@@ -58,7 +58,7 @@ mkdocs-material = "^9.4.0"
 mkdocstrings = {version = "^0.24.0", extras = ["python"]}
 
 [tool.poetry.group.dev.dependencies]
-black = "23.12.0"
+black = "23.12.1"
 isort = "5.13.2"
 pytest = "^7.2.1"
 mypy = "1.8.0"
