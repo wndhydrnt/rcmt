@@ -95,10 +95,7 @@ class RepoRun:
             and repo.is_pr_closed(pr_identifier) is True
             and matcher.merge_once is True
         ):
-            log.info(
-                "Existing PR of branch has been closed branch=%s",
-                self.git.branch_name,
-            )
+            log.info("Existing PR has been closed branch=%s", self.git.branch_name)
             return RunResult.PR_CLOSED_BEFORE
 
         if (
@@ -106,10 +103,7 @@ class RepoRun:
             and repo.is_pr_merged(pr_identifier) is True
             and matcher.merge_once is True
         ):
-            log.info(
-                "Existing PR of branch has been merged branch=%s",
-                self.git.branch_name,
-            )
+            log.info("Existing PR has been merged branch=%s", self.git.branch_name)
             return RunResult.PR_MERGED_BEFORE
 
         if pr_identifier is not None and matcher.create_only is True:
@@ -456,7 +450,7 @@ def read_tasks(
         task_db = db.get_or_create_task(name=wrapper.name)
         if wrapper.task.enabled is False:
             db.update_task(wrapper.name, wrapper.checksum)
-            log.info("Task disabled")
+            log.info("Task disabled task=%s", wrapper.name)
             continue
 
         if wrapper.checksum != task_db.checksum:

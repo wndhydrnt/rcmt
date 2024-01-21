@@ -59,7 +59,7 @@ class GitlabRepository(Repository):
 
     def create_pull_request(self, branch: str, pr: PullRequest) -> None:
         log.debug(
-            "Creating pull request: branch=%s base_branch=%s", branch, self.base_branch
+            "Creating merge request branch=%s base_branch=%s", branch, self.base_branch
         )
         payload: dict[str, Any] = {
             "description": pr.body,
@@ -105,7 +105,7 @@ class GitlabRepository(Repository):
                 file_path=path, ref=self.base_branch
             ).decode()
             if content is None:
-                log.warning("Decoded content is None: file=%s", path)
+                log.warning("Decoded content is None file=%s", path)
                 raise FileNotFoundError("decoded content is None")
 
             return io.StringIO(content.decode("utf-8"))
@@ -127,7 +127,7 @@ class GitlabRepository(Repository):
                     return True
         except gitlab.GitlabGetError as e:
             if e.response_code == 404:
-                log.warning("Tree of repository not found - empty repository?")
+                log.warning("Tree not found - empty repository?")
                 return False
             else:
                 raise e
@@ -178,11 +178,7 @@ class GitlabRepository(Repository):
             yield PullRequestComment(body=note.body, id=note.id)
 
     def merge_pull_request(self, identifier: GitlabMergeRequest):
-        log.debug(
-            "Merging merge request mr_id=%s",
-            identifier.get_id(),
-            str(self),
-        )
+        log.debug("Merging merge request mr_id=%s", identifier.get_id())
         identifier.merge()
 
     @property
@@ -232,7 +228,7 @@ class Gitlab(Base):
             p = self.client.projects.get(id=name_without_host)
         except gitlab.GitlabGetError as e:
             log.debug(
-                "Unable to get project: project_name=%s, status_code=%d",
+                "Unable to get project project_name=%s, status_code=%d",
                 name,
                 e.response_code,
             )
@@ -264,7 +260,7 @@ class Gitlab(Base):
             project = self.client.projects.get(id=mr.project_id)
             if project.archived is True:
                 log.debug(
-                    "Ignore project because it has been archived: project=%s",
+                    "Ignore project because it has been archived project=%s",
                     project.path_with_namespace,
                 )
                 continue

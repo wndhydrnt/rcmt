@@ -129,7 +129,7 @@ class GithubRepository(Repository):
         return False
 
     def has_successful_pr_build(self, pr: github.PullRequest.PullRequest) -> bool:
-        log.debug("Checking PR builds: repository=%s", str(self))
+        log.debug("Checking PR builds")
         for cr in self.repo.get_commit(pr.head.sha).get_check_runs():
             if cr.conclusion != "success":
                 log.debug(
