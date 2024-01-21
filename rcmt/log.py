@@ -107,4 +107,5 @@ def clear_contextvars() -> None:
 
 
 def get_logger(name: str) -> ContextAwareAdapter:
-    return ContextAwareAdapter(logger=logging.getLogger(name), extra=None)
+    # Python 3.9 requires `extra` to be a `dict`. Could be `None` in 3.10 and higher.
+    return ContextAwareAdapter(logger=logging.getLogger(name), extra={})
