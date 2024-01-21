@@ -87,7 +87,7 @@ class Git:
         """
         checkout_dir = self.checkout_dir(repo)
         if os.path.exists(checkout_dir) is False:
-            log.debug("Cloning repository: url=%s", repo.clone_url)
+            log.debug("Cloning repository url=%s", repo.clone_url)
             os.makedirs(checkout_dir)
             git_repo = git.Repo.clone_from(
                 repo.clone_url, checkout_dir, **self.clone_opts
@@ -101,7 +101,7 @@ class Git:
 
         git_repo.config_writer().set_value("user", "email", self.user_email).release()
         git_repo.config_writer().set_value("user", "name", self.user_name).release()
-        log.debug("Checking out base branch: branch=%s", repo.base_branch)
+        log.debug("Checking out base branch branch=%s", repo.base_branch)
         try:
             git_repo.heads[repo.base_branch].checkout()
         except IndexError as e:
@@ -113,7 +113,7 @@ class Git:
                 raise e
 
             log.debug(
-                "Base branch does not exist - deleting local repository and triggering another clone: branch=%s",
+                "Base branch does not exist - deleting local repository and triggering another clone branch=%s",
                 repo.base_branch,
             )
             shutil.rmtree(checkout_dir)
@@ -121,7 +121,7 @@ class Git:
 
         hash_before_pull = str(git_repo.head.commit)
         log.debug(
-            "Pulling changes into base branch: base_branch=%s",
+            "Pulling changes into base branch base_branch=%s",
             repo.base_branch,
         )
         git_repo.remotes["origin"].pull()
@@ -130,14 +130,14 @@ class Git:
         has_base_branch_update = hash_before_pull != hash_after_pull
         if has_base_branch_update is True:
             log.debug(
-                "Base branch contains new commits: base_branch=%s",
+                "Base branch contains new commits base_branch=%s",
                 repo.base_branch,
             )
 
         exists_local = branch_exists_local(self.branch_name, git_repo)
         remote_branch = get_remote_branch(self.branch_name, git_repo)
         if exists_local is False:
-            log.debug("Creating branch: branch=%s", self.branch_name)
+            log.debug("Creating branch branch=%s", self.branch_name)
             if remote_branch is None:
                 git_repo.create_head(self.branch_name)
             else:
@@ -154,7 +154,7 @@ class Git:
                     raise e
 
                 log.debug(
-                    "Merge conflict with base branch: branch=%s base_branch=%s",
+                    "Merge conflict with base branch branch=%s base_branch=%s",
                     self.branch_name,
                     repo.base_branch,
                 )
@@ -168,10 +168,10 @@ class Git:
                 if e.status != 128:
                     raise e
 
-        log.debug("Checking out work branch: branch=%s", self.branch_name)
+        log.debug("Checking out work branch branch=%s", self.branch_name)
         git_repo.heads[self.branch_name].checkout()
         if remote_branch is not None:
-            log.debug("Pulling changes into work branch: branch=%s", self.branch_name)
+            log.debug("Pulling changes into work branch branch=%s", self.branch_name)
             # `rebase=True` to end up with a clean history.
             # `strategy_option="theirs"` to always prefer changes from the remote.
             # Commits by someone else will be preserved with this strategy and there
@@ -184,9 +184,9 @@ class Git:
         if force_rebase is False:
             self._detect_modified_branch(merge_base=merge_base, repo=git_repo)
 
-        log.debug("Resetting to merge base: branch=%s", self.branch_name)
+        log.debug("Resetting to merge base branch=%s", self.branch_name)
         git_repo.git.reset(merge_base, hard=True)
-        log.debug("Rebasing onto work branch: branch=%s", self.branch_name)
+        log.debug("Rebasing onto work branch branch=%s", self.branch_name)
         git_repo.git.rebase(repo.base_branch)
 
         return checkout_dir, has_conflict
