@@ -43,7 +43,7 @@ class GithubRepository(Repository):
 
         if identifier.mergeable is False:
             log.warning(
-                "GitHub indicates that the PR is not mergeable: pr_id=%d repository=%s",
+                "GitHub indicates that the PR is not mergeable: pr_id=%s repository=%s",
                 identifier.id,
                 str(self),
             )

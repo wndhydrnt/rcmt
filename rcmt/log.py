@@ -5,12 +5,12 @@
 import logging
 import logging.config
 import sys
-from typing import Any, Optional
+from typing import Any, MutableMapping, Optional
 
 _CONTEXT_VARS: dict[str, Any] = {}
 
 
-logging_config = {
+logging_config: dict[str, Any] = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
@@ -52,11 +52,11 @@ logging_config = {
 
 
 def configure(log_format: Optional[str], level: str) -> None:
-    handlers = logging_config.get("handlers", {})
+    handlers: dict = logging_config.get("handlers", {})
     handler_default = handlers.get("default", {})
     handler_default["formatter"] = detect_formatter(log_format)
 
-    loggers = logging_config.get("loggers", {})
+    loggers: dict = logging_config.get("loggers", {})
     logger_rcmt = loggers.get("rcmt", {})
     logger_rcmt["level"] = level.upper()
     logging.config.dictConfig(logging_config)
@@ -80,7 +80,9 @@ def detect_formatter(log_format: Optional[str]) -> str:
 
 
 class ContextAwareAdapter(logging.LoggerAdapter):
-    def process(self, msg, kwargs):
+    def process(
+        self, msg: str, kwargs: MutableMapping[str, Any]
+    ) -> tuple[str, MutableMapping[str, Any]]:
         try:
             extra: dict = kwargs["extra"]
             for k, v in extra.items():

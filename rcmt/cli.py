@@ -1,7 +1,7 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
-import logging
+
 import sys
 
 import click
@@ -158,7 +158,9 @@ def verify(
     try:
         opts = rcmt.options_from_config(config)
         opts.task_paths = [task_file]
-        configure_logging(format=opts.config.log_format, level=opts.config.log_level)
+        configure_logging(
+            log_format=opts.config.log_format, level=opts.config.log_level
+        )
         rcmt.execute_verify(
             directory=directory,
             opts=opts,
