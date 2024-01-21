@@ -87,7 +87,7 @@ class Git:
         """
         checkout_dir = self.checkout_dir(repo)
         if os.path.exists(checkout_dir) is False:
-            log.debug("Cloning repository url=%s", repo.clone_url)
+            log.debug("Cloning repository")
             os.makedirs(checkout_dir)
             git_repo = git.Repo.clone_from(
                 repo.clone_url, checkout_dir, **self.clone_opts
