@@ -13,12 +13,12 @@ import string
 import sys
 from typing import Any, Optional
 
-import structlog
 from slugify import slugify
 
+import rcmt.log
 from rcmt import Context
 
-log: structlog.stdlib.BoundLogger = structlog.get_logger(package="task")
+log = rcmt.log.get_logger(__name__)
 
 
 class Task:
@@ -227,7 +227,7 @@ class TaskRegistry:
         :param task: The Task to register.
         """
         if self.task_path is None:
-            log.debug(f"Path to Task no set - not registering Task {task.name}")
+            log.debug("Path to Task no set - not registering Task: task=%s", task.name)
             return None
 
         for t in self.tasks:
@@ -247,7 +247,7 @@ class TaskRegistry:
         wrapper = TaskWrapper(t=task)
         wrapper.checksum = checksum.hexdigest()
         self.tasks.append(wrapper)
-        log.info(f"Registered Task {task.name}")
+        log.info("Registered Task: task=%s", task.name)
 
 
 # registry is the single instance of TaskRegistry used by rcmt. `register_task` uses

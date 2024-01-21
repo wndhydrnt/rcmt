@@ -1,18 +1,20 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 import datetime
 import shutil
 from enum import Enum
 from typing import Any, Iterator, Optional
 
 import jinja2
-import structlog
 from git.exc import GitCommandError
+
+import rcmt.log
 
 from . import config, context, database, fs, git, metric, source, task
 
-log: structlog.stdlib.BoundLogger = structlog.get_logger()
+log = rcmt.log.get_logger(__name__)
 
 
 TEMPLATE_BRANCH_MODIFIED = jinja2.Template(
@@ -93,10 +95,7 @@ class RepoRun:
             and repo.is_pr_closed(pr_identifier) is True
             and matcher.merge_once is True
         ):
-            log.info(
-                "Existing PR has been closed",
-                branch=self.git.branch_name,
-            )
+            log.info("Existing PR has been closed branch=%s", self.git.branch_name)
             return RunResult.PR_CLOSED_BEFORE
 
         if (
@@ -104,10 +103,7 @@ class RepoRun:
             and repo.is_pr_merged(pr_identifier) is True
             and matcher.merge_once is True
         ):
-            log.info(
-                "Existing PR has been merged",
-                branch=self.git.branch_name,
-            )
+            log.info("Existing PR has been merged branch=%s", self.git.branch_name)
             return RunResult.PR_MERGED_BEFORE
 
         if pr_identifier is not None and matcher.create_only is True:
@@ -126,9 +122,9 @@ class RepoRun:
                 )
 
         except git.BranchModifiedError as e:
-            log.warn("Branch contains commits not made by rcmt")
+            log.warning("Branch contains commits not made by rcmt")
             if self.opts.config.dry_run is True:
-                log.warn("DRY RUN: Not creating note on pull request")
+                log.warning("DRY RUN: Not creating note on pull request")
             else:
                 ctx.repo.create_pr_comment_with_identifier(
                     body=TEMPLATE_BRANCH_MODIFIED.render(
@@ -142,8 +138,8 @@ class RepoRun:
         except GitCommandError as e:
             # Catch any error raised by the git client, delete the repository and
             # initialize it again
-            log.warn(
-                "generic git error detected - cloning repository again",
+            log.warning(
+                msg="generic git error detected - cloning repository again",
                 exc_info=e,
             )
             checkout_dir = self.git.checkout_dir(repo)
@@ -168,7 +164,7 @@ class RepoRun:
             and repo.is_pr_open(pr_identifier) is True
         ):
             if self.opts.config.dry_run:
-                log.warn(
+                log.warning(
                     "DRY RUN: Closing pull request because base branch contains all changes"
                 )
             else:
@@ -179,8 +175,8 @@ class RepoRun:
                     "Everything up-to-date. Closing.", pr_identifier
                 )
                 log.info(
-                    "Deleting source branch because base branch contains all changes",
-                    branch=self.git.branch_name,
+                    "Deleting source branch because base branch contains all changes branch=%s",
+                    self.git.branch_name,
                 )
                 repo.delete_branch(pr_identifier)
                 matcher.on_pr_closed(ctx=ctx)
@@ -195,7 +191,7 @@ class RepoRun:
         ) or has_conflict
         if has_changes is True:
             if self.opts.config.dry_run:
-                log.warn("DRY RUN: Not pushing changes")
+                log.warning("DRY RUN: Not pushing changes")
             else:
                 log.debug("Pushing changes")
                 self.git.push(work_dir)
@@ -219,7 +215,7 @@ class RepoRun:
             or repo.is_pr_closed(pr_identifier) is True
         ):
             if self.opts.config.dry_run:
-                log.warn("DRY RUN: Not creating pull request")
+                log.warning("DRY RUN: Not creating pull request")
             else:
                 log.info("Create pull request")
                 repo.create_pull_request(self.git.branch_name, pr)
@@ -234,7 +230,7 @@ class RepoRun:
             and repo.is_pr_open(pr_identifier) is True
         ):
             if not repo.has_successful_pr_build(pr_identifier):
-                log.warn("Cannot merge because build of pull request failed")
+                log.warning("Cannot merge because build of pull request failed")
                 return RunResult.CHECKS_FAILED
 
             if not can_merge_after(
@@ -244,18 +240,18 @@ class RepoRun:
                 return RunResult.AUTO_MERGE_TOO_EARLY
 
             if not repo.can_merge_pull_request(pr_identifier):
-                log.warn("Cannot merge pull request")
+                log.warning("Cannot merge pull request")
                 return RunResult.CONFLICT
 
             if self.opts.config.dry_run:
-                log.warn("DRY RUN: Not merging pull request")
+                log.warning("DRY RUN: Not merging pull request")
             else:
                 log.info("Merge pull request")
                 repo.merge_pull_request(pr_identifier)
                 if matcher.delete_branch_after_merge:
                     log.info(
-                        "Deleting source branch",
-                        branch=self.git.branch_name,
+                        "Deleting source branch branch=%s",
+                        self.git.branch_name,
                     )
                     repo.delete_branch(pr_identifier)
                     matcher.on_pr_merged(ctx=ctx)
@@ -308,7 +304,10 @@ def execute(opts: Options) -> bool:
         else:
             since = execution.executed_at
 
-        log.debug("Searching for updated repositories", since=str(since))
+        log.debug(
+            "Searching for updated repositories since %s",
+            str(since),
+        )
         repositories = list_repositories(
             all_repositories=needs_all_repositories,
             since=since,
@@ -320,17 +319,15 @@ def execute(opts: Options) -> bool:
     for repository in repositories:
         repository_count += 1
         for task_ in tasks:
-            structlog.contextvars.clear_contextvars()
-            structlog.contextvars.bind_contextvars(
-                repository=repository.full_name, task=task_.name
-            )
+            rcmt.log.clear_contextvars()
+            rcmt.log.bind_contextvars(repository=repository.full_name, task=task_.name)
             task_success = execute_task(task_, repository, opts)
-            structlog.contextvars.clear_contextvars()
+            rcmt.log.clear_contextvars()
             if task_success is False:
                 task_.failure_count += 1
                 success = False
 
-    log.info("Finished processing of repositories", repository_count=repository_count)
+    log.info("Finished processing of %d repositories", repository_count)
     metric.run_repositories_processed.set(repository_count)
 
     if repository_count > 0:
@@ -373,28 +370,22 @@ def execute_task(
     try:
         if task_wrapper.has_reached_change_limit():
             log.info(
-                "Limit of changes reached",
-                limit=task_wrapper.change_limit,
-                task=task_wrapper.name,
+                "Limit of changes reached for task limit=%d", task_wrapper.change_limit
             )
             return success
 
         ctx = context.Context(repo, custom_config=opts.config.custom)
         if task_wrapper.filter(ctx) is False:
-            log.debug(
-                "Repository does not match",
-                repository=str(repo),
-                task=task_wrapper.name,
-            )
+            log.debug("Repository does not match task")
             return success
 
-        log.info("Matched repository", repository=str(repo), task=task_wrapper.name)
+        log.info("Task matched repository")
         result: RunResult = runner.execute(ctx=ctx, matcher=task_wrapper.task)
         if result == RunResult.PR_CREATED or result == RunResult.PR_MERGED:
             task_wrapper.changes_total += 1
 
-    except Exception:
-        log.exception("Task failed", repository=str(repo), task=task_wrapper.name)
+    except Exception as e:
+        log.exception("Task failed", exc_info=e)
         success = False
 
     return success
@@ -449,7 +440,9 @@ def read_tasks(
         try:
             task.read(task_path)
         except RuntimeError as e:
-            log.error(f"Loading task from file failed: {str(e)}", file=task_path)
+            log.exception(
+                "Loading task from file failed file=%s", task_path, exc_info=e
+            )
             all_reads_succeed = False
             continue
 
@@ -457,7 +450,7 @@ def read_tasks(
         task_db = db.get_or_create_task(name=wrapper.name)
         if wrapper.task.enabled is False:
             db.update_task(wrapper.name, wrapper.checksum)
-            log.info("Task disabled", task=wrapper.name)
+            log.info("Task disabled task=%s", wrapper.name)
             continue
 
         if wrapper.checksum != task_db.checksum:

@@ -4,15 +4,14 @@
 
 from typing import Optional, TextIO
 
-import structlog
-
 import rcmt.git
+import rcmt.log
 from rcmt import fs, task
 from rcmt.context import Context
 from rcmt.rcmt import Options
 from rcmt.source import Repository
 
-log: structlog.stdlib.BoundLogger = structlog.get_logger()
+log = rcmt.log.get_logger(__name__)
 
 
 def execute(
@@ -24,7 +23,7 @@ def execute(
         if repository is not None:
             break
 
-        log.debug("Source did not return a repository", source=source_name)
+        log.debug("Source did not return a repository: source=%s", source_name)
 
     if repository is None:
         log.error(f"No Source found for repository {repo_name}")

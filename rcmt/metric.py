@@ -23,12 +23,12 @@ The label can be used to differentiate between runs when querying metrics via Pr
 import random
 import string
 
-import structlog
 from prometheus_client import CollectorRegistry, Gauge, push_to_gateway
 
+import rcmt.log
 from rcmt import config
 
-log: structlog.stdlib.BoundLogger = structlog.get_logger(package="metric")
+log = rcmt.log.get_logger(__name__)
 
 label_run = "".join(
     random.choice(string.ascii_lowercase + string.digits) for _ in range(8)
@@ -68,7 +68,7 @@ def push(cfg: config.Pushgateway) -> None:
     if cfg.enabled is False:
         return None
 
-    log.debug("Sending metrics to pushgateway")
+    log.debug("Sending metrics to pushgateway address=%s", cfg.address)
     push_to_gateway(
         gateway=cfg.address,
         job=cfg.job_label,

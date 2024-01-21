@@ -5,14 +5,14 @@
 import sys
 
 import click
-import structlog
 
 import rcmt
 from rcmt.log import configure as configure_logging
+from rcmt.log import get_logger
 
 # Default logging settings before any configuration has been read.
-configure_logging(format=None, level="error")
-log: structlog.stdlib.BoundLogger = structlog.get_logger()
+configure_logging(log_format=None, level="error")
+log = get_logger(__name__)
 
 
 run_help = """Apply a Task to all matching repositories of a remote Git host.
@@ -50,7 +50,10 @@ def run(config: str, repository: tuple[str], task_file: list[str]):
         opts = rcmt.options_from_config(config)
         opts.task_paths = task_file
         opts.repositories = list(repository)
-        configure_logging(format=opts.config.log_format, level=opts.config.log_level)
+        configure_logging(
+            log_format=opts.config.log_format,
+            level=opts.config.log_level,
+        )
         result = rcmt.execute(opts)
         if result is False:
             exit(1)
@@ -155,7 +158,9 @@ def verify(
     try:
         opts = rcmt.options_from_config(config)
         opts.task_paths = [task_file]
-        configure_logging(format=opts.config.log_format, level=opts.config.log_level)
+        configure_logging(
+            log_format=opts.config.log_format, level=opts.config.log_level
+        )
         rcmt.execute_verify(
             directory=directory,
             opts=opts,

@@ -38,7 +38,6 @@ PyYAML = ">=5.4.1,<7.0.0"
 PyGithub = "^2.0.0"
 GitPython = "^3.1.18"
 pydantic = "^2.2.1"
-structlog = ">=23.3,<23.4"
 click = "^8.0.1"
 python-gitlab = ">=4.3,<4.4"
 humanize = "^4.2.3"
@@ -49,6 +48,8 @@ pydantic-settings = "^2.0.3"
 greenlet = "^3.0.0"
 jinja2 = "^3.1.2"
 prometheus-client = "^0.19.0"
+colorlog = "^6.8.0"
+python-json-logger = "^2.0.7"
 
 [tool.poetry.group.docs]
 optional = true
