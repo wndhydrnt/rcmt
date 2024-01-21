@@ -107,4 +107,4 @@ def clear_contextvars() -> None:
 
 
 def get_logger(name: str) -> ContextAwareAdapter:
-    return ContextAwareAdapter(logger=logging.getLogger(name))
+    return ContextAwareAdapter(logger=logging.getLogger(name), extra=None)
