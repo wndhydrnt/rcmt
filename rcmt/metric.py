@@ -68,7 +68,7 @@ def push(cfg: config.Pushgateway) -> None:
     if cfg.enabled is False:
         return None
 
-    log.debug("Sending metrics to pushgateway: address=%s", cfg.address)
+    log.debug("Sending metrics to pushgateway address=%s", cfg.address)
     push_to_gateway(
         gateway=cfg.address,
         job=cfg.job_label,

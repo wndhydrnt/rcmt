@@ -5,13 +5,14 @@
 import datetime
 import fnmatch
 import io
-import logging
 from typing import Any, Generator, Iterator, Optional, TextIO, Union
 
 import github
 import github.Auth
 import github.PullRequest
 import github.Repository
+
+import rcmt.log
 
 from .source import (
     Base,
@@ -21,7 +22,7 @@ from .source import (
     add_credentials_to_url,
 )
 
-log = logging.getLogger(__name__)
+log = rcmt.log.get_logger(__name__)
 
 
 class GithubRepository(Repository):
@@ -43,9 +44,7 @@ class GithubRepository(Repository):
 
         if identifier.mergeable is False:
             log.warning(
-                "GitHub indicates that the PR is not mergeable: pr_id=%s repository=%s",
-                identifier.id,
-                str(self),
+                "GitHub indicates that the PR is not mergeable pr_id=%s", identifier.id
             )
 
         return identifier.mergeable
@@ -67,10 +66,7 @@ class GithubRepository(Repository):
 
     def create_pull_request(self, branch: str, pr: PullRequest):
         log.debug(
-            "Creating pull request: branch=%s base_branch=%s repository=%s",
-            branch,
-            self.base_branch,
-            str(self),
+            "Creating pull request branch=%s base_branch=%s", branch, self.base_branch
         )
         gh_pr = self.repo.create_pull(
             title=pr.title,
@@ -93,7 +89,7 @@ class GithubRepository(Repository):
         pr.get_issue_comment(comment.id).delete()
 
     def find_pull_request(self, branch: str) -> Union[Any, None]:
-        log.debug("Listing pull requests: repository=%s", str(self))
+        log.debug("Listing pull requests")
         for pr in self.repo.get_pulls(state="all"):
             if pr.head.ref == branch:
                 return pr
@@ -125,9 +121,7 @@ class GithubRepository(Repository):
                     return True
         except github.GithubException as e:
             if e.status == 409:
-                log.warning(
-                    "Tree not found - empty repository?: repository=%s", str(self)
-                )
+                log.warning("Tree not found - empty repository?")
                 return False
             else:
                 raise e
@@ -139,10 +133,9 @@ class GithubRepository(Repository):
         for cr in self.repo.get_commit(pr.head.sha).get_check_runs():
             if cr.conclusion != "success":
                 log.debug(
-                    "GitHub check not successful: check=%s conclusion=%s repository=%s",
+                    "GitHub check not successful check=%s conclusion=%s",
                     cr.name,
                     cr.conclusion,
-                    str(self),
                 )
                 return False
 
@@ -167,7 +160,7 @@ class GithubRepository(Repository):
             yield PullRequestComment(body=issue.body, id=issue.id)
 
     def merge_pull_request(self, pr: github.PullRequest.PullRequest) -> None:
-        log.debug("Merging pull request: pr_id=%d repository=%s", pr.id, str(self))
+        log.debug("Merging pull request pr_id=%s", pr.id)
         pr.merge(commit_title="Auto-merge by rcmt")
 
     @property
@@ -196,7 +189,7 @@ class GithubRepository(Repository):
             needs_update = True
 
         if needs_update is True:
-            log.debug("Updating PR data: pr_id=%d repository=%s", pr.id, str(self))
+            log.debug("Updating PR data pr_id=%s", pr.id)
             pr.edit(title=pr_data.title, body=pr_data.body)
 
 
@@ -227,7 +220,7 @@ class Github(Base):
             yield GithubRepository(self.access_token, issue.repository)
 
     def list_repositories(self, since: datetime.datetime) -> Iterator[Repository]:
-        log.debug("start fetching repositories")
+        log.debug("Start fetching repositories")
         for gh_repo in self.client.get_user().get_repos(
             direction="desc", sort="updated"
         ):
@@ -236,4 +229,4 @@ class Github(Base):
             else:
                 break
 
-        log.debug("finished fetching repositories")
+        log.debug("Finished fetching repositories")

@@ -96,8 +96,8 @@ class RepoRun:
             and matcher.merge_once is True
         ):
             log.info(
-                "Existing PR of branch has been closed",
-                extra={"branch": self.git.branch_name},
+                "Existing PR of branch has been closed branch=%s",
+                self.git.branch_name,
             )
             return RunResult.PR_CLOSED_BEFORE
 
@@ -391,7 +391,7 @@ def execute_task(
             task_wrapper.changes_total += 1
 
     except Exception as e:
-        log.exception("Task failed for repository", exc_info=e)
+        log.exception("Task failed", exc_info=e)
         success = False
 
     return success

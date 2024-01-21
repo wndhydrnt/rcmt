@@ -5,7 +5,6 @@
 import datetime
 import fnmatch
 import io
-import logging
 import os.path
 from typing import Any, Generator, Iterator, Optional, TextIO, Union
 from urllib.parse import urlparse
@@ -17,6 +16,8 @@ from gitlab.v4.objects import CurrentUser
 from gitlab.v4.objects import Project as GitlabProject
 from gitlab.v4.objects.merge_requests import ProjectMergeRequest as GitlabMergeRequest
 
+import rcmt.log
+
 from .source import (
     Base,
     PullRequest,
@@ -25,7 +26,7 @@ from .source import (
     add_credentials_to_url,
 )
 
-log = logging.getLogger(__name__)
+log = rcmt.log.get_logger(__name__)
 
 
 class GitlabRepository(Repository):
@@ -58,10 +59,7 @@ class GitlabRepository(Repository):
 
     def create_pull_request(self, branch: str, pr: PullRequest) -> None:
         log.debug(
-            "Creating pull request: branch=%s base_branch=%s repository=%s",
-            branch,
-            self.base_branch,
-            str(self),
+            "Creating pull request: branch=%s base_branch=%s", branch, self.base_branch
         )
         payload: dict[str, Any] = {
             "description": pr.body,
@@ -84,7 +82,7 @@ class GitlabRepository(Repository):
         pr.notes.delete(comment.id)
 
     def find_pull_request(self, branch: str) -> Union[Any, None]:
-        log.debug("Listing merge requests: repository=%s", str(self))
+        log.debug("Listing merge requests")
         mrs = self._project.mergerequests.list(
             all=False, state="all", source_branch=branch
         )
@@ -107,11 +105,7 @@ class GitlabRepository(Repository):
                 file_path=path, ref=self.base_branch
             ).decode()
             if content is None:
-                log.warning(
-                    "Decoded content is None: file=%s repository=%s",
-                    path,
-                    str(self),
-                )
+                log.warning("Decoded content is None: file=%s", path)
                 raise FileNotFoundError("decoded content is None")
 
             return io.StringIO(content.decode("utf-8"))
@@ -133,10 +127,7 @@ class GitlabRepository(Repository):
                     return True
         except gitlab.GitlabGetError as e:
             if e.response_code == 404:
-                log.warning(
-                    "Tree of repository not found - empty repository?: repository=%s",
-                    str(self),
-                )
+                log.warning("Tree of repository not found - empty repository?")
                 return False
             else:
                 raise e
@@ -145,11 +136,7 @@ class GitlabRepository(Repository):
 
     def has_successful_pr_build(self, identifier: GitlabMergeRequest) -> bool:
         if identifier.approvals.get().approved is False:
-            log.debug(
-                "Approvals missing: mr_id=%s repository=%s",
-                identifier.get_id(),
-                str(self),
-            )
+            log.debug("Approvals missing mr_id=%s", identifier.get_id())
             return False
 
         failed = False
@@ -161,20 +148,15 @@ class GitlabRepository(Repository):
 
             if commit_status.status != "success":
                 log.debug(
-                    "Merge request check failed: mr_id=%s name=%s status=%s repository=%s",
+                    "Merge request check failed mr_id=%s name=%s status=%s",
                     identifier.get_id(),
                     commit_status.name,
                     commit_status.status,
-                    str(self),
                 )
                 failed = True
 
         if failed is False:
-            log.debug(
-                "All MR checks successful: mr_id=%s repository=%s",
-                identifier.get_id(),
-                str(self),
-            )
+            log.debug("All MR checks successful mr_id=%s", identifier.get_id())
             return True
 
         return False
@@ -197,7 +179,7 @@ class GitlabRepository(Repository):
 
     def merge_pull_request(self, identifier: GitlabMergeRequest):
         log.debug(
-            "Merging merge request: mr_id=%s repository=%s",
+            "Merging merge request mr_id=%s",
             identifier.get_id(),
             str(self),
         )
@@ -232,11 +214,7 @@ class GitlabRepository(Repository):
             needs_update = True
 
         if needs_update is True:
-            log.debug(
-                "Updating merge request data: mr_id=%s repository=%s",
-                pr.get_id(),
-                str(self),
-            )
+            log.debug("Updating merge request data mr_id=%s", pr.get_id())
             pr.save()
 
 
@@ -271,7 +249,7 @@ class Gitlab(Base):
 
         user: Optional[CurrentUser] = self.client.user
         if user is None:
-            log.error("unable to authenticate user while listing open pull requests")
+            log.error("Unable to authenticate user while listing open pull requests")
             return
 
         merge_requests = self.client.mergerequests.list(
@@ -297,7 +275,7 @@ class Gitlab(Base):
             yield repository
 
     def list_repositories(self, since: datetime.datetime) -> Iterator[Repository]:
-        log.debug("start fetching repositories")
+        log.debug("Start fetching repositories")
         projects = self.client.projects.list(
             archived=False,
             last_activity_after=since,
@@ -309,4 +287,4 @@ class Gitlab(Base):
                 project=p, token=self.client.private_token, url=self.url  # type: ignore
             )
 
-        log.debug("finished fetching repositories")
+        log.debug("Finished fetching repositories")
