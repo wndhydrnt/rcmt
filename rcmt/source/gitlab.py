@@ -5,19 +5,18 @@
 import datetime
 import fnmatch
 import io
+import logging
 import os.path
 from typing import Any, Generator, Iterator, Optional, TextIO, Union
 from urllib.parse import urlparse
 
 import gitlab
-import structlog
 from gitlab import GitlabGetError
 from gitlab.base import RESTObjectList
 from gitlab.v4.objects import CurrentUser
 from gitlab.v4.objects import Project as GitlabProject
 from gitlab.v4.objects.merge_requests import ProjectMergeRequest as GitlabMergeRequest
 
-from ..log import SECRET_MASKER
 from .source import (
     Base,
     PullRequest,
@@ -26,7 +25,7 @@ from .source import (
     add_credentials_to_url,
 )
 
-log: structlog.stdlib.BoundLogger = structlog.get_logger(source="gitlab")
+log = logging.getLogger(__name__)
 
 
 class GitlabRepository(Repository):
@@ -59,7 +58,10 @@ class GitlabRepository(Repository):
 
     def create_pull_request(self, branch: str, pr: PullRequest) -> None:
         log.debug(
-            "Creating merge request", base=self.base_branch, head=branch, repo=str(self)
+            "Creating pull request: branch=%s base_branch=%s repository=%s",
+            branch,
+            self.base_branch,
+            str(self),
         )
         payload: dict[str, Any] = {
             "description": pr.body,
@@ -82,7 +84,7 @@ class GitlabRepository(Repository):
         pr.notes.delete(comment.id)
 
     def find_pull_request(self, branch: str) -> Union[Any, None]:
-        log.debug("Listing merge requests", repo=str(self))
+        log.debug("Listing merge requests: repository=%s", str(self))
         mrs = self._project.mergerequests.list(
             all=False, state="all", source_branch=branch
         )
@@ -105,7 +107,11 @@ class GitlabRepository(Repository):
                 file_path=path, ref=self.base_branch
             ).decode()
             if content is None:
-                log.warning("Decoded content is None", repo=str(self), file=path)
+                log.warning(
+                    "Decoded content is None: file=%s repository=%s",
+                    path,
+                    str(self),
+                )
                 raise FileNotFoundError("decoded content is None")
 
             return io.StringIO(content.decode("utf-8"))
@@ -127,7 +133,10 @@ class GitlabRepository(Repository):
                     return True
         except gitlab.GitlabGetError as e:
             if e.response_code == 404:
-                log.warning("Tree not found - empty repository?", repo=str(self))
+                log.warning(
+                    "Tree of repository not found - empty repository?: repository=%s",
+                    str(self),
+                )
                 return False
             else:
                 raise e
@@ -136,7 +145,11 @@ class GitlabRepository(Repository):
 
     def has_successful_pr_build(self, identifier: GitlabMergeRequest) -> bool:
         if identifier.approvals.get().approved is False:
-            log.debug("Approvals missing", repo=str(self), id=identifier.get_id())
+            log.debug(
+                "Approvals missing: mr_id=%s repository=%s",
+                identifier.get_id(),
+                str(self),
+            )
             return False
 
         failed = False
@@ -148,17 +161,19 @@ class GitlabRepository(Repository):
 
             if commit_status.status != "success":
                 log.debug(
-                    "MR check failed",
-                    repo=str(self),
-                    id=identifier.get_id(),
-                    name=commit_status.name,
-                    status=commit_status.status,
+                    "Merge request check failed: mr_id=%s name=%s status=%s repository=%s",
+                    identifier.get_id(),
+                    commit_status.name,
+                    commit_status.status,
+                    str(self),
                 )
                 failed = True
 
         if failed is False:
             log.debug(
-                "All MR checks successful", repo=str(self), id=identifier.get_id()
+                "All MR checks successful: mr_id=%s repository=%s",
+                identifier.get_id(),
+                str(self),
             )
             return True
 
@@ -181,7 +196,11 @@ class GitlabRepository(Repository):
             yield PullRequestComment(body=note.body, id=note.id)
 
     def merge_pull_request(self, identifier: GitlabMergeRequest):
-        log.debug("Merging merge request", repo=str(self), id=identifier.get_id())
+        log.debug(
+            "Merging merge request: mr_id=%s repository=%s",
+            identifier.get_id(),
+            str(self),
+        )
         identifier.merge()
 
     @property
@@ -213,7 +232,11 @@ class GitlabRepository(Repository):
             needs_update = True
 
         if needs_update is True:
-            log.debug("Updating MR data", id=pr.get_id(), repo=str(self))
+            log.debug(
+                "Updating merge request data: mr_id=%s repository=%s",
+                pr.get_id(),
+                str(self),
+            )
             pr.save()
 
 
@@ -221,8 +244,6 @@ class Gitlab(Base):
     def __init__(self, url: str, private_token: str):
         self.client = gitlab.Gitlab(url, private_token=private_token)
         self.url = urlparse(url).netloc
-
-        SECRET_MASKER.add_secret(private_token)
 
     def create_from_name(self, name: str) -> Optional[Repository]:
         if name.startswith(self.url) is False:
@@ -232,7 +253,11 @@ class Gitlab(Base):
         try:
             p = self.client.projects.get(id=name_without_host)
         except gitlab.GitlabGetError as e:
-            log.debug("Unable to get project", name=name, status_code=e.response_code)
+            log.debug(
+                "Unable to get project: project_name=%s, status_code=%d",
+                name,
+                e.response_code,
+            )
             return None
 
         token = self.client.private_token or ""
@@ -261,8 +286,8 @@ class Gitlab(Base):
             project = self.client.projects.get(id=mr.project_id)
             if project.archived is True:
                 log.debug(
-                    "ignore project because it has been archived",
-                    project=project.path_with_namespace,
+                    "Ignore project because it has been archived: project=%s",
+                    project.path_with_namespace,
                 )
                 continue
 

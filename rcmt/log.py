@@ -3,84 +3,106 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import logging
+import logging.config
 import sys
-from typing import Any, Mapping, MutableMapping, Optional
+from typing import Any, Optional
 
-import structlog
-
-
-class SecretMasker:
-    def __init__(self) -> None:
-        self.secrets: list[str] = []
-
-    def add_secret(self, s: str) -> None:
-        self.secrets.append(s)
-
-    def process_event(
-        self, _, __, event_dict: MutableMapping[str, Any]
-    ) -> Mapping[str, Any]:
-        for k, v in event_dict.items():
-            if not isinstance(v, str):
-                continue
-
-            for secret in self.secrets:
-                if secret in v:
-                    event_dict[k] = v.replace(secret, "****")
-
-        return event_dict
+_CONTEXT_VARS: dict[str, Any] = {}
 
 
-SECRET_MASKER = SecretMasker()
+logging_config = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "colored": {
+            "()": "colorlog.ColoredFormatter",
+            "format": "%(log_color)s%(levelname)-8s%(reset)s %(bold_white)s%(message)s",
+            "log_colors": {
+                "DEBUG": "cyan",
+                "INFO": "green",
+                "WARNING": "yellow",
+                "ERROR": "red",
+                "CRITICAL": "red,bg_white",
+            },
+        },
+        "json": {
+            "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
+            "format": "%(levelname)s %(name)s %(message)s",
+            "rename_fields": {"levelname": "level", "name": "logger"},
+        },
+        "standard": {"format": "%(levelname)-8s: %(message)s"},
+    },
+    "handlers": {
+        "default": {
+            "level": "DEBUG",
+            "formatter": "standard",
+            "class": "logging.StreamHandler",
+            "stream": "ext://sys.stderr",
+        }
+    },
+    "loggers": {
+        "": {"handlers": ["default"], "level": "WARNING", "propagate": True},
+        "rcmt": {
+            "handlers": ["default"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+    },
+}
 
 
-def configure(format: Optional[str], level: str) -> None:
-    processors = [
-        structlog.contextvars.merge_contextvars,
-        SECRET_MASKER.process_event,
-        structlog.processors.add_log_level,
-        # Add a timestamp in ISO 8601 format.
-        structlog.processors.TimeStamper(fmt="iso"),
-        # If the "stack_info" key in the event dict is true, remove it and
-        # render the current stack trace in the "stack" key.
-        structlog.processors.StackInfoRenderer(),
-        # If the "exc_info" key in the event dict is either true or a
-        # sys.exc_info() tuple, remove "exc_info" and render the exception
-        # with traceback into the "exception" key.
-        structlog.processors.format_exc_info,
-        # If some value is in bytes, decode it to a unicode str.
-        structlog.processors.UnicodeDecoder(),
-    ]
+def configure(log_format: Optional[str], level: str) -> None:
+    handlers = logging_config.get("handlers", {})
+    handler_default = handlers.get("default", {})
+    handler_default["formatter"] = detect_formatter(log_format)
 
-    use_json = False
-    if format is None:
-        if sys.stderr.isatty() is False:
-            use_json = True
-    else:
-        if format.lower() == "json":
-            use_json = True
+    loggers = logging_config.get("loggers", {})
+    logger_rcmt = loggers.get("rcmt", {})
+    logger_rcmt["level"] = level.upper()
+    logging.config.dictConfig(logging_config)
 
-    if use_json is True:
-        processors.append(structlog.processors.EventRenamer("message"))
-        processors.append(structlog.processors.JSONRenderer())
-    else:
-        processors.append(
-            structlog.dev.ConsoleRenderer(
-                colors=sys.stderr is not None and sys.stderr.isatty()
-            )
-        )
 
-    log_level = logging.getLevelName(level.upper())
-    structlog.configure(
-        processors=processors,  # type: ignore
-        # `wrapper_class` is the bound logger that you get back from
-        # get_logger(). This one imitates the API of `logging.Logger`.
-        wrapper_class=structlog.make_filtering_bound_logger(log_level),
-        # `logger_factory` is used to create wrapped loggers that are used for
-        # OUTPUT. This one returns a `logging.Logger`. The final value (a JSON
-        # string) from the final processor (`JSONRenderer`) will be passed to
-        # the method of the same name as that you've called on the bound logger.
-        logger_factory=structlog.PrintLoggerFactory(sys.stderr),
-        # Effectively freeze configuration after creating the first bound
-        # logger.
-        cache_logger_on_first_use=True,
-    )
+def detect_formatter(log_format: Optional[str]) -> str:
+    is_tty = sys.stderr.isatty()
+    if log_format is None:
+        if is_tty is True:
+            return "colored"
+        else:
+            return "json"
+
+    if log_format.lower() == "json":
+        return "json"
+
+    if log_format.lower() == "console" and is_tty is True:
+        return "colored"
+
+    return "standard"
+
+
+class ContextAwareAdapter(logging.LoggerAdapter):
+    def process(self, msg, kwargs):
+        try:
+            extra: dict = kwargs["extra"]
+            for k, v in extra.items():
+                msg = f"{msg} {k}={v}"
+        except KeyError:
+            pass
+
+        for k, v in _CONTEXT_VARS.items():
+            msg = f"{msg} {k}={v}"
+
+        return msg, kwargs
+
+
+def bind_contextvars(**kwargs) -> None:
+    for k, v in kwargs.items():
+        _CONTEXT_VARS[k] = v
+
+
+def clear_contextvars() -> None:
+    global _CONTEXT_VARS
+    _CONTEXT_VARS.clear()
+
+
+def get_logger(name: str) -> ContextAwareAdapter:
+    return ContextAwareAdapter(logger=logging.getLogger(name))
