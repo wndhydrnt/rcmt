@@ -13,11 +13,21 @@ apply the changes across repositories and create pull requests.
   merge them automatically if approved and all checks have passed.
 - **Flexibility** - call third-party APIs or integrate libraries.
 
-## The Task file
+## Quickstart
 
-A Task file tells rcmt which repositories to modify. It is written in Python.
+### Installation
+
+```shell
+pipx install rcmt
+```
+
+### The Task file
+
+A Task file tells rcmt which repositories to modify and how to modify them.
+It is written in Python.
 
 ```python
+# hello-world.py
 from rcmt import Task, Context, register_task
 
 
@@ -51,6 +61,20 @@ https://rcmt.readthedocs.io/get-started/create-a-task/
 
 # Register the task with rcmt so rcmt knows about it.
 register_task(HelloWorld())
+```
+
+### Execute the Task
+
+GitHub
+
+```shell
+RCMT_GITHUB__ACCESS_TOKEN=xxxxx pipx run rcmt run ./hello_world.py
+```
+
+GitLab
+
+```shell
+RCMT_GITLAB__PRIVATE_TOKEN=xxxxx pipx run rcmt run ./hello_world.py
 ```
 
 ## What's next
