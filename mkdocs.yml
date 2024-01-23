@@ -23,9 +23,11 @@ nav:
       - reference/filters.md
       - reference/actions.md
       - reference/unittest.md
+      - reference/cli.md
   - contributing.md
 markdown_extensions:
   - admonition
+  - mkdocs-click
   - pymdownx.details
   - pymdownx.highlight:
       anchor_linenums: true

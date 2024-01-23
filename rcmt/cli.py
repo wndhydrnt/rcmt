@@ -20,16 +20,21 @@ run_help = """Apply a Task to all matching repositories of a remote Git host.
 rcmt will find all matching repositories, clone them, apply each Action from
 the Task file and create a pull request if files have changed.
 
-Examples:
+Examples
+
+Apply Task "task.py".
 
 \b
-# Apply Task "task.py"
+```
 rcmt run --config ./config.yaml ./task.py
+```
+
+Apply Task "task.py" to a single repository.
 
 \b
-# Apply Task "task.py" to a single repository
+```
 rcmt run --config ./config.yaml --repository github.com/wndhydrnt/rcmt-test ./task.py
-
+```
 """
 
 
@@ -74,25 +79,34 @@ Note: Code in module scope of a Task will be executed during validation. A Task 
 with the following content will print "Hello" when validated:
 
 \b
+```
 print("Hello")
 with Task(name="example") as task:
     # Add filters/actions here
+```
 
+Examples
 
-
-Examples:
+Validate a single Task file.
 
 \b
-# Validate a single Task file
+```
 rcmt validate task.py
+```
+
+Validate multiple Task files.
 
 \b
-# Validate multiple Task files
+```
 rcmt validate task1.py task2.py
+```
+
+Validate all Task files in a directory.
 
 \b
-# Validate all Task files in a directory
+```
 rcmt validate tasks/*.py
+```
 """
 
 
@@ -114,22 +128,31 @@ pull request.
 Each execution of "verify" restores the cloned repository to a clean state before
 applying Actions.
 
-Examples:
+Examples
+
+Verify that Filters and Actions in task.py work for the repository "github.com/wndhydrnt/rcmt".
 
 \b
-# Verify that Filters and Actions in task.py work for the repository "github.com/wndhydrnt/rcmt"
+```
 rcmt verify task.py gitlab.com/wandhydrant/rcmt-test
+```
 
 Note: rcmt needs to query the API of a Source, like GitHub or GitLab, to execute the
 Task.
 
-\b
-# Supply a GitHub Access Token
-RCMT_GITHUB__ACCESS_TOKEN=xxx rcmt verify task.py github.com/wndhydrnt/rcmt
+Supply a GitHub Access Token.
 
 \b
-# Supply a configuration file that contains an access token
+```
+RCMT_GITHUB__ACCESS_TOKEN=xxx rcmt verify task.py github.com/wndhydrnt/rcmt
+```
+
+Supply a configuration file that contains an access token.
+
+\b
+```
 rcmt verify --config config.yaml task.py gitlab.com/wandhydrant/rcmt-test
+```
 """
 
 

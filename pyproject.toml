@@ -57,6 +57,7 @@ optional = true
 [tool.poetry.group.docs.dependencies]
 mkdocs-material = "^9.4.0"
 mkdocstrings = {version = "^0.24.0", extras = ["python"]}
+mkdocs-click = "^0.8.1"
 
 [tool.poetry.group.dev.dependencies]
 black = "23.12.1"
