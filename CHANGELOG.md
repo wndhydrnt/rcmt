@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.30.1](https://github.com/wndhydrnt/rcmt/compare/v0.30.0...v0.30.1) (2024-03-28)
+
+
+### Bug Fixes
+
+* **deps:** update dependency alembic to v1.13.1 ([#494](https://github.com/wndhydrnt/rcmt/issues/494)) ([d556758](https://github.com/wndhydrnt/rcmt/commit/d556758e0e3ca284fec28da2ee4827afa2629884))
+* **deps:** update dependency colorlog to v6.8.2 ([#517](https://github.com/wndhydrnt/rcmt/issues/517)) ([82ecb02](https://github.com/wndhydrnt/rcmt/commit/82ecb027ebe5d4334b38230182b4c09ffc3d9a17))
+* **deps:** update dependency gitpython to v3.1.41 ([#508](https://github.com/wndhydrnt/rcmt/issues/508)) ([2d813ad](https://github.com/wndhydrnt/rcmt/commit/2d813ad64972f3ba7d548ffec01f28490c0ac250))
+* **deps:** update dependency gitpython to v3.1.42 ([#528](https://github.com/wndhydrnt/rcmt/issues/528)) ([3cafb31](https://github.com/wndhydrnt/rcmt/commit/3cafb3174872d62e81465420ac32cd498cab9405))
+* **deps:** update dependency greenlet to v3.0.3 ([#497](https://github.com/wndhydrnt/rcmt/issues/497)) ([205326d](https://github.com/wndhydrnt/rcmt/commit/205326d55e22017fec7cd8708d22f89f8dd0e454))
+* **deps:** update dependency jinja2 to v3.1.3 ([#509](https://github.com/wndhydrnt/rcmt/issues/509)) ([931c59d](https://github.com/wndhydrnt/rcmt/commit/931c59d6e90d3da08009304dfe2df33defd8dd98))
+* **deps:** update dependency prometheus-client to ^0.20.0 ([#527](https://github.com/wndhydrnt/rcmt/issues/527)) ([3ed17c6](https://github.com/wndhydrnt/rcmt/commit/3ed17c62afd86af5fd892b15e86e93c64aa93c00))
+* **deps:** update dependency pydantic to v2.5.3 ([#498](https://github.com/wndhydrnt/rcmt/issues/498)) ([5f7cd4d](https://github.com/wndhydrnt/rcmt/commit/5f7cd4d50eb4f8c8e13f1471d521c66e110b6cfe))
+* **deps:** update dependency pydantic to v2.6.0 ([#519](https://github.com/wndhydrnt/rcmt/issues/519)) ([07de8ef](https://github.com/wndhydrnt/rcmt/commit/07de8efd0be183cd8422d216f38d2b91eab1628b))
+* **deps:** update dependency pydantic to v2.6.2 ([#532](https://github.com/wndhydrnt/rcmt/issues/532)) ([e39732f](https://github.com/wndhydrnt/rcmt/commit/e39732fb6b53eb20a41941d7e9b419bcc75b3f08))
+* **deps:** update dependency pydantic to v2.6.4 ([#539](https://github.com/wndhydrnt/rcmt/issues/539)) ([a1c02d5](https://github.com/wndhydrnt/rcmt/commit/a1c02d55c23a6d8963de904ec769099cac8ad91c))
+* **deps:** update dependency pydantic-settings to v2.2.0 ([#529](https://github.com/wndhydrnt/rcmt/issues/529)) ([4947fcc](https://github.com/wndhydrnt/rcmt/commit/4947fccef4bb3d378a9c39934323fca7f100380e))
+* **deps:** update dependency pygithub to v2.2.0 ([#520](https://github.com/wndhydrnt/rcmt/issues/520)) ([b1b66c9](https://github.com/wndhydrnt/rcmt/commit/b1b66c98bf999be905741c497c8a39b817a42d19))
+* **deps:** update dependency python-gitlab to &gt;=4.3,&lt;4.4 ([#502](https://github.com/wndhydrnt/rcmt/issues/502)) ([1fd5a04](https://github.com/wndhydrnt/rcmt/commit/1fd5a046c19497c07bc360b2afc9411f589f672f))
+* **deps:** update dependency python-gitlab to &gt;=4.4,&lt;4.5 ([#512](https://github.com/wndhydrnt/rcmt/issues/512)) ([1913ee3](https://github.com/wndhydrnt/rcmt/commit/1913ee3937e005112769081949be843192b70b86))
+* **deps:** update dependency python-slugify to v8.0.2 ([#516](https://github.com/wndhydrnt/rcmt/issues/516)) ([90d4959](https://github.com/wndhydrnt/rcmt/commit/90d4959b9c8722f54b9688c3a5a1565da36be0e3))
+* **deps:** update dependency python-slugify to v8.0.4 ([#523](https://github.com/wndhydrnt/rcmt/issues/523)) ([d6afc49](https://github.com/wndhydrnt/rcmt/commit/d6afc497de60b61b68e409486ec6232a9151389a))
+* **deps:** update dependency sqlalchemy to v2.0.24 ([#503](https://github.com/wndhydrnt/rcmt/issues/503)) ([b134760](https://github.com/wndhydrnt/rcmt/commit/b1347601d960fb4344c4b3ad9eb66a5fd86a3bdb))
+* **deps:** update dependency sqlalchemy to v2.0.26 ([#526](https://github.com/wndhydrnt/rcmt/issues/526)) ([9429d40](https://github.com/wndhydrnt/rcmt/commit/9429d40a426a6a1c7a68ec38181ef55d106ed3ce))
+* **deps:** update dependency sqlalchemy to v2.0.28 ([#537](https://github.com/wndhydrnt/rcmt/issues/537)) ([5f309c1](https://github.com/wndhydrnt/rcmt/commit/5f309c19197d2d6e73ff84aecbb7eabd02b7153b))
+* **deps:** update dependency structlog to &gt;=23.3,&lt;23.4 ([#505](https://github.com/wndhydrnt/rcmt/issues/505)) ([afa6150](https://github.com/wndhydrnt/rcmt/commit/afa6150fad842dc4cbf37826b8765b0744573059))
+
+
+### Documentation
+
+* Add reference of CLI commands ([759ecc7](https://github.com/wndhydrnt/rcmt/commit/759ecc7890dd3b06322ad333b249a9f2e6e6fec3))
+* Add section "Quickstart" to index/README ([98e460b](https://github.com/wndhydrnt/rcmt/commit/98e460b40cc66745a26937b6b2e208e9cec84163))
+
 ## [0.30.0](https://github.com/wndhydrnt/rcmt/compare/v0.29.0...v0.30.0) (2023-12-23)
 
 
