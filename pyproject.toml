@@ -69,7 +69,7 @@ types-PyYAML = "^6.0.12"
 flake8 = "^7.0.0"
 types-python-slugify = "^7.0.0.1"
 types-requests = "^2.31.0.10"
-deptry = "^0.14.0"
+deptry = "^0.15.0"
 
 [tool.poetry.scripts]
 rcmt = "rcmt.cli:main"
