@@ -39,7 +39,7 @@ PyGithub = "^2.0.0"
 GitPython = "^3.1.18"
 pydantic = "^2.2.1"
 click = "^8.0.1"
-python-gitlab = ">=4.5,<4.6"
+python-gitlab = ">=4.6,<4.7"
 humanize = "^4.2.3"
 python-slugify = ">=7,<9"
 sqlalchemy = {extras = ["mypy"], version = ">=1.4.44,<3.0.0"}
