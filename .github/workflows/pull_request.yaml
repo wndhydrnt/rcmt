@@ -8,7 +8,7 @@ jobs:
     name: Validate documentation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -19,7 +19,7 @@ jobs:
     name: Ensure all files contain MPL 2.0 header
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
       - uses: apache/skywalking-eyes/header@3ea9df11bb3a5a85665377d1fd10c02edecf2c40
   test:
     name: Unit Tests
@@ -28,7 +28,7 @@ jobs:
       matrix:
         version: ["3.9", "3.10", "3.11", "3.12"]
     steps:
-      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.version }}
