@@ -60,7 +60,7 @@ mkdocstrings = {version = "^0.25.0", extras = ["python"]}
 mkdocs-click = "^0.8.1"
 
 [tool.poetry.group.dev.dependencies]
-black = "23.12.1"
+black = "24.4.2"
 isort = "5.13.2"
 pytest = "^7.2.1"
 mypy = "1.10.1"
