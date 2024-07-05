@@ -1444,13 +1444,13 @@ cli = ["click (>=5.0)"]
 
 [[package]]
 name = "python-gitlab"
-version = "4.6.0"
+version = "4.7.0"
 description = "A python wrapper for the GitLab API"
 optional = false
 python-versions = ">=3.8.0"
 files = [
-    {file = "python_gitlab-4.6.0-py3-none-any.whl", hash = "sha256:b22e54344706851815ae5395f5f8f6503f9d3ef180e99ac9fc2ea66f59912a56"},
-    {file = "python_gitlab-4.6.0.tar.gz", hash = "sha256:b56ae363890374caede853ef552e92c41551d605800de1c64ba61bcf25f237b0"},
+    {file = "python_gitlab-4.7.0-py3-none-any.whl", hash = "sha256:03f194aa9f538087d141eb5ee6a7d95dc06c8c021ca3c7a116abdf9cae656b12"},
+    {file = "python_gitlab-4.7.0.tar.gz", hash = "sha256:b798cddbd9d166b79571e6d6c97542978d0a395de57169c7097d09210a766a6d"},
 ]
 
 [package.dependencies]
@@ -2043,4 +2043,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "b8358b435af1a6ed7419ad8c1179472d98867b2969c84c10546c205322f9146b"
+content-hash = "a0aa2a3c5269da86a7002801563eaf73cfc9e074d93ddfd176ca84a68b4f7b6e"
