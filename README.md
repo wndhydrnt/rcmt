@@ -1,7 +1,7 @@
 # Deprecated
 
 This application isn't maintained anymore.
-Please use its successor [saturn-bot](github.com/wndhydrnt/saturn-bot).
+Please use its successor [saturn-bot](https://github.com/wndhydrnt/saturn-bot).
 
 # rcmt
 
