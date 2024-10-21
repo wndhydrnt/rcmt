@@ -1,3 +1,8 @@
+# Deprecated
+
+This application isn't maintained anymore.
+Please use its successor [saturn-bot](github.com/wndhydrnt/saturn-bot).
+
 # rcmt
 
 <div align="center">
